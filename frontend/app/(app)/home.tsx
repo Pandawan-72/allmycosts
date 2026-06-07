@@ -165,6 +165,9 @@ export default function Home() {
           <Text style={styles.brand}>All My Costs</Text>
         </View>
         <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
+            <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
+          </TouchableOpacity>
           <TouchableOpacity testID="export-pdf-button" onPress={exportPdf} style={styles.iconBtn}>
             <Icons.FileDown color={theme.text} size={20} strokeWidth={2} />
           </TouchableOpacity>

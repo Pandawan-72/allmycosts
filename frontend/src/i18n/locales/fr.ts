@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "Soit environ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Statistiques", subtitle: "Vos abonnements par catégorie.",
+    helper: "Tous les montants sont convertis vers votre devise principale.",
+    breakdown: "Répartition", categoriesCount: "catégorie(s)",
+    lockedTitle: "Pro requis", lockedDesc: "Passez Pro pour débloquer les statistiques détaillées.",
+    tipTitle: "Bon à savoir", tipText: "Vous dépensez {{amount}} par an en abonnements ({{currency}}).",
+  },
   categories: {
     video: "Vidéo & Streaming", music: "Musique", banking: "Banque & Finance",
     software: "Logiciels", gaming: "Jeux vidéo", fitness: "Sport & Fitness",

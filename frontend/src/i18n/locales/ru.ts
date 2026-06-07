@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "≈ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Статистика", subtitle: "Подписки по категориям.",
+    helper: "Все суммы пересчитаны в вашу основную валюту.",
+    breakdown: "Разбивка", categoriesCount: "категорий",
+    lockedTitle: "Нужен Pro", lockedDesc: "Получите Pro, чтобы открыть подробную статистику.",
+    tipTitle: "Полезно знать", tipText: "Вы тратите {{amount}} в год на подписки ({{currency}}).",
+  },
   categories: {
     video: "Видео и стриминг", music: "Музыка", banking: "Банк и финансы",
     software: "ПО", gaming: "Игры", fitness: "Спорт и фитнес",

@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "≈ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Estatísticas", subtitle: "Suas assinaturas por categoria.",
+    helper: "Valores convertidos para sua moeda principal.",
+    breakdown: "Distribuição", categoriesCount: "categoria(s)",
+    lockedTitle: "Pro necessário", lockedDesc: "Vire Pro para desbloquear as estatísticas.",
+    tipTitle: "Bom saber", tipText: "Você gasta {{amount}} por ano em assinaturas ({{currency}}).",
+  },
   categories: {
     video: "Vídeo & Streaming", music: "Música", banking: "Banco & Finanças",
     software: "Software", gaming: "Jogos", fitness: "Esporte & Fitness",

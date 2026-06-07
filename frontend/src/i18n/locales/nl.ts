@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "≈ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Statistieken", subtitle: "Je abo's per categorie.",
+    helper: "Alle bedragen in je hoofdvaluta.",
+    breakdown: "Verdeling", categoriesCount: "categorie(ën)",
+    lockedTitle: "Pro nodig", lockedDesc: "Ga Pro voor gedetailleerde statistieken.",
+    tipTitle: "Goed om te weten", tipText: "Je geeft {{amount}} per jaar uit aan abonnementen ({{currency}}).",
+  },
   categories: {
     video: "Video & Streaming", music: "Muziek", banking: "Bank & Financiën",
     software: "Software", gaming: "Games", fitness: "Sport & Fitness",

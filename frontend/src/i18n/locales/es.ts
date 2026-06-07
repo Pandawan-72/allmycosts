@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "≈ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Estadísticas", subtitle: "Tus suscripciones por categoría.",
+    helper: "Importes convertidos a tu moneda principal.",
+    breakdown: "Desglose", categoriesCount: "categoría(s)",
+    lockedTitle: "Pro requerido", lockedDesc: "Hazte Pro para desbloquear las estadísticas.",
+    tipTitle: "Bueno saberlo", tipText: "Gastas {{amount}} al año en suscripciones ({{currency}}).",
+  },
   categories: {
     video: "Vídeo y Streaming", music: "Música", banking: "Banca y Finanzas",
     software: "Software", gaming: "Videojuegos", fitness: "Deporte y Fitness",

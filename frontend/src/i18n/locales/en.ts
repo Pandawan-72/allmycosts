@@ -72,6 +72,13 @@ const COMMON = {
     inLocal: "≈ {{amount}}",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
+  stats: {
+    title: "Stats", subtitle: "Your subscriptions by category.",
+    helper: "All amounts converted to your base currency.",
+    breakdown: "Breakdown", categoriesCount: "categorie(s)",
+    lockedTitle: "Pro required", lockedDesc: "Go Pro to unlock detailed stats.",
+    tipTitle: "Good to know", tipText: "You spend {{amount}} per year on subscriptions ({{currency}}).",
+  },
   categories: {
     video: "Video & Streaming", music: "Music", banking: "Banking & Finance",
     software: "Software", gaming: "Gaming", fitness: "Sport & Fitness",
