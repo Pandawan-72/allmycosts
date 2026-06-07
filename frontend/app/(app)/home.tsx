@@ -58,6 +58,28 @@ export default function Home() {
   })();
   const showPaywallGate = !isPro;
 
+  /**
+   * ============================================================================
+   *  CANONICAL PDF EXPORT — LOCKED AS OF 2025-06-15
+   * ----------------------------------------------------------------------------
+   *  This template was validated by the user and MUST NOT be altered unless they
+   *  explicitly request a layout change. The locked structure is:
+   *    1. Header: logo + "All My Costs" + user name (NO Stats/PDF/Settings icons,
+   *       NO date in the top corner)
+   *    2. Two totals cards side-by-side: TOTAL MENSUEL (light) + TOTAL ANNUEL
+   *       (dark, green value)
+   *    3. "Détail des abonnements" table — one row per subscription, columns:
+   *       name + category (colored dot, NO app icon) | Monthly | Annual
+   *    4. "Répartition par catégorie" — SVG donut chart + legend (amount + %)
+   *    5. Footer: "Généré le <date>" + "Devise : <code>"
+   *
+   *  WEB rendering MUST use the iframe + window.print() trick below so the
+   *  browser prints THIS HTML and not the current home page. Do NOT remove that
+   *  branch.
+   *
+   *  Reference snapshot: /app/memory/pdf_template_locked.md
+   * ============================================================================
+   */
   const exportPdf = async () => {
     if (!isPro) {
       router.push("/(app)/paywall");

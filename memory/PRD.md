@@ -22,6 +22,12 @@ Mobile app (iOS + Android, Expo) to track every subscription, see total monthly/
 - Privacy Policy + Terms of Service available in all 8 languages, accessible via Settings → About.
 - Editor: **Retro-Spare** (France) · Contact: **contact@retro-spare.fr**
 
+## PDF Export — LOCKED 🔒
+- The PDF layout has been validated by the user on 2025-06-15 and is **frozen**.
+- Full spec + reference snapshot: `memory/pdf_template_locked.md` + `memory/pdf_template_locked_sample.html`.
+- Code: `frontend/app/(app)/home.tsx` (function `exportPdf`, header banner marks the section as locked).
+- Future agents MUST NOT change the PDF layout unless the user explicitly asks for a redesign.
+
 ## Free tier limitations
 - Max 3 subscriptions
 - PDF export locked
