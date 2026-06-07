@@ -107,9 +107,25 @@ export default function Home() {
       </body></html>`;
 
     try {
-      const { uri } = await Print.printToFileAsync({ html });
+      const { uri } = await Print.printToFileAsync({
+        html,
+        base64: false,
+        useMarkupFormatter: true,
+      });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exporter le PDF" });
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          UTI: "com.adobe.pdf",
+          dialogTitle: "All My Costs — Export PDF",
+        });
+      } else if (Platform.OS === "web") {
+        // Web fallback: trigger a download
+        if (typeof window !== "undefined") {
+          const a = document.createElement("a");
+          a.href = uri;
+          a.download = `all-my-costs-${new Date().toISOString().slice(0, 10)}.pdf`;
+          a.click();
+        }
       } else {
         Alert.alert("PDF généré", uri);
       }
