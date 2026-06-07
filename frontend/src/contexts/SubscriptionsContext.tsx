@@ -14,6 +14,7 @@ export type Subscription = {
   currency: string;
   cycle: BillingCycle;
   categoryId: string;
+  dueDate?: string | null; // ISO YYYY-MM-DD
   createdAt: string;
 };
 

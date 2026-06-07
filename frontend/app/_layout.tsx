@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
+import "@/src/i18n";
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { SubscriptionsProvider } from "@/src/contexts/SubscriptionsContext";
+import { LanguageProvider } from "@/src/contexts/LanguageContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,12 +25,14 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <SubscriptionsProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F9FAFB" } }} />
-        </SubscriptionsProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <SubscriptionsProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F9FAFB" } }} />
+          </SubscriptionsProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }

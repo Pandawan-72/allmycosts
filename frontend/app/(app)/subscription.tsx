@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
 
 import { theme } from "@/src/theme";
+import { confirmAction } from "@/src/utils/confirm";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { DEFAULT_CATEGORIES, Category } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
@@ -30,6 +31,7 @@ export default function SubscriptionForm() {
   const [currency, setCurrency] = useState(existing?.currency || baseCurrency);
   const [cycle, setCycle] = useState<"monthly" | "yearly">(existing?.cycle || "monthly");
   const [categoryId, setCategoryId] = useState(existing?.categoryId || "video");
+  const [dueDate, setDueDate] = useState<string>(existing?.dueDate || "");
   const [err, setErr] = useState<string | null>(null);
 
   const [showCurrency, setShowCurrency] = useState(false);
@@ -45,7 +47,10 @@ export default function SubscriptionForm() {
     if (!name.trim()) return setErr("Nom requis.");
     const price = parseFloat(priceStr.replace(",", "."));
     if (isNaN(price) || price < 0) return setErr("Prix invalide.");
-    const payload = { name: name.trim(), price, currency, cycle, categoryId };
+    const cleanDate = dueDate.trim();
+    const dateOk = !cleanDate || /^\d{4}-\d{2}-\d{2}$/.test(cleanDate);
+    if (!dateOk) return setErr("Date invalide. Format YYYY-MM-DD attendu.");
+    const payload = { name: name.trim(), price, currency, cycle, categoryId, dueDate: cleanDate || null };
     if (isEdit && existing) {
       await updateSubscription(existing.id, payload);
     } else {
@@ -56,7 +61,7 @@ export default function SubscriptionForm() {
 
   const onDelete = () => {
     if (!existing) return;
-    Alert.alert("Supprimer", `Supprimer "${existing.name}" ?`, [
+    confirmAction("Supprimer", `Supprimer "${existing.name}" ?`, [
       { text: "Annuler", style: "cancel" },
       {
         text: "Supprimer",
@@ -138,6 +143,17 @@ export default function SubscriptionForm() {
             ))}
           </View>
 
+          <Text style={[styles.label, { marginTop: 18 }]}>Date de prochain paiement (optionnel)</Text>
+          <TextInput
+            testID="sub-duedate-input"
+            value={dueDate}
+            onChangeText={setDueDate}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={theme.textSubtle}
+            style={styles.input}
+            autoCapitalize="none"
+          />
+
           <Text style={[styles.label, { marginTop: 18 }]}>Catégorie</Text>
           <View style={styles.catGrid}>
             {allCats.map((cat) => {
@@ -210,7 +226,7 @@ export default function SubscriptionForm() {
             <Text style={styles.headerTitle}>Nouvelle catégorie</Text>
             <View style={styles.headerBtn} />
           </View>
-          <ScrollView contentContainerStyle={{ padding: 20 }}>
+          <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 80, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
             <Text style={styles.label}>Nom</Text>
             <TextInput
               testID="custom-cat-name-input"

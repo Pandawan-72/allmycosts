@@ -66,14 +66,14 @@ class TestAuthRegister:
 
 class TestAuthLogin:
     def test_login_seeded_user(self, session):
-        r = session.post(f"{API}/auth/login", json={"email": "test1@allmycosts.app", "password": "secret123"})
+        r = session.post(f"{API}/auth/login", json={"email": "test2@allmycosts.app", "password": "secret123"})
         assert r.status_code == 200, r.text
         data = r.json()
         assert "token" in data
-        assert data["user"]["email"] == "test1@allmycosts.app"
+        assert data["user"]["email"] == "test2@allmycosts.app"
 
     def test_login_wrong_password(self, session):
-        r = session.post(f"{API}/auth/login", json={"email": "test1@allmycosts.app", "password": "WRONGwrong"})
+        r = session.post(f"{API}/auth/login", json={"email": "test2@allmycosts.app", "password": "WRONGwrong"})
         assert r.status_code == 401
 
     def test_login_unknown_email(self, session):

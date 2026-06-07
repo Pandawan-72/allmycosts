@@ -1,0 +1,57 @@
+{
+  "summary": "Iteration 2 testing of All My Costs (Expo + FastAPI) — v2 features: 48h auto-trial, paywall (Stripe stub), i18n (8 langs), FX, optional dueDate, free-tier gate. Backend pytest: 27/27 PASS (100%) — pricing endpoint, auto-trial on register, /auth/me returns pro, Stripe /checkout (stub) for all 3 plans, Stripe /confirm-stub upgrades to lifetime/monthly/yearly. Frontend mobile-web preview verified end-to-end: sign-in renders 'All My Costs' + coin logo; sign-up auto-creates a 48h trial; /home shows trial-banner; paywall shows 3 plans with MOST POPULAR + Save 33% badges and prices 2,99/1,99/69 €; buy-lifetime in stub mode flips user to lifetime and trial-banner disappears; export-pdf works on trialing/pro user (no /paywall redirect); subscription add with category-pill-video + dueDate works; i18n switch FR↔EN updates Settings ('Paramètres' ↔ 'Settings') and home ('Mensuel' ↔ 'Monthly'); base currency change to USD updates home hero ('0,00 $' and 'abonnement en USD'). TWO BUGS FOUND: (1) logout-button STILL no-op on RN Web (Alert.alert bug carried over from iter1 — main agent did not fix); (2) Free-tier gate does NOT trigger for trialing users — a newly-registered (auto-trial) user can add unlimited subscriptions and the 4th FAB tap opens /subscription instead of redirecting to /(app)/paywall. The spec explicitly requires the 4th tap on a new user to go to /paywall.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "app/(app)/settings.tsx — onLogout",
+        "issue": "REGRESSION FROM ITER1: Tapping logout-button does nothing on RN Web. The Alert.alert button onPress callback is never invoked, so AuthContext.logout() and router.replace('/(auth)/sign-in') never run. User stays on /settings indefinitely. Reproduced: test2@allmycosts.app → settings → logout-button → URL remains /settings, signin-submit-button not shown.",
+        "testID": "logout-button",
+        "priority": "HIGH"
+      },
+      {
+        "component": "app/(app)/home.tsx — add-subscription-button (FAB) free-tier gate",
+        "issue": "Free-tier gate misses trialing users. Spec: 'register a new user, add 3 subscriptions, the 4th FAB tap must navigate to /(app)/paywall'. Actual: a new user lands in trialing (pro.plan='trialing', is_pro=true) and the gate likely checks plan==='free' only, so 4th FAB tap opens the /subscription form instead of /paywall. Either change the gate predicate to `plan==='free' || plan==='trialing'` (matches advertised behavior) OR explicitly document that trial users have unlimited subs. Reproduced with TEST_gate_f8ec9749@allmycosts.app after adding Netflix/Spotify/Disney → 4th tap → /subscription, no paywall.",
+        "testID": "add-subscription-button",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "global", "issues": ["Console warnings still present (not fixed since iter1): 'shadow*' style props deprecated (use boxShadow), 'props.pointerEvents is deprecated'. Non-blocking."]}
+    ],
+    "react_native_issues": [
+      {"component": "Alert.alert (logout) — app/(app)/settings.tsx", "issue": "Alert.alert button onPress callbacks are no-ops on React Native Web (Expo web preview). Use Platform.OS==='web' ? window.confirm(...) : Alert.alert(...), or a cross-platform <Modal>. Reference: /app/frontend/app/(app)/settings.tsx onLogout handler. Still present in iter2."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_pricing_and_pro.py (new)",
+    "/app/backend/tests/test_auth_api.py (updated seed email test1→test2)",
+    "/app/test_reports/pytest/iteration_2.xml"
+  ],
+  "action_items": [
+    "FIX (HIGH): Replace Alert.alert in app/(app)/settings.tsx onLogout with Platform-aware confirm. Suggested: if Platform.OS==='web' do { if(!window.confirm('Confirmer la déconnexion?')) return; await logout(); router.replace('/(auth)/sign-in'); } else Alert.alert(...).",
+    "FIX (HIGH): Free-tier gate in app/(app)/home.tsx FAB handler — extend the limit check to include trialing users (plan==='trialing') OR clarify product behavior. Currently new users bypass the 3-sub limit entirely while on the auto-trial.",
+    "OPTIONAL: Migrate shadow*/pointerEvents style props to boxShadow / style.pointerEvents to silence RN 0.79+ deprecation warnings."
+  ],
+  "critical_code_review_comments": [
+    "server.py: pricing/stripe additions are clean (~470 lines). PLAN_PRICES_EUR constants match spec (299/2388/6900 cents). Stub mode (`sk_test_emergent`) gracefully returns {stub:true,url} so UI flow is testable without real Stripe key. /stripe/confirm-stub is correctly guarded (403 if a real key is configured) — fine for current preview env, MUST be removed/disabled before production.",
+    "ensure_trial_started() is dead code: register() now sets trial inline, and login() calls it but the user is created via /register which already has has_used_trial=true → branch never updates. Minor; harmless.",
+    "settings.tsx: Alert.alert anti-pattern unchanged since iter1 — still blocking web logout.",
+    "home.tsx FAB gate: predicate likely `pro.plan==='free'` (not 'trialing'), creating the gate gap reported above.",
+    "All interactive elements continue to expose testID — excellent for automation."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_pricing_and_pro.py (new — 12 tests, all passing)",
+    "/app/backend/tests/test_auth_api.py (fixed stale seed email test1→test2)"
+  ],
+  "success_rate": {
+    "backend": "100% (27/27 — pricing + trial + Stripe stub + auth regression all green)",
+    "frontend": "~85% (11/13 flows pass; logout broken on web, free-tier gate doesn't trigger for trialing users)"
+  },
+  "seed_data_creation": "Created ephemeral users TEST_ui_*, TEST_gate_*, TEST_pro_*, TEST_sub_* via UI/API during testing — left in DB (TEST_-prefixed, harmless).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend suites: /app/backend/tests/test_auth_api.py (auth regression) + /app/backend/tests/test_pricing_and_pro.py (pricing/trial/Stripe). Run with `EXPO_PUBLIC_BACKEND_URL=https://subscription-tracker-43.preview.emergentagent.com pytest /app/backend/tests/ -v`. Two confirmed open frontend bugs: (1) logout no-op via Alert.alert on web (iter1 carryover) and (2) free-tier gate doesn't apply to trialing users (4th sub does not route to /paywall). After main agent's fixes, re-test ONLY: logout (login as test2@allmycosts.app, settings, tap logout-button, expect /sign-in) and FAB gate (register new user, add 3 subs, 4th tap → /paywall).",
+  "rca_of_issue": "BUG1 (logout): app/(app)/settings.tsx uses RN Alert.alert with onPress callbacks for confirmation. Alert.alert is polyfilled on react-native-web but the button-array onPress callbacks are not triggered — clicking logout-button just dismisses the alert with no side-effect. Repro: login test2@allmycosts.app → settings-button → logout-button → URL stays /settings. Mitigation: Platform.OS==='web' ? window.confirm(...) : Alert.alert(...). BUG2 (free-tier gate): a new user is created with pro.plan='trialing'/is_pro=true, so the home-screen FAB handler that checks only `pro.plan==='free'` skips the limit. Either also gate on 'trialing' (probably what spec intends) or update spec to say 'gate kicks in after trial expiry'. Repro: register fresh email → add 3 subs → tap FAB → opens /subscription form, NOT /paywall."
+}

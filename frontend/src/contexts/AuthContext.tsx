@@ -10,6 +10,13 @@ export type AuthUser = {
   email: string;
   provider: string;
   picture?: string | null;
+  pro: {
+    plan: "free" | "trialing" | "active_monthly" | "active_yearly" | "lifetime" | "expired";
+    is_pro: boolean;
+    trial_end?: string | null;
+    current_period_end?: string | null;
+    has_used_trial: boolean;
+  };
 };
 
 type AuthState = {
@@ -20,6 +27,7 @@ type AuthState = {
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogleSession: (sessionId: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -97,8 +105,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const me = await apiGet("/auth/me", token);
+      setUser(me as AuthUser);
+    } catch {}
+  }, [token]);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogleSession, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogleSession, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

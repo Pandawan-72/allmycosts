@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
@@ -12,6 +12,11 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { findCategory, DEFAULT_CATEGORIES } from "@/src/data/categories";
 import { findCurrency, formatAmount } from "@/src/data/currencies";
+import { useFxRatesEUR } from "@/src/hooks/useFxRates";
+import { confirmAction } from "@/src/utils/confirm";
+import { useTranslation } from "react-i18next";
+
+const FREE_SUB_LIMIT = 3;
 
 function CatIcon({ name, color, size = 22 }: { name: string; color: string; size?: number }) {
   const Cmp = (Icons as any)[name] || (Icons as any).Tag;
@@ -20,17 +25,42 @@ function CatIcon({ name, color, size = 22 }: { name: string; color: string; size
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, customCategories, baseCurrency, monthlyTotal, yearlyTotal, deleteSubscription } = useSubscriptions();
+  const { subscriptions, customCategories, baseCurrency, deleteSubscription } = useSubscriptions();
+  const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
 
   const allCats = useMemo(() => [...DEFAULT_CATEGORIES, ...customCategories], [customCategories]);
   const totalsCurrency = findCurrency(baseCurrency);
+
+  // Convert all subscriptions to base currency via FX rates
+  const totals = useMemo(() => {
+    let m = 0;
+    for (const s of subscriptions) {
+      const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+      const conv = convert(monthly, s.currency, baseCurrency);
+      m += conv;
+    }
+    return { monthly: m, yearly: m * 12 };
+  }, [subscriptions, baseCurrency, convert]);
+
+  const monthlyTotal = totals.monthly;
+  const yearlyTotal = totals.yearly;
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
+
+  const isPro = !!user?.pro?.is_pro;
+  const trialHoursLeft = (() => {
+    const te = user?.pro?.trial_end;
+    if (!te || user?.pro?.plan !== "trialing") return 0;
+    return Math.max(0, Math.ceil((new Date(te).getTime() - Date.now()) / 3600000));
+  })();
+  const showPaywallGate = !isPro;
 
   const exportPdf = async () => {
     if (subscriptions.length === 0) {
-      Alert.alert("Aucun abonnement", "Ajoutez d'abord des abonnements pour exporter un PDF.");
+      if (Platform.OS === "web") window.alert("Ajoutez d'abord des abonnements pour exporter un PDF.");
+      else Alert.alert("Aucun abonnement", "Ajoutez d'abord des abonnements pour exporter un PDF.");
       return;
     }
     const rows = subscriptions
@@ -83,7 +113,8 @@ export default function Home() {
         Alert.alert("PDF généré", uri);
       }
     } catch (e: any) {
-      Alert.alert("Erreur", e?.message || "Impossible de générer le PDF.");
+      if (Platform.OS === "web") window.alert(e?.message || "Impossible de générer le PDF.");
+      else Alert.alert("Erreur", e?.message || "Impossible de générer le PDF.");
     }
   };
 
@@ -95,9 +126,8 @@ export default function Home() {
         testID={`subscription-item-${item.name}`}
         onPress={() => router.push({ pathname: "/(app)/subscription", params: { id: item.id } })}
         onLongPress={() =>
-          Alert.alert(item.name, "Que voulez-vous faire ?", [
+          confirmAction(item.name, "Supprimer cet abonnement ?", [
             { text: "Annuler", style: "cancel" },
-            { text: "Modifier", onPress: () => router.push({ pathname: "/(app)/subscription", params: { id: item.id } }) },
             { text: "Supprimer", style: "destructive", onPress: () => deleteSubscription(item.id) },
           ])
         }
@@ -142,6 +172,20 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20 }}
         ListHeaderComponent={
           <View>
+            {user?.pro?.plan === "trialing" && trialHoursLeft > 0 ? (
+              <TouchableOpacity testID="trial-banner" onPress={() => router.push("/(app)/paywall")} style={styles.trialBanner}>
+                <Icons.Sparkles color={theme.accent} size={16} />
+                <Text style={styles.trialBannerText}>{t("home.trialBanner", { hours: trialHoursLeft })}</Text>
+                <Icons.ChevronRight color={theme.accent} size={16} />
+              </TouchableOpacity>
+            ) : null}
+            {(user?.pro?.plan === "expired" || (user?.pro?.plan === "free" && user?.pro?.has_used_trial)) ? (
+              <TouchableOpacity testID="upgrade-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: "#FEF2F2", borderColor: theme.danger }]}>
+                <Icons.AlertCircle color={theme.danger} size={16} />
+                <Text style={[styles.trialBannerText, { color: theme.danger }]}>{t("home.trialEnded")}</Text>
+                <Text style={{ color: theme.danger, fontWeight: "800" }}>{t("home.upgrade")}</Text>
+              </TouchableOpacity>
+            ) : null}
             <View style={styles.heroCard}>
               <View style={styles.heroToggle}>
                 <TouchableOpacity
@@ -149,27 +193,27 @@ export default function Home() {
                   onPress={() => setView("monthly")}
                   style={[styles.toggleBtn, view === "monthly" && styles.toggleBtnActive]}
                 >
-                  <Text style={[styles.toggleText, view === "monthly" && styles.toggleTextActive]}>Mensuel</Text>
+                  <Text style={[styles.toggleText, view === "monthly" && styles.toggleTextActive]}>{t("common.monthly")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   testID="toggle-yearly"
                   onPress={() => setView("yearly")}
                   style={[styles.toggleBtn, view === "yearly" && styles.toggleBtnActive]}
                 >
-                  <Text style={[styles.toggleText, view === "yearly" && styles.toggleTextActive]}>Annuel</Text>
+                  <Text style={[styles.toggleText, view === "yearly" && styles.toggleTextActive]}>{t("common.yearly")}</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.heroLabel}>{view === "monthly" ? "TOTAL MENSUEL" : "TOTAL ANNUEL"}</Text>
+              <Text style={styles.heroLabel}>{view === "monthly" ? t("home.totalMonthly") : t("home.totalYearly")}</Text>
               <Text testID="total-cost-display" style={styles.heroAmount}>
                 {formatAmount(totalAmount, baseCurrency)}
               </Text>
               <Text style={styles.heroHint}>
-                {subscriptions.filter((s) => s.currency === baseCurrency).length} abonnement(s) en {totalsCurrency.code}
+                {t("home.subsCount", { count: subscriptions.length, currency: totalsCurrency.code })}
               </Text>
             </View>
-            <Text style={styles.sectionTitle}>Vos abonnements</Text>
+            <Text style={styles.sectionTitle}>{t("home.yourSubs")}</Text>
             {subscriptions.length === 0 ? (
-              <Text style={styles.empty}>Aucun abonnement pour l&apos;instant. Touchez le bouton + pour en ajouter un.</Text>
+              <Text style={styles.empty}>{t("home.empty")}</Text>
             ) : null}
           </View>
         }
@@ -177,7 +221,13 @@ export default function Home() {
 
       <TouchableOpacity
         testID="add-subscription-button"
-        onPress={() => router.push("/(app)/subscription")}
+        onPress={() => {
+          if (showPaywallGate && subscriptions.length >= FREE_SUB_LIMIT) {
+            router.push("/(app)/paywall");
+          } else {
+            router.push("/(app)/subscription");
+          }
+        }}
         style={styles.fab}
       >
         <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
@@ -230,4 +280,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 6,
   },
+  trialBanner: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: theme.accentSoft, borderColor: theme.accent, borderWidth: 1,
+    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginTop: 8,
+  },
+  trialBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: theme.accent },
 });
