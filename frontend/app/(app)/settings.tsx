@@ -85,6 +85,31 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
+        <Text style={[styles.section, { marginTop: 24 }]}>{t("legal.aboutSection")}</Text>
+        <TouchableOpacity
+          testID="privacy-row"
+          onPress={() => router.push("/(app)/privacy")}
+          style={styles.row}
+        >
+          <View style={styles.rowIcon}><Icons.ShieldCheck color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("legal.privacyTitle")}</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          testID="terms-row"
+          onPress={() => router.push("/(app)/terms")}
+          style={[styles.row, { marginTop: 10 }]}
+        >
+          <View style={styles.rowIcon}><Icons.FileText color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("legal.termsTitle")}</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
         <TouchableOpacity testID="logout-button" onPress={onLogout} style={[styles.row, { marginTop: 20 }]}>
           <View style={[styles.rowIcon, { backgroundColor: "#FEE2E2" }]}>
             <Icons.LogOut color={theme.danger} size={18} />

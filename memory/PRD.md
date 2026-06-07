@@ -16,6 +16,11 @@ Mobile app (iOS + Android, Expo) to track every subscription, see total monthly/
 - Yearly: **1.99 €/month** equivalent (billed **23.88 €/year** once) — "Le plus populaire" + "Économisez 33 %" badges
 - Lifetime: **69 € one-time**
 - All prices billed in EUR via Stripe Checkout; display auto-converted to user's local currency via daily FX (open.er-api.com).
+- **MIGRATION IN PROGRESS** — Replace Stripe with RevenueCat (iOS IAP + Google Play Billing) to be policy-compliant. Stripe code will be fully removed once RevenueCat keys are provided.
+
+## Legal
+- Privacy Policy + Terms of Service available in all 8 languages, accessible via Settings → About.
+- Editor: **Retro-Spare** (France) · Contact: **contact@retro-spare.fr**
 
 ## Free tier limitations
 - Max 3 subscriptions
