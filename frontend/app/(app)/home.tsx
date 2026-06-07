@@ -161,10 +161,8 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
+        <View style={styles.headerBrandRow}>
           <BrandLogo size={36} />
-        </View>
-        <View style={styles.headerCenter} pointerEvents="none">
           <Text
             style={styles.brand}
             numberOfLines={1}
@@ -175,7 +173,7 @@ export default function Home() {
             All My Costs
           </Text>
         </View>
-        <View style={styles.headerRight}>
+        <View style={styles.headerActionsRow}>
           <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
             <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
           </TouchableOpacity>
@@ -267,15 +265,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8,
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
   },
-  headerLeft: { flexDirection: "row", alignItems: "center" },
-  headerCenter: {
-    position: "absolute", left: 0, right: 0, top: 0, bottom: 0,
-    alignItems: "center", justifyContent: "center",
+  headerBrandRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
   },
-  headerRight: { flexDirection: "row", gap: 8 },
-  brand: { fontSize: 18, fontWeight: "800", color: theme.text, letterSpacing: -0.3, textAlign: "center", maxWidth: "55%" },
+  headerActionsRow: {
+    flexDirection: "row", justifyContent: "flex-end", gap: 8, marginTop: 10,
+  },
+  brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },
   iconBtn: {
     width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
     backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
