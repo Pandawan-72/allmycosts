@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -12,15 +12,36 @@ import { confirmAction } from "@/src/utils/confirm";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
+import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
+
+const API = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function Settings() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, token, logout, refreshUser } = useAuth();
   const { baseCurrency, setBaseCurrency } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  const onRestore = async () => {
+    if (restoring) return;
+    setRestoring(true);
+    try {
+      if (isRevenueCatSupported()) {
+        await restorePurchasesRC();
+        await fetch(`${API}/api/revenuecat/sync`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+      await refreshUser();
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   const proLabel = (() => {
     const p = user?.pro?.plan;
@@ -86,10 +107,26 @@ export default function Settings() {
         </TouchableOpacity>
 
         <Text style={[styles.section, { marginTop: 24 }]}>{t("legal.aboutSection")}</Text>
+
+        <TouchableOpacity
+          testID="restore-row"
+          onPress={onRestore}
+          disabled={restoring}
+          style={styles.row}
+        >
+          <View style={styles.rowIcon}>
+            {restoring ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.RotateCcw color={theme.text} size={18} />}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("paywall.restore")}</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
         <TouchableOpacity
           testID="privacy-row"
           onPress={() => router.push("/(app)/privacy")}
-          style={styles.row}
+          style={[styles.row, { marginTop: 10 }]}
         >
           <View style={styles.rowIcon}><Icons.ShieldCheck color={theme.text} size={18} /></View>
           <View style={{ flex: 1 }}>

@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 3 — backend-only verification of the Stripe → RevenueCat refactor for All My Costs. Wrote /app/backend/tests/test_revenuecat_refactor.py covering all 6 areas from the request and ran it against the public preview URL. Result: 23/23 PASS (100%). Auth regression intact (register creates trialing user with has_used_trial=true and is_pro=true; login OK; wrong password 401; /auth/me returns full UserOut with pro). /api/revenuecat/sync (auth-gated) returns UserOut and, when called for a brand-new user with no purchases, correctly keeps plan='trialing' (backend logs confirm it hits /v2/projects then /v2/projects/{id}/customers/{user}/active_entitlements and treats 404 as 'no entitlement'). /api/webhooks/revenuecat returns 401 without auth or with wrong token, 200/'ok' with the correct Bearer rc_webhook_allmycosts_b7f3d2e1a9c4 token, and 200/'ignored' when event.app_user_id is missing; malformed (non-JSON) body does not crash (returns 200 invalid_payload). /api/dev/grant-pro upgrades the user to lifetime / active_monthly (~31d cpe) / active_yearly (~366d cpe) and the change is visible on a subsequent /api/auth/me. Stripe endpoints fully removed: /api/stripe/checkout, /api/stripe/webhook and /api/stripe/confirm-stub all return 404. /api/pricing unchanged (prices_eur.monthly/yearly/lifetime present, trial_hours=48). No critical or minor backend issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_revenuecat_refactor.py",
+    "/app/test_reports/pytest/iteration_3.xml"
+  ],
+  "action_items": [
+    "Frontend was NOT tested per request scope (RevenueCat IAP only works on native dev builds, not the web preview). When main agent is ready to validate the native flow, run a dev-build smoke test of: paywall → buy monthly → /api/revenuecat/sync → user.pro.plan becomes active_monthly. The backend mapping logic already handles V2 active_entitlements payloads (year/annual product_identifier → active_yearly; no expires_date → lifetime).",
+    "Open frontend bugs carried from iter2 are still NOT verified in this iteration (logout no-op on web via Alert.alert, free-tier gate not triggering for trialing users). Confirm those are addressed in a future iteration.",
+    "Optional minor cleanup: ensure_trial_started() helper is now dead code (register inlines trial creation and login only ever sees has_used_trial=true users created by /register). Safe to delete or to use as a single-source-of-truth helper called from /register too.",
+    "Optional: the dev/grant-pro endpoint is an unauthenticated bypass for web testing (any logged-in user can grant themselves lifetime pro). Document that it MUST be removed or feature-flagged before production release."
+  ],
+  "critical_code_review_comments": [
+    "server.py (511 lines) is clean — Stripe removed, RevenueCat V2 path correctly implemented with project-id auto-discovery and a V1 fallback that the .env's V2-only sk_ key will 403 on (expected, logged as warning, not raised).",
+    "_apply_revenuecat_state maps V2 active_entitlements payload via the V1-shaped subscriber dict — solid. Lifetime is correctly inferred when expires_date is None (non-consumable).",
+    "Webhook endpoint correctly guards on REVENUECAT_WEBHOOK_AUTH presence (skips check if empty) — that branch is fine for dev but production must always set the env var. Currently set ✓.",
+    "compute_pro() correctly distinguishes trialing-but-not-yet-expired vs expired vs active_monthly/yearly with cpe in the past — well covered.",
+    "Email lower-casing on /auth/register is enforced (line 207) — test had to compare case-insensitively. Good security hygiene.",
+    "All env vars (MONGO_URL, DB_NAME, JWT_SECRET) loaded with os.environ[...] (fail-fast). REVENUECAT_* loaded with .get(default) which means the service still boots if RC creds are missing — webhook then becomes unauthenticated (REVENUECAT_WEBHOOK_AUTH='' → check skipped). Consider raising on empty REVENUECAT_WEBHOOK_AUTH in non-dev environments."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_revenuecat_refactor.py (new — 23 tests, all passing)"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23)",
+    "frontend": "not tested (out of scope this iteration)"
+  },
+  "seed_data_creation": "Created ~7 ephemeral TEST_rc_*@allmycosts.app and TEST_reg_*@allmycosts.app users in MongoDB via /api/auth/register during the run. All are TEST_-prefixed and harmless.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend RevenueCat refactor is fully validated. Re-run with: `EXPO_PUBLIC_BACKEND_URL=https://subscription-tracker-43.preview.emergentagent.com pytest /app/backend/tests/test_revenuecat_refactor.py -v`. Note: /app/backend/tests/test_pricing_and_pro.py from iter2 references the removed Stripe endpoints and will fail if rerun — main agent may want to delete it or align it with the RevenueCat flow. Webhook token: `rc_webhook_allmycosts_b7f3d2e1a9c4`. RevenueCat V2 project ID auto-discovered as `projdc9a4da5` and customer endpoint returns 404 for users with no purchases (handled as 'no entitlement', kept on trialing).",
+  "rca_of_issue": "N/A — no bugs found in this iteration."
+}

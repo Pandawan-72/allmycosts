@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
 import * as Icons from "lucide-react-native";
 
 import { theme } from "@/src/theme";
@@ -12,12 +10,19 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
 import { findCurrency } from "@/src/data/currencies";
+import {
+  configureRC,
+  fetchOfferingPackages,
+  isRevenueCatSupported,
+  purchaseRCPackage,
+  restorePurchasesRC,
+  RCPackageInfo,
+  RCPlan,
+} from "@/src/lib/revenuecat";
 
 const API = process.env.EXPO_PUBLIC_BACKEND_URL;
 const EUR_PRICES = { monthly: 2.99, yearly: 23.88, lifetime: 69 };
 const YEARLY_MONTHLY_EQUIV = 1.99;
-
-type Plan = "monthly" | "yearly" | "lifetime";
 
 function format(amount: number, code: string) {
   return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${findCurrency(code).symbol}`;
@@ -29,8 +34,22 @@ export default function Paywall() {
   const { user, token, refreshUser } = useAuth();
   const { baseCurrency } = useSubscriptions();
   const { convertFromEur } = useFxRatesEUR();
-  const [busy, setBusy] = useState<Plan | null>(null);
+  const [busy, setBusy] = useState<RCPlan | null>(null);
+  const [restoring, setRestoring] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [packages, setPackages] = useState<RCPackageInfo[]>([]);
+
+  // Configure RC + fetch offerings (native only)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!isRevenueCatSupported() || !user?.user_id) return;
+      await configureRC(user.user_id);
+      const pkgs = await fetchOfferingPackages();
+      if (!cancelled) setPackages(pkgs);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.user_id]);
 
   const trialHoursLeft = (() => {
     const te = user?.pro?.trial_end;
@@ -38,50 +57,65 @@ export default function Paywall() {
     return Math.max(0, Math.ceil((new Date(te).getTime() - Date.now()) / 3600000));
   })();
 
-  const localEur = (plan: Plan) => format(EUR_PRICES[plan], "EUR");
+  const localEur = (plan: RCPlan) => format(EUR_PRICES[plan], "EUR");
   const localConverted = (eur: number) => baseCurrency === "EUR" ? null : format(convertFromEur(eur, baseCurrency), baseCurrency);
 
-  const start = async (plan: Plan) => {
+  const findPackageByPlan = (plan: RCPlan): RCPackageInfo | null => {
+    return packages.find((p) => p.plan === plan) || null;
+  };
+
+  const onPurchase = async (plan: RCPlan) => {
     setErr(null);
     setBusy(plan);
     try {
-      const successUrl = Platform.OS === "web"
-        ? `${window.location.origin}/pay-return?plan=${plan}`
-        : Linking.createURL(`/pay-return?plan=${plan}`);
-      const cancelUrl = Platform.OS === "web"
-        ? `${window.location.origin}/(app)/paywall`
-        : Linking.createURL(`/(app)/paywall`);
-
-      const res = await fetch(`${API}/api/stripe/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan, success_url: successUrl, cancel_url: cancelUrl }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.detail || "Erreur paiement");
-
-      if (data.stub) {
-        // Test/stub mode: confirm directly via helper endpoint
-        await fetch(`${API}/api/stripe/confirm-stub`, {
+      if (isRevenueCatSupported()) {
+        const pkg = findPackageByPlan(plan);
+        if (!pkg) {
+          throw new Error("Cette offre n'est pas encore configurée dans le store.");
+        }
+        const res = await purchaseRCPackage(pkg.rcPackage);
+        if (res.userCancelled) return;
+        // Tell backend to sync via RevenueCat REST
+        await fetch(`${API}/api/revenuecat/sync`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+        await refreshUser();
+        router.replace("/(app)/home");
+      } else {
+        // Web fallback — dev/admin grant
+        const r = await fetch(`${API}/api/dev/grant-pro`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ plan }),
         });
+        if (!r.ok) throw new Error((await r.json())?.detail || "Erreur");
         await refreshUser();
         router.replace("/(app)/home");
-        return;
-      }
-
-      if (Platform.OS === "web") {
-        window.location.href = data.url;
-      } else {
-        await WebBrowser.openAuthSessionAsync(data.url, successUrl);
-        await refreshUser();
       }
     } catch (e: any) {
       setErr(e?.message || "Erreur");
     } finally {
       setBusy(null);
+    }
+  };
+
+  const onRestore = async () => {
+    setErr(null);
+    setRestoring(true);
+    try {
+      if (isRevenueCatSupported()) {
+        await restorePurchasesRC();
+        await fetch(`${API}/api/revenuecat/sync`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+      await refreshUser();
+    } catch (e: any) {
+      setErr(e?.message || "Erreur");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -94,7 +128,9 @@ export default function Paywall() {
           <Icons.X color={theme.text} size={22} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("paywall.title")}</Text>
-        <View style={styles.headerBtn} />
+        <TouchableOpacity testID="restore-purchases" onPress={onRestore} style={styles.headerBtn} disabled={restoring}>
+          {restoring ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.RotateCcw color={theme.text} size={20} />}
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
@@ -138,7 +174,7 @@ export default function Paywall() {
           </View>
           <Text style={styles.planDescDark}>{t("paywall.yearlyDesc", { price: localEur("yearly") })}</Text>
           {localConverted(EUR_PRICES.yearly) ? <Text style={styles.planFxDark}>{t("paywall.inLocal", { amount: localConverted(EUR_PRICES.yearly) })}</Text> : null}
-          <TouchableOpacity testID="buy-yearly" onPress={() => start("yearly")} disabled={!!busy}
+          <TouchableOpacity testID="buy-yearly" onPress={() => onPurchase("yearly")} disabled={!!busy}
             style={[styles.planBtn, { backgroundColor: theme.accent }]}>
             {busy === "yearly" ? <ActivityIndicator color="#fff" /> :
               <Text style={[styles.planBtnText, { color: "#fff" }]}>{t("paywall.chooseYearly")}</Text>}
@@ -154,7 +190,7 @@ export default function Paywall() {
           </View>
           <Text style={styles.planDesc}>{t("paywall.monthlyDesc")}</Text>
           {localConverted(EUR_PRICES.monthly) ? <Text style={styles.planFx}>{t("paywall.inLocal", { amount: localConverted(EUR_PRICES.monthly) })}</Text> : null}
-          <TouchableOpacity testID="buy-monthly" onPress={() => start("monthly")} disabled={!!busy} style={styles.planBtn}>
+          <TouchableOpacity testID="buy-monthly" onPress={() => onPurchase("monthly")} disabled={!!busy} style={styles.planBtn}>
             {busy === "monthly" ? <ActivityIndicator color={theme.text} /> :
               <Text style={styles.planBtnText}>{t("paywall.chooseMonthly")}</Text>}
           </TouchableOpacity>
@@ -169,7 +205,7 @@ export default function Paywall() {
           </View>
           <Text style={styles.planDesc}>{t("paywall.lifetimeDesc")}</Text>
           {localConverted(EUR_PRICES.lifetime) ? <Text style={styles.planFx}>{t("paywall.inLocal", { amount: localConverted(EUR_PRICES.lifetime) })}</Text> : null}
-          <TouchableOpacity testID="buy-lifetime" onPress={() => start("lifetime")} disabled={!!busy} style={styles.planBtn}>
+          <TouchableOpacity testID="buy-lifetime" onPress={() => onPurchase("lifetime")} disabled={!!busy} style={styles.planBtn}>
             {busy === "lifetime" ? <ActivityIndicator color={theme.text} /> :
               <Text style={styles.planBtnText}>{t("paywall.chooseLifetime")}</Text>}
           </TouchableOpacity>
@@ -177,7 +213,13 @@ export default function Paywall() {
 
         {err ? <Text testID="paywall-error" style={{ color: theme.danger, textAlign: "center", marginTop: 16 }}>{err}</Text> : null}
 
-        <Text style={styles.note}>{t("paywall.restoreNote")}</Text>
+        <TouchableOpacity testID="restore-link" onPress={onRestore} disabled={restoring} style={{ marginTop: 14, alignSelf: "center" }}>
+          <Text style={{ color: theme.textMuted, fontSize: 13, fontWeight: "700", textDecorationLine: "underline" }}>
+            {t("paywall.restore")}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.note}>{Platform.OS === "web" ? t("paywall.webNote") : t("paywall.storeNote")}</Text>
         {baseCurrency !== "EUR" ? <Text style={styles.note}>{t("paywall.inFxNote")}</Text> : null}
       </ScrollView>
     </SafeAreaView>

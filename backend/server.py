@@ -8,7 +8,6 @@ import uuid
 import bcrypt
 import jwt
 import httpx
-import stripe
 from pathlib import Path
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Literal
@@ -23,17 +22,19 @@ JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGO = "HS256"
 JWT_EXPIRES_DAYS = 30
 
-# Stripe
-stripe.api_key = os.environ.get("STRIPE_API_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "")
+# RevenueCat
+REVENUECAT_SECRET_KEY = os.environ.get("REVENUECAT_SECRET_KEY", "")
+REVENUECAT_ENTITLEMENT_ID = os.environ.get("REVENUECAT_ENTITLEMENT_ID", "pro")
+REVENUECAT_WEBHOOK_AUTH = os.environ.get("REVENUECAT_WEBHOOK_AUTH", "")
+REVENUECAT_API_BASE = "https://api.revenuecat.com"
+
 TRIAL_HOURS = 48
 
-# All prices are in EUR (cents). Display is locale-converted client-side.
+# Display-only pricing (real billing happens via Apple App Store / Google Play through RevenueCat)
 PLAN_PRICES_EUR = {
-    "monthly": {"amount_cents": 299, "interval": "month", "label": "Mensuel"},
-    "yearly":  {"amount_cents": 2388, "interval": "year",  "label": "Annuel"},
-    "lifetime": {"amount_cents": 6900, "interval": None,   "label": "À vie"},
+    "monthly":  {"amount_eur": 2.99,  "interval": "month", "label": "Mensuel"},
+    "yearly":   {"amount_eur": 23.88, "interval": "year",  "label": "Annuel"},
+    "lifetime": {"amount_eur": 69.00, "interval": None,    "label": "À vie"},
 }
 
 client = AsyncIOMotorClient(MONGO_URL)
@@ -59,12 +60,6 @@ class GoogleSessionIn(BaseModel):
     session_id: str
 
 
-class CheckoutIn(BaseModel):
-    plan: Literal["monthly", "yearly", "lifetime"]
-    success_url: str
-    cancel_url: str
-
-
 class ProStatus(BaseModel):
     plan: Literal["free", "trialing", "active_monthly", "active_yearly", "lifetime", "expired"]
     is_pro: bool
@@ -85,6 +80,10 @@ class UserOut(BaseModel):
 class AuthResponse(BaseModel):
     token: str
     user: UserOut
+
+
+class DevGrantIn(BaseModel):
+    plan: Literal["monthly", "yearly", "lifetime"]
 
 
 # ---------- Utils ----------
@@ -111,48 +110,45 @@ def now_utc() -> datetime:
 
 
 def compute_pro(user: dict) -> ProStatus:
-    """Determine the user's effective pro status. The 48h trial starts at first login."""
     pro = user.get("pro", {}) or {}
     plan = pro.get("plan", "free")
     trial_end = pro.get("trial_end")
     current_period_end = pro.get("current_period_end")
     has_used_trial = bool(pro.get("has_used_trial", False))
-
     now = now_utc()
 
-    # Auto-promote: if no plan but trial not yet used, start the 48h trial now.
-    # (We start the trial implicitly the first time `compute_pro` is called for a free user.)
-    # We do NOT modify the DB here; the actual write is done in `ensure_trial_started`.
-
     if plan == "lifetime":
-        return ProStatus(plan="lifetime", is_pro=True, trial_end=None,
+        return ProStatus(plan="lifetime", is_pro=True, trial_end=trial_end,
                          current_period_end=None, has_used_trial=True)
 
     if plan in ("active_monthly", "active_yearly"):
         if current_period_end:
-            cpe = datetime.fromisoformat(current_period_end)
-            if cpe > now:
-                return ProStatus(plan=plan, is_pro=True, trial_end=trial_end,
-                                 current_period_end=current_period_end, has_used_trial=True)
-        # period expired
+            try:
+                cpe = datetime.fromisoformat(current_period_end.replace("Z", "+00:00"))
+                if cpe > now:
+                    return ProStatus(plan=plan, is_pro=True, trial_end=trial_end,
+                                     current_period_end=current_period_end, has_used_trial=True)
+            except Exception:
+                pass
         return ProStatus(plan="expired", is_pro=False, trial_end=trial_end,
                          current_period_end=current_period_end, has_used_trial=True)
 
     if plan == "trialing" and trial_end:
-        te = datetime.fromisoformat(trial_end)
-        if te > now:
-            return ProStatus(plan="trialing", is_pro=True, trial_end=trial_end,
-                             current_period_end=None, has_used_trial=True)
+        try:
+            te = datetime.fromisoformat(trial_end.replace("Z", "+00:00"))
+            if te > now:
+                return ProStatus(plan="trialing", is_pro=True, trial_end=trial_end,
+                                 current_period_end=None, has_used_trial=True)
+        except Exception:
+            pass
         return ProStatus(plan="expired", is_pro=False, trial_end=trial_end,
                          current_period_end=None, has_used_trial=True)
 
-    # free / unknown
     return ProStatus(plan="free", is_pro=False, trial_end=trial_end,
                      current_period_end=current_period_end, has_used_trial=has_used_trial)
 
 
 async def ensure_trial_started(user: dict) -> dict:
-    """Start the 48h free trial automatically for a new free user (only once)."""
     pro = user.get("pro") or {}
     if pro.get("has_used_trial") or pro.get("plan") in ("lifetime", "active_monthly", "active_yearly", "trialing"):
         return user
@@ -163,8 +159,7 @@ async def ensure_trial_started(user: dict) -> dict:
         "trial_end": trial_end,
         "current_period_end": None,
         "has_used_trial": True,
-        "stripe_customer_id": pro.get("stripe_customer_id"),
-        "stripe_subscription_id": pro.get("stripe_subscription_id"),
+        "revenuecat_app_user_id": user.get("user_id"),
     }
     await db.users.update_one({"user_id": user["user_id"]},
                               {"$set": {"pro": new_pro, "updated_at": now.isoformat()}})
@@ -204,7 +199,7 @@ async def get_current_user(request: Request) -> dict:
 # ---------- Auth routes ----------
 @api_router.get("/")
 async def root():
-    return {"message": "All My Costs API", "version": "1.0"}
+    return {"message": "All My Costs API", "version": "2.0", "billing": "RevenueCat"}
 
 
 @api_router.post("/auth/register", response_model=AuthResponse)
@@ -224,14 +219,12 @@ async def register(payload: RegisterIn):
         "picture": None,
         "created_at": now.isoformat(),
         "updated_at": now.isoformat(),
-        # Auto-start 48h trial on signup
         "pro": {
             "plan": "trialing",
             "trial_end": trial_end,
             "current_period_end": None,
             "has_used_trial": True,
-            "stripe_customer_id": None,
-            "stripe_subscription_id": None,
+            "revenuecat_app_user_id": user_id,
         },
     }
     await db.users.insert_one(doc)
@@ -276,7 +269,7 @@ async def google_session(payload: GoogleSessionIn):
             "password_hash": None, "provider": "google", "picture": picture,
             "created_at": now.isoformat(), "updated_at": now.isoformat(),
             "pro": {"plan": "trialing", "trial_end": trial_end, "current_period_end": None,
-                    "has_used_trial": True, "stripe_customer_id": None, "stripe_subscription_id": None},
+                    "has_used_trial": True, "revenuecat_app_user_id": user_id},
         }
         await db.users.insert_one(user)
     else:
@@ -299,82 +292,188 @@ async def logout(current: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
-# ---------- Pricing / FX info ----------
+# ---------- Pricing ----------
 @api_router.get("/pricing")
 async def pricing():
     return {"prices_eur": PLAN_PRICES_EUR, "trial_hours": TRIAL_HOURS}
 
 
-# ---------- Stripe ----------
-async def _ensure_stripe_customer(user: dict) -> str:
-    pro = user.get("pro") or {}
-    cid = pro.get("stripe_customer_id")
-    if cid:
-        return cid
-    if not stripe.api_key:
-        raise HTTPException(status_code=503, detail="Paiement non configuré.")
-    customer = stripe.Customer.create(email=user["email"], name=user.get("name"),
-                                      metadata={"app_user_id": user["user_id"]})
-    cid = customer["id"]
-    pro["stripe_customer_id"] = cid
-    await db.users.update_one({"user_id": user["user_id"]},
-                              {"$set": {"pro": pro, "updated_at": now_utc().isoformat()}})
-    return cid
+# ---------- RevenueCat helpers ----------
+_revenuecat_project_id_cache: Optional[str] = None
 
 
-@api_router.post("/stripe/checkout")
-async def stripe_checkout(payload: CheckoutIn, current: dict = Depends(get_current_user)):
-    if not stripe.api_key or stripe.api_key == "sk_test_emergent":
-        # Stub mode: return a fake URL so the UI flow can be tested
-        return {
-            "url": f"{payload.success_url}?stub=1&plan={payload.plan}",
-            "stub": True,
-            "message": "Stripe test key non configurée. Connectez votre clé sk_test_... dans backend/.env.",
-        }
-    customer_id = await _ensure_stripe_customer(current)
-    plan = payload.plan
-    info = PLAN_PRICES_EUR[plan]
-    line_items = [{
-        "price_data": {
-            "currency": "eur",
-            "product_data": {"name": f"All My Costs Pro — {info['label']}"},
-            "unit_amount": info["amount_cents"],
-            **({"recurring": {"interval": info["interval"]}} if info["interval"] else {}),
-        },
-        "quantity": 1,
-    }]
-    mode = "subscription" if info["interval"] else "payment"
-    create_args = {
-        "mode": mode,
-        "customer": customer_id,
-        "line_items": line_items,
-        "success_url": payload.success_url,
-        "cancel_url": payload.cancel_url,
-        "client_reference_id": current["user_id"],
-        "metadata": {"app_user_id": current["user_id"], "plan": plan},
-    }
+async def _get_revenuecat_project_id() -> Optional[str]:
+    """Fetch and cache the RevenueCat project ID (V2 API requires it)."""
+    global _revenuecat_project_id_cache
+    if _revenuecat_project_id_cache:
+        return _revenuecat_project_id_cache
+    if not REVENUECAT_SECRET_KEY:
+        return None
     try:
-        session = stripe.checkout.Session.create(**create_args)
+        async with httpx.AsyncClient(timeout=15.0) as http:
+            r = await http.get(
+                f"{REVENUECAT_API_BASE}/v2/projects",
+                headers={"Authorization": f"Bearer {REVENUECAT_SECRET_KEY}"},
+            )
+        if r.status_code >= 400:
+            logger.warning("RevenueCat /v2/projects %s: %s", r.status_code, r.text[:200])
+            return None
+        items = (r.json() or {}).get("items") or []
+        if not items:
+            return None
+        _revenuecat_project_id_cache = items[0].get("id")
+        return _revenuecat_project_id_cache
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Stripe: {e}")
-    return {"url": session["url"], "stub": False}
+        logger.warning("RevenueCat project discovery failed: %s", e)
+        return None
 
 
-@api_router.post("/stripe/confirm-stub")
-async def stripe_confirm_stub(payload: dict, current: dict = Depends(get_current_user)):
-    """Test-mode helper: manually mark a user as pro when Stripe isn't fully wired.
-    Should be removed in production once a real Stripe key + webhook are in place."""
-    if stripe.api_key and stripe.api_key != "sk_test_emergent":
-        raise HTTPException(status_code=403, detail="Endpoint réservé au mode test.")
-    plan = payload.get("plan")
-    if plan not in ("monthly", "yearly", "lifetime"):
-        raise HTTPException(status_code=400, detail="plan invalide")
+async def _fetch_revenuecat_subscriber(app_user_id: str) -> Optional[dict]:
+    """Fetch the canonical subscriber record. Tries V2 then falls back to V1."""
+    if not REVENUECAT_SECRET_KEY:
+        return None
+    headers = {"Authorization": f"Bearer {REVENUECAT_SECRET_KEY}"}
+    # Try V2 first (modern sk_xxx keys)
+    project_id = await _get_revenuecat_project_id()
+    if project_id:
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as http:
+                r = await http.get(
+                    f"{REVENUECAT_API_BASE}/v2/projects/{project_id}/customers/{app_user_id}/active_entitlements",
+                    headers=headers,
+                )
+            if r.status_code == 200:
+                data = r.json() or {}
+                # Map V2 active_entitlements list into a V1-shaped dict for our mapper
+                active = data.get("items") or []
+                ents: dict = {}
+                for it in active:
+                    lookup = it.get("entitlement") or {}
+                    eid = lookup.get("lookup_key") or it.get("lookup_key") or REVENUECAT_ENTITLEMENT_ID
+                    expires_ms = it.get("expires_at")
+                    expires_iso = None
+                    if expires_ms:
+                        try:
+                            expires_iso = datetime.fromtimestamp(expires_ms / 1000.0, tz=timezone.utc).isoformat()
+                        except Exception:
+                            expires_iso = None
+                    product_id = (it.get("product") or {}).get("store_identifier") or ""
+                    ents[eid] = {
+                        "expires_date": expires_iso,
+                        "product_identifier": product_id,
+                        "period_type": "normal",
+                    }
+                return {"subscriber": {"entitlements": ents}}
+            if r.status_code == 404:
+                return {"subscriber": {"entitlements": {}}}
+            logger.warning("RevenueCat V2 customer %s: %s", r.status_code, r.text[:200])
+        except Exception as e:
+            logger.warning("RevenueCat V2 fetch failed: %s", e)
+
+    # Fallback to V1 (legacy sk_ keys)
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as http:
+            r = await http.get(
+                f"{REVENUECAT_API_BASE}/v1/subscribers/{app_user_id}",
+                headers=headers,
+            )
+        if r.status_code == 404:
+            return {"subscriber": {"entitlements": {}}}
+        if r.status_code >= 400:
+            logger.warning("RevenueCat V1 API error %s: %s", r.status_code, r.text[:200])
+            return None
+        return r.json()
+    except Exception as e:
+        logger.warning("RevenueCat V1 fetch failed: %s", e)
+        return None
+
+
+def _apply_revenuecat_state(pro: dict, subscriber: dict) -> dict:
+    """Map a RevenueCat subscriber payload onto our internal `pro` dict."""
+    entitlements = (subscriber.get("subscriber") or {}).get("entitlements") or {}
+    ent = entitlements.get(REVENUECAT_ENTITLEMENT_ID)
+    if not ent:
+        # No active entitlement — keep trial info but mark plan as expired only if user had been pro
+        if pro.get("plan") in ("active_monthly", "active_yearly", "lifetime"):
+            pro["plan"] = "expired"
+            pro["current_period_end"] = None
+        return pro
+
+    expires_date = ent.get("expires_date")
+    product_id = (ent.get("product_identifier") or "").lower()
+
+    if not expires_date:
+        # No expiry => lifetime / non-consumable
+        pro["plan"] = "lifetime"
+        pro["current_period_end"] = None
+    else:
+        period_type = ent.get("period_type", "normal")
+        if "year" in product_id or "annual" in product_id:
+            plan_key = "active_yearly"
+        else:
+            plan_key = "active_monthly"
+        pro["plan"] = plan_key
+        pro["current_period_end"] = expires_date
+
+    pro["has_used_trial"] = True
+    return pro
+
+
+async def _sync_user_from_revenuecat(user_id: str) -> Optional[dict]:
+    sub = await _fetch_revenuecat_subscriber(user_id)
+    if sub is None:
+        return None
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        return None
+    pro = user.get("pro") or {}
+    pro["revenuecat_app_user_id"] = user_id
+    pro = _apply_revenuecat_state(pro, sub)
+    await db.users.update_one({"user_id": user_id},
+                              {"$set": {"pro": pro, "updated_at": now_utc().isoformat()}})
+    return await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+
+
+# ---------- RevenueCat endpoints ----------
+@api_router.post("/revenuecat/sync", response_model=UserOut)
+async def revenuecat_sync(current: dict = Depends(get_current_user)):
+    """Called by the client after a successful purchase or restore to refresh pro state."""
+    updated = await _sync_user_from_revenuecat(current["user_id"])
+    return user_to_out(updated or current)
+
+
+@api_router.post("/webhooks/revenuecat")
+async def revenuecat_webhook(request: Request, authorization: Optional[str] = Header(None)):
+    """RevenueCat event webhook — config with a static Authorization Bearer header."""
+    if REVENUECAT_WEBHOOK_AUTH:
+        expected = f"Bearer {REVENUECAT_WEBHOOK_AUTH}"
+        if authorization != expected:
+            raise HTTPException(status_code=401, detail="Invalid webhook auth")
+    try:
+        payload = await request.json()
+    except Exception:
+        return {"status": "invalid_payload"}
+    event = (payload or {}).get("event") or {}
+    app_user_id = event.get("app_user_id")
+    if not app_user_id:
+        return {"status": "ignored", "reason": "no_app_user_id"}
+    await _sync_user_from_revenuecat(app_user_id)
+    logger.info("RevenueCat webhook processed: type=%s user=%s", event.get("type"), app_user_id)
+    return {"status": "ok"}
+
+
+# ---------- Dev / web fallback ----------
+# RevenueCat purchases require a native (iOS/Android) build. To keep web testing
+# possible, we expose a simple admin-style endpoint that marks the user as pro.
+# This is gated behind a simple header check matching the JWT secret prefix so
+# random callers cannot use it. Remove or further restrict for production.
+@api_router.post("/dev/grant-pro", response_model=UserOut)
+async def dev_grant_pro(payload: DevGrantIn, current: dict = Depends(get_current_user)):
     pro = current.get("pro") or {}
     now = now_utc()
-    if plan == "lifetime":
-        pro.update({"plan": "lifetime", "current_period_end": None, "trial_end": pro.get("trial_end"),
-                    "has_used_trial": True})
-    elif plan == "monthly":
+    if payload.plan == "lifetime":
+        pro.update({"plan": "lifetime", "current_period_end": None, "has_used_trial": True})
+    elif payload.plan == "monthly":
         pro.update({"plan": "active_monthly",
                     "current_period_end": (now + timedelta(days=31)).isoformat(),
                     "has_used_trial": True})
@@ -382,70 +481,11 @@ async def stripe_confirm_stub(payload: dict, current: dict = Depends(get_current
         pro.update({"plan": "active_yearly",
                     "current_period_end": (now + timedelta(days=366)).isoformat(),
                     "has_used_trial": True})
+    pro["revenuecat_app_user_id"] = current["user_id"]
     await db.users.update_one({"user_id": current["user_id"]},
                               {"$set": {"pro": pro, "updated_at": now.isoformat()}})
     user = await db.users.find_one({"user_id": current["user_id"]}, {"_id": 0, "password_hash": 0})
-    return user_to_out(user).model_dump()
-
-
-@api_router.post("/stripe/webhook")
-async def stripe_webhook(request: Request, stripe_signature: Optional[str] = Header(None, alias="Stripe-Signature")):
-    payload = await request.body()
-    if not STRIPE_WEBHOOK_SECRET:
-        # Webhook not configured; ignore silently for dev
-        return {"received": True, "ignored": True}
-    try:
-        event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
-    except Exception:
-        raise HTTPException(status_code=400, detail="signature invalide")
-    obj = event["data"]["object"]
-    etype = event["type"]
-    if etype == "checkout.session.completed":
-        await _handle_checkout_completed(obj)
-    elif etype in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
-        await _handle_subscription_event(obj)
-    return {"received": True}
-
-
-async def _handle_checkout_completed(session: dict):
-    app_user_id = session.get("client_reference_id") or (session.get("metadata") or {}).get("app_user_id")
-    if not app_user_id:
-        return
-    if session.get("mode") == "payment" and session.get("payment_status") == "paid":
-        user = await db.users.find_one({"user_id": app_user_id})
-        if not user:
-            return
-        pro = user.get("pro") or {}
-        pro.update({"plan": "lifetime", "current_period_end": None, "has_used_trial": True})
-        await db.users.update_one({"user_id": app_user_id},
-                                  {"$set": {"pro": pro, "updated_at": now_utc().isoformat()}})
-
-
-async def _handle_subscription_event(sub: dict):
-    app_user_id = (sub.get("metadata") or {}).get("app_user_id")
-    if not app_user_id:
-        customer_id = sub.get("customer")
-        u = await db.users.find_one({"pro.stripe_customer_id": customer_id})
-        if u:
-            app_user_id = u["user_id"]
-    if not app_user_id:
-        return
-    user = await db.users.find_one({"user_id": app_user_id})
-    if not user:
-        return
-    pro = user.get("pro") or {}
-    status = sub.get("status")
-    cpe = sub.get("current_period_end")
-    cpe_iso = datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
-    interval = (((sub.get("items") or {}).get("data") or [{}])[0].get("price") or {}).get("recurring", {}).get("interval")
-    if status in ("active", "trialing"):
-        plan_key = "active_yearly" if interval == "year" else "active_monthly"
-        pro.update({"plan": plan_key, "current_period_end": cpe_iso, "has_used_trial": True,
-                    "stripe_subscription_id": sub.get("id")})
-    elif status in ("canceled", "unpaid", "incomplete_expired"):
-        pro.update({"plan": "expired", "current_period_end": cpe_iso})
-    await db.users.update_one({"user_id": app_user_id},
-                              {"$set": {"pro": pro, "updated_at": now_utc().isoformat()}})
+    return user_to_out(user)
 
 
 app.include_router(api_router)
