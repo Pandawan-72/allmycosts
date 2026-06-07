@@ -5,8 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/contexts/AuthContext";
 import { theme } from "@/src/theme";
-import { CoinLogo } from "@/src/components/CoinLogo";
-import { BrandLogo } from "@/src/components/BrandLogo";
+import { BrandLockup } from "@/src/components/BrandLockup";
 
 export default function SignUp() {
   const router = useRouter();
@@ -43,8 +42,7 @@ export default function SignUp() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <BrandLogo size={56} />
-            <Text style={styles.brandName}>All My Costs</Text>
+            <BrandLockup height={56} />
           </View>
 
           <Text style={styles.title}>Créer un compte.</Text>
