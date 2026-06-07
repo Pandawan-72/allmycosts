@@ -265,6 +265,39 @@ export default function Home() {
 
       </body></html>`;
 
+    // On web, expo-print's printToFileAsync prints the *current page* via window.print()
+    // — not our custom HTML. We bypass it entirely by rendering our HTML inside a
+    // sandboxed iframe and calling print() on that iframe document.
+    if (Platform.OS === "web" && typeof window !== "undefined" && typeof document !== "undefined") {
+      try {
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "fixed";
+        iframe.style.right = "0";
+        iframe.style.bottom = "0";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "0";
+        iframe.setAttribute("aria-hidden", "true");
+        document.body.appendChild(iframe);
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) throw new Error("iframe doc unavailable");
+        doc.open();
+        doc.write(html);
+        doc.close();
+        // wait for the iframe to layout/render before printing
+        await new Promise<void>((resolve) => setTimeout(resolve, 350));
+        const win = iframe.contentWindow as (Window & { focus: () => void; print: () => void }) | null;
+        if (!win) throw new Error("iframe window unavailable");
+        win.focus();
+        win.print();
+        setTimeout(() => { try { iframe.remove(); } catch { /* noop */ } }, 1500);
+        return;
+      } catch (e: any) {
+        window.alert(e?.message || "Impossible de générer le PDF.");
+        return;
+      }
+    }
+
     try {
       const { uri } = await Print.printToFileAsync({
         html,
@@ -277,20 +310,11 @@ export default function Home() {
           UTI: "com.adobe.pdf",
           dialogTitle: "All My Costs — Export PDF",
         });
-      } else if (Platform.OS === "web") {
-        // Web fallback: trigger a download
-        if (typeof window !== "undefined") {
-          const a = document.createElement("a");
-          a.href = uri;
-          a.download = `all-my-costs-${new Date().toISOString().slice(0, 10)}.pdf`;
-          a.click();
-        }
       } else {
         Alert.alert("PDF généré", uri);
       }
     } catch (e: any) {
-      if (Platform.OS === "web") window.alert(e?.message || "Impossible de générer le PDF.");
-      else Alert.alert("Erreur", e?.message || "Impossible de générer le PDF.");
+      Alert.alert("Erreur", e?.message || "Impossible de générer le PDF.");
     }
   };
 
