@@ -9,6 +9,7 @@ import * as Linking from "expo-linking";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { theme } from "@/src/theme";
 import { CoinLogo } from "@/src/components/CoinLogo";
+import { BrandLogo } from "@/src/components/BrandLogo";
 
 export default function SignIn() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function SignIn() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <CoinLogo size={56} />
+            <BrandLogo size={56} />
             <Text style={styles.brandName}>All My Costs</Text>
           </View>
 

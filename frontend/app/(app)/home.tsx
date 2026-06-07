@@ -7,6 +7,7 @@ import * as Sharing from "expo-sharing";
 
 import * as Icons from "lucide-react-native";
 import { CoinLogo } from "@/src/components/CoinLogo";
+import { BrandLogo } from "@/src/components/BrandLogo";
 import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
@@ -120,7 +121,12 @@ export default function Home() {
 
   const renderItem = ({ item }: any) => {
     const cat = findCategory(item.categoryId, customCategories);
-    const cycleLabel = item.cycle === "monthly" ? "Mensuel" : "Annuel";
+    // Compute the monthly equivalent in the subscription's own currency, then scale to the toggle.
+    const monthlyOwn = item.cycle === "monthly" ? item.price : item.price / 12;
+    const displayOwn = view === "monthly" ? monthlyOwn : monthlyOwn * 12;
+    // Convert to user's base currency for the secondary line.
+    const displayBase = convert(displayOwn, item.currency, baseCurrency);
+    const cycleLabel = view === "monthly" ? t("common.monthly") : t("common.yearly");
     return (
       <TouchableOpacity
         testID={`subscription-item-${item.name}`}
@@ -141,8 +147,11 @@ export default function Home() {
           <Text style={styles.subCat} numberOfLines={1}>{cat.label}</Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.subPrice}>{formatAmount(item.price, item.currency)}</Text>
+          <Text style={styles.subPrice}>{formatAmount(displayOwn, item.currency)}</Text>
           <Text style={styles.subCycle}>{cycleLabel}</Text>
+          {item.currency !== baseCurrency ? (
+            <Text style={styles.subFx}>≈ {formatAmount(displayBase, baseCurrency)}</Text>
+          ) : null}
         </View>
       </TouchableOpacity>
     );
@@ -152,7 +161,7 @@ export default function Home() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <CoinLogo size={36} />
+          <BrandLogo size={36} />
           <Text style={styles.brand}>All My Costs</Text>
         </View>
         <View style={{ flexDirection: "row", gap: 8 }}>
@@ -275,6 +284,7 @@ const styles = StyleSheet.create({
   subCat: { fontSize: 13, color: theme.textMuted, marginTop: 2 },
   subPrice: { fontSize: 16, fontWeight: "800", color: theme.text },
   subCycle: { fontSize: 11, color: theme.textSubtle, marginTop: 2 },
+  subFx: { fontSize: 11, color: theme.textMuted, marginTop: 2, fontStyle: "italic" },
   fab: {
     position: "absolute", right: 20, bottom: 24, width: 60, height: 60, borderRadius: 30,
     backgroundColor: theme.primary, alignItems: "center", justifyContent: "center",
