@@ -1,0 +1,65 @@
+{
+  "summary": "First-run testing of All My Costs (Expo + FastAPI). Backend auth (register/login/me/google/logout) fully tested via pytest — 15/15 PASS (100%). Frontend mobile-web preview verified end-to-end: sign-in renders, sign-up creates user and lands on Home, monthly/yearly toggle, FAB add-subscription (Netflix EUR + Spotify USD with currency picker), custom-category creation, export-pdf-button visible, settings change-currency to EUR, persistence after reload — all PASS. Wrong-password shows signin-error. ONE significant bug: logout-button does nothing on web preview (RN Alert.alert callbacks are no-ops on React Native Web). Persistence verified indirectly (after reload user stayed on /settings, i.e. token persisted).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "app/(app)/settings.tsx — onLogout",
+        "issue": "Logout uses React Native Alert.alert(...) with button onPress. On React Native Web (the preview/PWA platform), Alert.alert button callbacks are NOT invoked — clicking 'Se déconnecter' (testID logout-button) does nothing: no AuthContext.logout(), no router.replace('/(auth)/sign-in'). User remains stuck on /settings. Reproducible 100% in mobile web viewport.",
+        "testID": "logout-button",
+        "priority": "HIGH"
+      },
+      {
+        "component": "app/(app)/subscription.tsx — custom category modal",
+        "issue": "The 'Créer' (create-custom-cat-button) sits below the visible mobile viewport (390x844) when the category modal opens with the form scrolled. It is reachable only by scroll/dispatchEvent. Consider wrapping the custom-cat modal body in a ScrollView or using KeyboardAvoidingView so the create button is always reachable on small phones.",
+        "testID": "create-custom-cat-button",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "global",
+        "issues": [
+          "Console warnings: 'shadow*' style props deprecated (use boxShadow) and 'props.pointerEvents deprecated' — non-blocking but should be migrated."
+        ]
+      }
+    ],
+    "react_native_issues": [
+      {
+        "component": "Alert.alert usage in settings.tsx",
+        "issue": "Alert.alert is not cross-platform for confirmations on RN Web. Replace with a custom Modal-based confirm or Platform.select to use window.confirm on web."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_auth_api.py",
+    "/app/test_reports/pytest/iteration_1.xml"
+  ],
+  "action_items": [
+    "FIX: Replace Alert.alert in /app/frontend/app/(app)/settings.tsx onLogout with a Platform-aware confirm. On web, either skip the confirmation and call await logout() + router.replace('/(auth)/sign-in') directly, or use a <Modal> for the confirm. Without this fix users cannot log out on web/PWA.",
+    "FIX: Ensure create-custom-cat-button (and full custom category form) is wrapped in a ScrollView so it stays reachable on 390x844 viewport.",
+    "OPTIONAL: Migrate deprecated shadow*/pointerEvents style props to boxShadow / style.pointerEvents to remove RN 0.79+ warnings."
+  ],
+  "critical_code_review_comments": [
+    "server.py: clean and small (<230 lines), env vars enforced via os.environ[...] (good — fails fast). bcrypt + JWT HS256 + 30d expiry implemented correctly. Mongo _id excluded in get_current_user projection. CORS allow_origins=['*'] is fine for preview but should be tightened for prod.",
+    "settings.tsx: Alert.alert anti-pattern for cross-platform confirmation (see action items).",
+    "SubscriptionsContext: subscriptions persisted client-side only (AsyncStorage/localStorage) as per product spec — confirmed working; reload preserved state and auth token.",
+    "All interactive elements expose testID — excellent test coverage hooks."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_auth_api.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15)",
+    "frontend": "~92% (12/13 flows fully pass; logout flow broken on web)"
+  },
+  "seed_data_creation": "Did NOT create persistent seed data on backend. Test registrations used TEST_<uuid>@allmycosts.app emails (left in DB; cleanup not required per project guidance — they're prefixed TEST_).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend auth suite is in /app/backend/tests/test_auth_api.py — reuse it. After main agent fixes Alert.alert logout bug, re-run only the logout + post-logout sign-in flow. Custom-category modal scroll fix can be verified by checking create-custom-cat-button is within viewport at 390x844 without scrolling. Persistence works: token is stored in localStorage on web — reload keeps user signed-in.",
+  "rca_of_issue": "Logout bug RCA: settings.tsx onLogout calls Alert.alert('Déconnexion', ..., [{...onPress: async () => { await logout(); router.replace('/(auth)/sign-in'); }}]). On React Native Web, Alert.alert is polyfilled but the buttons-array onPress callbacks are NOT triggered (only the title/message may show in a browser confirm in some implementations; in current expo/RN-web version it's effectively a no-op for callbacks). Repro: login → settings → tap 'Se déconnecter' → nothing happens, URL stays /settings, logout-button still visible. Mitigation: use Platform.OS === 'web' ? window.confirm(...) : Alert.alert(...), or replace with a custom <Modal> confirmation."
+}
