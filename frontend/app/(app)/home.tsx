@@ -51,7 +51,6 @@ export default function Home() {
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
   const isPro = !!user?.pro?.is_pro;
-  const isPaid = ["active_monthly", "active_yearly", "lifetime"].includes(user?.pro?.plan || "");
   const trialHoursLeft = (() => {
     const te = user?.pro?.trial_end;
     if (!te || user?.pro?.plan !== "trialing") return 0;
@@ -270,7 +269,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
   },
   headerActionsRow: {
-    flexDirection: "row", justifyContent: "flex-end", gap: 8, marginTop: 10,
+    flexDirection: "row", justifyContent: "center", gap: 14, marginTop: 12,
   },
   brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },
   iconBtn: {
