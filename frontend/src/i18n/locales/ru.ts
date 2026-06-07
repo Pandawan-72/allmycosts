@@ -66,7 +66,7 @@ const COMMON = {
     lifetimeDesc: "Оплати один раз — пользуйся навсегда",
     chooseMonthly: "Выбрать Месяц", chooseYearly: "Выбрать Год", chooseLifetime: "Купить Навсегда",
     trialEnded: "Ваш 48-часовой пробный период закончился. Выберите план.",
-    inTrial: "Идёт пробный период — осталось {{hours}}ч", restoreNote: "Безопасная оплата через Stripe. Отмена в любой момент.",
+    inTrial: "Идёт пробный период — осталось {{hours}}ч", restoreNote: "Безопасная оплата через Stripe.",
     successTitle: "Добро пожаловать в Pro!", successDesc: "Все функции открыты.",
     inFxNote: "Цены пересчитаны из EUR по курсу. Оплата в EUR.",
     inLocal: "≈ {{amount}}",

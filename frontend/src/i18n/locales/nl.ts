@@ -66,7 +66,7 @@ const COMMON = {
     lifetimeDesc: "Eenmaal betalen, levenslange toegang",
     chooseMonthly: "Kies Maandelijks", chooseYearly: "Kies Jaarlijks", chooseLifetime: "Levenslang kopen",
     trialEnded: "Je gratis proef van 48u is voorbij. Kies een plan om door te gaan.",
-    inTrial: "Gratis proef bezig — nog {{hours}}u", restoreNote: "Veilige betaling via Stripe. Altijd opzegbaar.",
+    inTrial: "Gratis proef bezig — nog {{hours}}u", restoreNote: "Veilige betaling via Stripe.",
     successTitle: "Welkom bij Pro!", successDesc: "Alle functies ontgrendeld.",
     inFxNote: "Prijzen omgerekend vanuit EUR met dagkoers. Afrekening in EUR.",
     inLocal: "≈ {{amount}}",

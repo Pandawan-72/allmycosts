@@ -6,8 +6,6 @@ import * as Icons from "lucide-react-native";
 
 import { theme } from "@/src/theme";
 import { confirmAction } from "@/src/utils/confirm";
-import { NotificationsHelper } from "@/src/utils/notifications";
-import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { DEFAULT_CATEGORIES, Category } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
@@ -22,7 +20,6 @@ function CatIcon({ name, color, size = 20 }: { name: string; color: string; size
 export default function SubscriptionForm() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
-  const { user } = useAuth();
   const { subscriptions, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addCustomCategory } =
     useSubscriptions();
 
@@ -54,25 +51,10 @@ export default function SubscriptionForm() {
     const dateOk = !cleanDate || /^\d{4}-\d{2}-\d{2}$/.test(cleanDate);
     if (!dateOk) return setErr("Date invalide. Format YYYY-MM-DD attendu.");
     const payload = { name: name.trim(), price, currency, cycle, categoryId, dueDate: cleanDate || null };
-    const isPro = !!user?.pro?.is_pro;
-    const notifEnabled = await NotificationsHelper.getEnabled();
-    const daysBefore = await NotificationsHelper.getDaysBefore();
-
-    let savedId = existing?.id || "";
     if (isEdit && existing) {
       await updateSubscription(existing.id, payload);
-      await NotificationsHelper.cancel(existing.id);
     } else {
-      // Capture id via timestamp+random since addSubscription doesn't return; we re-derive after by name+time
       await addSubscription(payload);
-    }
-    // Schedule the reminder if Pro + notifications on + dueDate provided
-    if (isPro && notifEnabled && cleanDate) {
-      const id = isEdit ? (existing!.id) : `pending`;
-      // For new subs we don't know the id; that's fine — we'll re-schedule on next save/edit
-      if (id !== "pending") {
-        await NotificationsHelper.scheduleFor(id, payload.name, cleanDate, daysBefore);
-      }
     }
     router.back();
   };
@@ -85,7 +67,6 @@ export default function SubscriptionForm() {
         text: "Supprimer",
         style: "destructive",
         onPress: async () => {
-          await NotificationsHelper.cancel(existing.id);
           await deleteSubscription(existing.id);
           router.back();
         },

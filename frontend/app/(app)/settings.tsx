@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Switch, TextInput, Platform } from "react-native";
+import { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -12,7 +12,6 @@ import { confirmAction } from "@/src/utils/confirm";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
-import { NotificationsHelper } from "@/src/utils/notifications";
 
 export default function Settings() {
   const router = useRouter();
@@ -22,33 +21,6 @@ export default function Settings() {
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showLang, setShowLang] = useState(false);
-  const [notifEnabled, setNotifEnabled] = useState(false);
-  const [notifDays, setNotifDays] = useState("1");
-
-  const isPro = !!user?.pro?.is_pro;
-
-  useEffect(() => {
-    (async () => {
-      setNotifEnabled(await NotificationsHelper.getEnabled());
-      setNotifDays(String(await NotificationsHelper.getDaysBefore()));
-    })();
-  }, []);
-
-  const toggleNotif = async (next: boolean) => {
-    if (!isPro) { router.push("/(app)/paywall"); return; }
-    if (next) {
-      const ok = await NotificationsHelper.requestPermissions();
-      if (!ok && Platform.OS !== "web") return;
-    }
-    await NotificationsHelper.setEnabled(next);
-    setNotifEnabled(next);
-  };
-
-  const saveDays = async (val: string) => {
-    setNotifDays(val);
-    const n = Math.max(0, Math.min(30, parseInt(val || "1", 10) || 1));
-    await NotificationsHelper.setDaysBefore(n);
-  };
 
   const proLabel = (() => {
     const p = user?.pro?.plan;
@@ -112,39 +84,6 @@ export default function Settings() {
           </View>
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
-
-        <View style={[styles.row, { marginTop: 10 }]}>
-          <View style={styles.rowIcon}><Icons.Bell color={theme.text} size={18} /></View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{t("settings.notifications")}</Text>
-            <Text style={styles.rowSub}>
-              {!isPro ? t("paywall.title") : (notifEnabled ? t("settings.notifEnabled") : t("settings.notifDisabled"))}
-            </Text>
-          </View>
-          <Switch
-            testID="notif-toggle"
-            value={isPro && notifEnabled}
-            onValueChange={toggleNotif}
-            trackColor={{ false: theme.border, true: theme.accent }}
-            thumbColor={"#fff"}
-          />
-        </View>
-        {isPro && notifEnabled ? (
-          <View style={[styles.row, { marginTop: 10 }]}>
-            <View style={styles.rowIcon}><Icons.CalendarClock color={theme.text} size={18} /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>{t("settings.notifDays", { days: notifDays })}</Text>
-            </View>
-            <TextInput
-              testID="notif-days-input"
-              value={notifDays}
-              onChangeText={saveDays}
-              keyboardType="number-pad"
-              style={styles.daysInput}
-              maxLength={2}
-            />
-          </View>
-        ) : null}
 
         <TouchableOpacity testID="logout-button" onPress={onLogout} style={[styles.row, { marginTop: 20 }]}>
           <View style={[styles.rowIcon, { backgroundColor: "#FEE2E2" }]}>

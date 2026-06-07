@@ -85,7 +85,7 @@ export default function Paywall() {
     }
   };
 
-  const features = [t("paywall.feat1"), t("paywall.feat2"), t("paywall.feat3"), t("paywall.feat4"), t("paywall.feat5"), t("paywall.feat6")];
+  const features = [t("paywall.feat1"), t("paywall.feat2"), t("paywall.feat4"), t("paywall.feat5"), t("paywall.feat6")];
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>

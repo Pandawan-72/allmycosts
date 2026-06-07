@@ -66,7 +66,7 @@ const COMMON = {
     lifetimeDesc: "Paga una volta, accesso a vita",
     chooseMonthly: "Scegli Mensile", chooseYearly: "Scegli Annuale", chooseLifetime: "Acquista a vita",
     trialEnded: "La prova gratuita di 48h è terminata. Scegli un piano per continuare.",
-    inTrial: "Prova gratuita in corso — restano {{hours}}h", restoreNote: "Pagamento sicuro via Stripe. Cancellabile in qualsiasi momento.",
+    inTrial: "Prova gratuita in corso — restano {{hours}}h", restoreNote: "Pagamento sicuro via Stripe.",
     successTitle: "Benvenuto in Pro!", successDesc: "Tutte le funzioni sbloccate.",
     inFxNote: "Prezzi mostrati convertiti da EUR al tasso del giorno. Addebito in EUR.",
     inLocal: "≈ {{amount}}",
