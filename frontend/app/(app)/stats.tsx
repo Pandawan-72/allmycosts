@@ -25,7 +25,7 @@ export default function Stats() {
   const { subscriptions, customCategories, baseCurrency } = useSubscriptions();
   const { convert } = useFxRatesEUR();
 
-  const isPro = !!user?.pro?.is_pro;
+  const isPaid = ["active_monthly", "active_yearly", "lifetime"].includes(user?.pro?.plan || "");
   const cur = findCurrency(baseCurrency);
 
   // Aggregate monthly cost per category (converted to base currency)
@@ -70,7 +70,7 @@ export default function Stats() {
     return { ...g, length, offset, proportion };
   });
 
-  if (!isPro) {
+  if (!isPaid) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
         <View style={styles.header}>

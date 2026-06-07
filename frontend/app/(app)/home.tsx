@@ -51,6 +51,7 @@ export default function Home() {
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
   const isPro = !!user?.pro?.is_pro;
+  const isPaid = ["active_monthly", "active_yearly", "lifetime"].includes(user?.pro?.plan || "");
   const trialHoursLeft = (() => {
     const te = user?.pro?.trial_end;
     if (!te || user?.pro?.plan !== "trialing") return 0;
@@ -160,11 +161,21 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={styles.headerLeft}>
           <BrandLogo size={36} />
-          <Text style={styles.brand}>All My Costs</Text>
         </View>
-        <View style={{ flexDirection: "row", gap: 8 }}>
+        <View style={styles.headerCenter} pointerEvents="none">
+          <Text
+            style={styles.brand}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+            allowFontScaling={false}
+          >
+            All My Costs
+          </Text>
+        </View>
+        <View style={styles.headerRight}>
           <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
             <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
           </TouchableOpacity>
@@ -258,7 +269,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8,
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
   },
-  brand: { fontSize: 18, fontWeight: "800", color: theme.text, letterSpacing: -0.3 },
+  headerLeft: { flexDirection: "row", alignItems: "center" },
+  headerCenter: {
+    position: "absolute", left: 0, right: 0, top: 0, bottom: 0,
+    alignItems: "center", justifyContent: "center",
+  },
+  headerRight: { flexDirection: "row", gap: 8 },
+  brand: { fontSize: 18, fontWeight: "800", color: theme.text, letterSpacing: -0.3, textAlign: "center", maxWidth: "55%" },
   iconBtn: {
     width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
     backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
