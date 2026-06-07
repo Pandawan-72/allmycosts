@@ -1,0 +1,88 @@
+{
+  "project_name": "All My Costs",
+  "platform": "React Native (Expo)",
+  "theme": "Light",
+  "archetype": "Swiss & High-Contrast (Modern, professional, minimalist)",
+  "colors": {
+    "background": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "surface_elevated": "#F3F4F6",
+    "text_primary": "#111827",
+    "text_secondary": "#6B7280",
+    "primary": "#111827",
+    "primary_inverse": "#FFFFFF",
+    "accent_finance": "#10B981",
+    "accent_soft": "#D1FAE5",
+    "danger": "#EF4444",
+    "border": "#E5E7EB"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Plus Jakarta Sans",
+    "h1": "text-5xl font-bold tracking-tighter",
+    "h2": "text-3xl font-bold tracking-tight",
+    "h3": "text-xl font-bold",
+    "body": "text-base font-medium",
+    "label": "text-xs font-bold tracking-[0.15em] uppercase",
+    "small": "text-sm font-medium text-gray-500"
+  },
+  "layout_and_spacing": {
+    "screen_padding": "px-6 py-8",
+    "card_padding": "p-6",
+    "list_item_padding": "py-4 px-0",
+    "gap_large": "gap-8",
+    "gap_medium": "gap-4",
+    "gap_small": "gap-2",
+    "border_radius_card": "rounded-[24px]",
+    "border_radius_item": "rounded-[16px]",
+    "border_radius_button": "rounded-full"
+  },
+  "components": {
+    "auth_screens": {
+      "style": "Stark white background. Massive typography for the title. Input fields are flat with a 1px border (#E5E7EB), no shadow, and slightly rounded (rounded-xl). The primary button is full-width, Deep Charcoal (#111827), rounded-full, with crisp white text. 'Continue with Google' button should be white with a 1px border and the Google logo."
+    },
+    "dashboard_hero_card": {
+      "style": "The centerpiece of the app. Background is Deep Charcoal (#111827) to anchor the view. Text is pure white. Inside: 'TOTAL MONTHLY' as a small, widely-tracked uppercase label (text-xs tracking-[0.15em] text-gray-400), followed by the massive total amount in Accent Finance color (#10B981) using text-5xl tracking-tighter. Includes a clean toggle to switch to 'Annual'. Render the soft abstract premium texture as an absolute positioned, low opacity (10%) image behind the text to give it a minted, premium feel."
+    },
+    "subscription_list": {
+      "style": "Cardless layout to maintain minimalism. The list sits on the main background. Each item is separated by a subtle border-b (#E5E7EB). Left side: Icon container (h-12 w-12, rounded-xl, bg-gray-100, centered icon). Middle: Name (text-lg font-bold text-gray-900) and Category (text-sm text-gray-500). Right side: Price (text-lg font-bold text-gray-900) and Billing Cycle (text-xs text-gray-400)."
+    },
+    "floating_action_button": {
+      "style": "Positioned absolute at bottom-right (bottom-8 right-6). Large (h-16 w-16), rounded-full, Primary color (#111827) background, crisp white Lucide 'Plus' icon. Drops a sharp shadow-lg."
+    },
+    "header_and_navigation": {
+      "style": "Minimalist header. The 'All My Costs' custom coin logo aligned to the left. An 'Export PDF' icon button aligned to the right. No bulky colored header bars; keep the background matching the screen."
+    },
+    "category_selector": {
+      "style": "Horizontal scrollable list of pills. Active state: bg-gray-900 text-white. Inactive state: bg-white border border-gray-200 text-gray-600. Pill shape: rounded-full px-4 py-2."
+    }
+  },
+  "logo_instructions": {
+    "concept": "A professional stylized coin with a question mark.",
+    "implementation": "Create a React Native component. Outer View: h-10 w-10, rounded-full, border-2 border-gray-900 bg-gray-50, flex items-center justify-center. Inner View: h-8 w-8, rounded-full, border border-gray-200 flex items-center justify-center. Text inside: '?' using a bold serif or Outfit font, text-xl text-gray-900."
+  },
+  "icons": {
+    "library": "lucide-react-native",
+    "usage": "Use strokeWidth={2}. Suggested mapping: Video (PlaySquare), Music (Music), Banking (Landmark), Services (Briefcase), Software (Monitor), Gaming (Gamepad2), Fitness (Dumbbell), Cloud (Cloud), Export (FileDown)."
+  },
+  "media_urls": {
+    "premium_texture": {
+      "url": "https://images.pexels.com/photos/2078266/pexels-photo-2078266.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Soft abstract green texture to be used as a very low opacity background layer (e.g. 5-10% opacity) inside the main Dark Hero 'Total Cost' card to give it a premium, physical-asset feel without overwhelming the minimalist aesthetic."
+    }
+  },
+  "accessibility_and_testing": {
+    "data_testid_rules": "CRITICAL: All interactive elements (buttons, text inputs, list items, toggles) MUST have a data-testid attribute formatted as kebab-case and role-based. Examples: 'login-submit-button', 'add-subscription-button', 'total-cost-display', 'export-pdf-button', 'subscription-item-Netflix'.",
+    "contrast_requirements": "Ensure minimum 4.5:1 contrast. White text on the #111827 card and #111827 text on the #F9FAFB background easily passes this."
+  },
+  "instructions_to_main_agent": [
+    "You are building a React Native mobile app using Expo. All UI code must be inside standard React Native .js files (e.g., App.js, screens/Dashboard.js).",
+    "Apply styling via Tailwind CSS classes (NativeWind) if configured, or translate the provided Tailwind classes into React Native StyleSheet objects.",
+    "Use Async Storage for local-only device storage to save subscriptions, categories, and user preferences.",
+    "The UI must look identical on iOS and Android. Handle safe areas correctly using SafeAreaView.",
+    "Do not use generic fonts like Inter for headings. Use Outfit for headings and Plus Jakarta Sans for body if possible, or fallback to system sans-serif with strong font weights.",
+    "Implement the custom 'Coin Logo' using standard React Native Views as described in logo_instructions.",
+    "For the Add/Edit form, include a seamless currency selector and an option to create a 'Custom' category if the user doesn't find a predefined one.",
+    "Always provide a data-testid to TouchableOpacity, TextInput, and buttons."
+  ]
+}
