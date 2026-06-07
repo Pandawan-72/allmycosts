@@ -140,8 +140,19 @@ export default function Home() {
     const generatedOn = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     const logoB64 = await getBrandLogoBase64();
     const logoBlock = logoB64
-      ? `<img class="brand-logo" src="data:image/png;base64,${logoB64}" alt="All My Costs" />`
-      : `<h1 class="brand-name">All My Costs</h1>`;
+      ? `<div class="brand-row">
+           <img class="brand-icon" src="data:image/png;base64,${logoB64}" alt="" />
+           <div>
+             <h1 class="brand-name">All My Costs</h1>
+             <p class="brand-sub">${escapeHtml(user?.name || "")}</p>
+           </div>
+         </div>`
+      : `<div class="brand-row">
+           <div>
+             <h1 class="brand-name">All My Costs</h1>
+             <p class="brand-sub">${escapeHtml(user?.name || "")}</p>
+           </div>
+         </div>`;
 
     const html = `<!doctype html><html><head><meta charset="utf-8" />
       <style>
@@ -152,9 +163,11 @@ export default function Home() {
           color: #111827; margin: 0; padding: 0;
           -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .header { padding-bottom: 18px; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; }
-        .brand-logo { max-height: 64px; max-width: 280px; display: block; }
-        .brand-name { font-size: 28px; font-weight: 900; letter-spacing: -0.8px; margin: 0; }
+        .header { padding-bottom: 18px; border-bottom: 1px solid #E5E7EB; }
+        .brand-row { display: flex; align-items: center; gap: 16px; }
+        .brand-icon { width: 56px; height: 56px; border-radius: 12px; display: block; flex-shrink: 0; }
+        .brand-name { font-size: 24px; font-weight: 900; letter-spacing: -0.6px; margin: 0; }
+        .brand-sub { font-size: 12px; color: #6B7280; margin: 4px 0 0 0; }
 
         .totals { display: flex; gap: 14px; margin: 24px 0 28px 0; }
         .total-card {

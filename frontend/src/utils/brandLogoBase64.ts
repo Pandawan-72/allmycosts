@@ -8,7 +8,7 @@ let _cached: string | null = null;
 export async function getBrandLogoBase64(): Promise<string> {
   if (_cached) return _cached;
   try {
-    const asset = Asset.fromModule(require("../../assets/images/brand.png"));
+    const asset = Asset.fromModule(require("../../assets/images/icon.png"));
     await asset.downloadAsync();
     const uri = asset.localUri || asset.uri;
     if (Platform.OS === "web") {
