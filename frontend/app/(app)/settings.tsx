@@ -31,18 +31,9 @@ export default function Settings() {
     return t("home.upgrade");
   })();
 
-  const onLogout = () => {
-    confirmAction(t("settings.logout"), t("settings.logoutConfirm"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.logout"),
-        style: "destructive",
-        onPress: async () => {
-          await logout();
-          router.replace("/(auth)/sign-in");
-        },
-      },
-    ]);
+  const onLogout = async () => {
+    await logout();
+    router.replace("/(auth)/sign-in");
   };
 
   return (
