@@ -4,7 +4,6 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "_comment": "Profiles for All My Costs — generated 2025-06-15",
     "development": {
       "developmentClient": true,
       "distribution": "internal",
