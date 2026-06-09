@@ -1,0 +1,48 @@
+{
+  "cli": {
+    "version": ">= 7.6.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "_comment": "Profiles for All My Costs — generated 2025-06-15",
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://subscription-tracker-43.preview.emergentagent.com",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "pro"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://subscription-tracker-43.preview.emergentagent.com",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "pro"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal"
+      }
+    }
+  }
+}
