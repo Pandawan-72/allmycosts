@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, KeyboardAvoidingView, Platform, Modal, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 import { theme } from "@/src/theme";
 import { confirmAction } from "@/src/utils/confirm";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
-import { DEFAULT_CATEGORIES, Category } from "@/src/data/categories";
+import { DEFAULT_CATEGORIES, Category, getCategoryLabel } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
 
 const ICON_OPTIONS = ["Tag", "Sparkles", "Star", "Heart", "Coffee", "Plane", "Car", "Home", "Book", "Globe", "Briefcase", "ShoppingBag", "Newspaper"];
@@ -19,6 +20,7 @@ function CatIcon({ name, color, size = 20 }: { name: string; color: string; size
 
 export default function SubscriptionForm() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const { subscriptions, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addCustomCategory } =
     useSubscriptions();
@@ -44,12 +46,12 @@ export default function SubscriptionForm() {
 
   const onSubmit = async () => {
     setErr(null);
-    if (!name.trim()) return setErr("Nom requis.");
+    if (!name.trim()) return setErr(t("sub.nameRequired"));
     const price = parseFloat(priceStr.replace(",", "."));
-    if (isNaN(price) || price < 0) return setErr("Prix invalide.");
+    if (isNaN(price) || price < 0) return setErr(t("sub.priceInvalid"));
     const cleanDate = dueDate.trim();
     const dateOk = !cleanDate || /^\d{4}-\d{2}-\d{2}$/.test(cleanDate);
-    if (!dateOk) return setErr("Date invalide. Format YYYY-MM-DD attendu.");
+    if (!dateOk) return setErr(t("sub.dateInvalid"));
     const payload = { name: name.trim(), price, currency, cycle, categoryId, dueDate: cleanDate || null };
     if (isEdit && existing) {
       await updateSubscription(existing.id, payload);
@@ -61,10 +63,10 @@ export default function SubscriptionForm() {
 
   const onDelete = () => {
     if (!existing) return;
-    confirmAction("Supprimer", `Supprimer "${existing.name}" ?`, [
-      { text: "Annuler", style: "cancel" },
+    confirmAction(t("common.delete"), t("sub.deleteConfirm", { name: existing.name }), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Supprimer",
+        text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
           await deleteSubscription(existing.id);
@@ -89,7 +91,7 @@ export default function SubscriptionForm() {
           <TouchableOpacity testID="close-form-button" onPress={() => router.back()} style={styles.headerBtn}>
             <Icons.X color={theme.text} size={22} strokeWidth={2} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{isEdit ? "Modifier" : "Nouvel abonnement"}</Text>
+          <Text style={styles.headerTitle}>{isEdit ? t("sub.editSub") : t("sub.newSub")}</Text>
           {isEdit ? (
             <TouchableOpacity testID="delete-subscription-button" onPress={onDelete} style={styles.headerBtn}>
               <Icons.Trash2 color={theme.danger} size={20} strokeWidth={2} />
@@ -100,17 +102,17 @@ export default function SubscriptionForm() {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
-          <Text style={styles.label}>Nom</Text>
+          <Text style={styles.label}>{t("sub.name")}</Text>
           <TextInput
             testID="sub-name-input"
             value={name}
             onChangeText={setName}
-            placeholder="Netflix, Spotify, etc."
+            placeholder={t("sub.namePh")}
             placeholderTextColor={theme.textSubtle}
             style={styles.input}
           />
 
-          <Text style={[styles.label, { marginTop: 18 }]}>Prix</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.price")}</Text>
           <View style={{ flexDirection: "row", gap: 10 }}>
             <TextInput
               testID="sub-price-input"
@@ -127,7 +129,7 @@ export default function SubscriptionForm() {
             </TouchableOpacity>
           </View>
 
-          <Text style={[styles.label, { marginTop: 18 }]}>Cycle</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.cycle")}</Text>
           <View style={styles.cycleRow}>
             {(["monthly", "yearly"] as const).map((c) => (
               <TouchableOpacity
@@ -137,13 +139,13 @@ export default function SubscriptionForm() {
                 style={[styles.cycleBtn, cycle === c && styles.cycleBtnActive]}
               >
                 <Text style={[styles.cycleText, cycle === c && styles.cycleTextActive]}>
-                  {c === "monthly" ? "Mensuel" : "Annuel"}
+                  {c === "monthly" ? t("common.monthly") : t("common.yearly")}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={[styles.label, { marginTop: 18 }]}>Date de prochain paiement (optionnel)</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.dateOptional")}</Text>
           <TextInput
             testID="sub-duedate-input"
             value={dueDate}
@@ -154,7 +156,7 @@ export default function SubscriptionForm() {
             autoCapitalize="none"
           />
 
-          <Text style={[styles.label, { marginTop: 18 }]}>Catégorie</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.category")}</Text>
           <View style={styles.catGrid}>
             {allCats.map((cat) => {
               const active = cat.id === categoryId;
@@ -166,7 +168,7 @@ export default function SubscriptionForm() {
                   style={[styles.catPill, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}
                 >
                   <CatIcon name={cat.icon} color={active ? "#fff" : cat.color} size={14} />
-                  <Text style={[styles.catPillText, active && { color: "#fff" }]} numberOfLines={1}>{cat.label}</Text>
+                  <Text style={[styles.catPillText, active && { color: "#fff" }]} numberOfLines={1}>{getCategoryLabel(cat, t)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -176,14 +178,14 @@ export default function SubscriptionForm() {
               style={[styles.catPill, { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}
             >
               <Icons.Plus color={theme.accent} size={14} strokeWidth={2.5} />
-              <Text style={[styles.catPillText, { color: theme.accent }]}>Nouvelle</Text>
+              <Text style={[styles.catPillText, { color: theme.accent }]}>{t("sub.newCategory")}</Text>
             </TouchableOpacity>
           </View>
 
           {err ? <Text testID="form-error" style={styles.error}>{err}</Text> : null}
 
           <TouchableOpacity testID="save-subscription-button" onPress={onSubmit} style={styles.saveBtn}>
-            <Text style={styles.saveBtnText}>{isEdit ? "Enregistrer" : "Ajouter"}</Text>
+            <Text style={styles.saveBtnText}>{isEdit ? t("common.save") : t("common.add")}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -195,7 +197,7 @@ export default function SubscriptionForm() {
             <TouchableOpacity onPress={() => setShowCurrency(false)} style={styles.headerBtn}>
               <Icons.X color={theme.text} size={22} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Choisir une devise</Text>
+            <Text style={styles.headerTitle}>{t("sub.pickCurrency")}</Text>
             <View style={styles.headerBtn} />
           </View>
           <FlatList
@@ -223,20 +225,20 @@ export default function SubscriptionForm() {
             <TouchableOpacity onPress={() => setShowCustomCat(false)} style={styles.headerBtn}>
               <Icons.X color={theme.text} size={22} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Nouvelle catégorie</Text>
+            <Text style={styles.headerTitle}>{t("sub.customCat")}</Text>
             <View style={styles.headerBtn} />
           </View>
           <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 80, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-            <Text style={styles.label}>Nom</Text>
+            <Text style={styles.label}>{t("sub.customName")}</Text>
             <TextInput
               testID="custom-cat-name-input"
               value={customLabel}
               onChangeText={setCustomLabel}
-              placeholder="Ex : VPN, Coaching..."
+              placeholder={t("sub.customNamePh")}
               placeholderTextColor={theme.textSubtle}
               style={styles.input}
             />
-            <Text style={[styles.label, { marginTop: 18 }]}>Icône</Text>
+            <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.icon")}</Text>
             <View style={styles.iconRow}>
               {ICON_OPTIONS.map((ic) => (
                 <TouchableOpacity
@@ -249,7 +251,7 @@ export default function SubscriptionForm() {
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={[styles.label, { marginTop: 18 }]}>Couleur</Text>
+            <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.color")}</Text>
             <View style={styles.colorRow}>
               {["#10B981", "#3B82F6", "#8B5CF6", "#EC4899", "#F97316", "#EF4444", "#0EA5E9", "#F59E0B", "#14B8A6"].map((col) => (
                 <TouchableOpacity
@@ -261,7 +263,7 @@ export default function SubscriptionForm() {
               ))}
             </View>
             <TouchableOpacity testID="create-custom-cat-button" onPress={createCustomCategory} style={styles.saveBtn}>
-              <Text style={styles.saveBtnText}>Créer</Text>
+              <Text style={styles.saveBtnText}>{t("sub.create")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>

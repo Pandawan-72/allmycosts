@@ -8,7 +8,8 @@ const COMMON = {
     none: "None", loading: "Loading…",
   },
   auth: {
-    welcome: "Welcome back.", createAccount: "Create an account.",
+    welcome: "Welcome.", welcomeName: "Welcome, {{name}} 👋", greeting: "Hi {{name}} 👋",
+    createAccount: "Create an account.",
     subtitlePro: "Take control of your recurring expenses.",
     email: "Email", password: "Password", name: "Name",
     signIn: "Sign in", signUp: "Create my account",
@@ -19,6 +20,8 @@ const COMMON = {
     pwdMin: "Password must be at least 6 characters.",
     fillAll: "All fields are required.", fillCreds: "Please enter your credentials.",
     invalidCreds: "Invalid credentials.", emailExists: "An account with this email already exists.",
+    signInFailed: "Sign-in failed.", signUpFailed: "Account creation failed.",
+    googleFailed: "Google sign-in failed.", emailPh: "you@example.com", passwordPh: "••••••••",
   },
   home: {
     totalMonthly: "MONTHLY TOTAL", totalYearly: "YEARLY TOTAL",
@@ -41,6 +44,8 @@ const COMMON = {
     customName: "Name", customNamePh: "e.g. VPN, Coaching…",
     icon: "Icon", color: "Color", create: "Create",
     nameRequired: "Name is required.", priceInvalid: "Invalid price.",
+    dateInvalid: "Invalid date. Expected YYYY-MM-DD format.",
+    pickCurrency: "Pick a currency", dateOptional: "Next payment date (optional)",
     deleteConfirm: "Delete \"{{name}}\"?",
   },
   settings: {
@@ -73,6 +78,9 @@ const COMMON = {
     successTitle: "Welcome to Pro!", successDesc: "All features are unlocked.",
     inFxNote: "Prices shown are converted from EUR at today's rate. Actual billing in EUR.",
     inLocal: "≈ {{amount}}",
+    finalizingTitle: "Finalizing payment…",
+    activating: "Activating",
+    trialLabel: "Trial",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {

@@ -22,6 +22,25 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: "other", label: "Autre", icon: "MoreHorizontal", color: "#9CA3AF" },
 ];
 
+const DEFAULT_IDS = new Set(DEFAULT_CATEGORIES.map((c) => c.id));
+
+/**
+ * Returns the localized label for a category.
+ * - Default categories (built-in IDs): pulled from i18n key `categories.<id>`.
+ * - Custom user categories: returns the user-provided label as-is.
+ */
+export function getCategoryLabel(
+  cat: Category,
+  t: (key: string, opts?: any) => string,
+): string {
+  if (DEFAULT_IDS.has(cat.id)) {
+    const translated = t(`categories.${cat.id}`);
+    // i18next returns the key itself when missing — fall back to the stored label.
+    if (translated && translated !== `categories.${cat.id}`) return translated;
+  }
+  return cat.label;
+}
+
 export function findCategory(id: string, customCats: Category[] = []): Category {
   return (
     [...DEFAULT_CATEGORIES, ...customCats].find((c) => c.id === id) ||

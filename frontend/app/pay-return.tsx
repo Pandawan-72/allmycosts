@@ -52,16 +52,16 @@ export default function PayReturn() {
           )}
         </View>
         <Text style={styles.title}>
-          {isPaid ? (t("paywall.successTitle") || "Bienvenue dans Pro !") : "Finalisation du paiement…"}
+          {isPaid ? t("paywall.successTitle") : t("paywall.finalizingTitle")}
         </Text>
         <Text style={styles.sub}>
           {isPaid
-            ? (t("paywall.successDesc") || "Toutes les fonctionnalités sont débloquées.")
-            : `Activation en cours${plan ? ` (${plan})` : ""}… ${tries}/8`}
+            ? t("paywall.successDesc")
+            : `${t("paywall.activating")}${plan ? ` (${plan})` : ""}… ${tries}/8`}
         </Text>
         {!isPaid && tries >= 6 ? (
           <TouchableOpacity onPress={() => router.replace("/(app)/home")} style={styles.btn}>
-            <Text style={styles.btnText}>Continuer</Text>
+            <Text style={styles.btnText}>{t("common.continue")}</Text>
           </TouchableOpacity>
         ) : null}
       </View>

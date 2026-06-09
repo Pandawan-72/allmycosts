@@ -10,7 +10,7 @@ import { BrandLockup } from "@/src/components/BrandLockup";
 import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
-import { findCategory, DEFAULT_CATEGORIES } from "@/src/data/categories";
+import { findCategory, DEFAULT_CATEGORIES, getCategoryLabel } from "@/src/data/categories";
 import { findCurrency, formatAmount } from "@/src/data/currencies";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
 import { confirmAction } from "@/src/utils/confirm";
@@ -104,7 +104,7 @@ export default function Home() {
     const segments = Array.from(catMap.entries())
       .map(([id, amount]) => {
         const cat = findCategory(id, customCategories);
-        return { id, label: cat.label, color: cat.color, amount };
+        return { id, label: getCategoryLabel(cat, t), color: cat.color, amount };
       })
       .sort((a, b) => b.amount - a.amount);
 
@@ -132,13 +132,14 @@ export default function Home() {
 
     const rows = subsSorted.map((s) => {
       const cat = findCategory(s.categoryId, customCategories);
+      const catLabel = getCategoryLabel(cat, t);
       const monthlyOwn = s.cycle === "monthly" ? s.price : s.price / 12;
       const monthlyB = convert(monthlyOwn, s.currency, baseCurrency);
       const yearlyB = monthlyB * 12;
       return `<tr>
         <td>
           <div class="sub-name">${escapeHtml(s.name)}</div>
-          <div class="sub-meta"><span class="dot" style="background:${cat.color}"></span>${escapeHtml(cat.label)}</div>
+          <div class="sub-meta"><span class="dot" style="background:${cat.color}"></span>${escapeHtml(catLabel)}</div>
         </td>
         <td class="num">${formatAmount(monthlyB, baseCurrency)}</td>
         <td class="num">${formatAmount(yearlyB, baseCurrency)}</td>
@@ -342,6 +343,7 @@ export default function Home() {
 
   const renderItem = ({ item }: any) => {
     const cat = findCategory(item.categoryId, customCategories);
+    const catLabel = getCategoryLabel(cat, t);
     // Compute the monthly equivalent in the subscription's own currency, then scale to the toggle.
     const monthlyOwn = item.cycle === "monthly" ? item.price : item.price / 12;
     const displayOwn = view === "monthly" ? monthlyOwn : monthlyOwn * 12;
@@ -365,7 +367,7 @@ export default function Home() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.subCat} numberOfLines={1}>{cat.label}</Text>
+          <Text style={styles.subCat} numberOfLines={1}>{catLabel}</Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <Text style={styles.subPrice}>{formatAmount(displayOwn, item.currency)}</Text>
@@ -378,12 +380,19 @@ export default function Home() {
     );
   };
 
+  const firstName = (user?.name || "").trim().split(/\s+/)[0] || "";
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <View style={styles.headerBrandRow}>
           <BrandLockup height={40} />
         </View>
+        {firstName ? (
+          <Text testID="home-greeting" style={styles.greeting}>
+            {t("auth.welcomeName", { name: firstName })}
+          </Text>
+        ) : null}
         <View style={styles.headerActionsRow}>
           <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
             <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
@@ -482,6 +491,14 @@ const styles = StyleSheet.create({
   },
   headerActionsRow: {
     flexDirection: "row", justifyContent: "center", gap: 14, marginTop: 12,
+  },
+  greeting: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "700",
+    color: theme.text,
+    marginTop: 10,
+    letterSpacing: -0.2,
   },
   brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },
   iconBtn: {

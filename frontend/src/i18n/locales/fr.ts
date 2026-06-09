@@ -8,7 +8,8 @@ const COMMON = {
     none: "Aucun", loading: "Chargement…",
   },
   auth: {
-    welcome: "Bon retour.", createAccount: "Créer un compte.",
+    welcome: "Bienvenue.", welcomeName: "Bienvenue, {{name}} 👋", greeting: "Bonjour, {{name}} 👋",
+    createAccount: "Créer un compte.",
     subtitlePro: "Maîtrisez vos dépenses récurrentes.",
     email: "E-mail", password: "Mot de passe", name: "Nom",
     signIn: "Se connecter", signUp: "Créer mon compte",
@@ -19,6 +20,8 @@ const COMMON = {
     pwdMin: "Le mot de passe doit contenir au moins 6 caractères.",
     fillAll: "Tous les champs sont requis.", fillCreds: "Veuillez renseigner vos identifiants.",
     invalidCreds: "Identifiants invalides.", emailExists: "Un compte avec cet e-mail existe déjà.",
+    signInFailed: "Échec de la connexion.", signUpFailed: "Échec de la création du compte.",
+    googleFailed: "Échec Google.", emailPh: "vous@exemple.com", passwordPh: "••••••••",
   },
   home: {
     totalMonthly: "TOTAL MENSUEL", totalYearly: "TOTAL ANNUEL",
@@ -41,6 +44,8 @@ const COMMON = {
     customName: "Nom", customNamePh: "Ex : VPN, Coaching…",
     icon: "Icône", color: "Couleur", create: "Créer",
     nameRequired: "Nom requis.", priceInvalid: "Prix invalide.",
+    dateInvalid: "Date invalide. Format YYYY-MM-DD attendu.",
+    pickCurrency: "Choisir une devise", dateOptional: "Date de prochain paiement (optionnel)",
     deleteConfirm: "Supprimer \"{{name}}\" ?",
   },
   settings: {
@@ -73,6 +78,9 @@ const COMMON = {
     successTitle: "Bienvenue dans Pro !", successDesc: "Toutes les fonctionnalités sont débloquées.",
     inFxNote: "Prix affichés convertis depuis l'EUR via le taux du jour. Facturation effective en EUR.",
     inLocal: "Soit environ {{amount}}",
+    finalizingTitle: "Finalisation du paiement…",
+    activating: "Activation en cours",
+    trialLabel: "Essai",
   },
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {

@@ -48,7 +48,7 @@ export default function Settings() {
     if (p === "lifetime") return t("common.lifetime");
     if (p === "active_monthly") return t("common.monthly");
     if (p === "active_yearly") return t("common.yearly");
-    if (p === "trialing") return "Trial";
+    if (p === "trialing") return t("paywall.trialLabel");
     return t("home.upgrade");
   })();
 
@@ -190,7 +190,7 @@ export default function Settings() {
             <TouchableOpacity onPress={() => setShowCurrency(false)} style={styles.headerBtn}>
               <Icons.X color={theme.text} size={22} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Devise principale</Text>
+            <Text style={styles.headerTitle}>{t("settings.baseCurrency")}</Text>
             <View style={styles.headerBtn} />
           </View>
           <FlatList

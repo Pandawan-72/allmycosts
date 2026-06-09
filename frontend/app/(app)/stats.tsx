@@ -10,7 +10,7 @@ import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
-import { DEFAULT_CATEGORIES, findCategory } from "@/src/data/categories";
+import { DEFAULT_CATEGORIES, findCategory, getCategoryLabel } from "@/src/data/categories";
 import { findCurrency, formatAmount } from "@/src/data/currencies";
 
 function CatIcon({ name, color, size = 16 }: { name: string; color: string; size?: number }) {
@@ -41,11 +41,11 @@ export default function Stats() {
     const arr = Array.from(map.entries())
       .map(([id, amount]) => {
         const cat = findCategory(id, customCategories);
-        return { id, label: cat.label, color: cat.color, icon: cat.icon, amount };
+        return { id, label: getCategoryLabel(cat, t), color: cat.color, icon: cat.icon, amount };
       })
       .sort((a, b) => b.amount - a.amount);
     return { groups: arr, total: totalSum };
-  }, [subscriptions, customCategories, baseCurrency, convert]);
+  }, [subscriptions, customCategories, baseCurrency, convert, t]);
 
   const top = groups.slice(0, 5);
   const otherSum = groups.slice(5).reduce((s, g) => s + g.amount, 0);

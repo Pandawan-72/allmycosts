@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platfo
 import { KeyboardAvoidingView } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/src/contexts/AuthContext";
 import { theme } from "@/src/theme";
@@ -15,6 +16,7 @@ import {
 
 export default function SignIn() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { login, loginWithGoogleSession, loginWithGoogleIdToken } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,7 @@ export default function SignIn() {
   const submit = async () => {
     setErr(null);
     if (!email.trim() || !password) {
-      setErr("Veuillez renseigner votre e-mail et votre mot de passe.");
+      setErr(t("auth.fillCreds"));
       return;
     }
     setBusy(true);
@@ -32,7 +34,7 @@ export default function SignIn() {
       await login(email.trim().toLowerCase(), password);
       router.replace("/(app)/home");
     } catch (e: any) {
-      setErr(e?.message || "Échec de la connexion.");
+      setErr(e?.message || t("auth.signInFailed"));
     } finally {
       setBusy(false);
     }
@@ -56,7 +58,7 @@ export default function SignIn() {
         router.replace("/(app)/home");
       }
     } catch (e: any) {
-      setErr(e?.message || "Échec Google.");
+      setErr(e?.message || t("auth.googleFailed"));
     } finally {
       setBusy(false);
     }
@@ -70,16 +72,16 @@ export default function SignIn() {
             <BrandLockup height={56} />
           </View>
 
-          <Text style={styles.title}>Bon retour.</Text>
-          <Text style={styles.subtitle}>Suivez vos abonnements en un coup d&apos;œil.</Text>
+          <Text style={styles.title}>{t("auth.welcome")}</Text>
+          <Text style={styles.subtitle}>{t("app.tagline")}</Text>
 
           <View style={styles.form}>
-            <Text style={styles.label}>E-mail</Text>
+            <Text style={styles.label}>{t("auth.email")}</Text>
             <TextInput
               testID="signin-email-input"
               value={email}
               onChangeText={setEmail}
-              placeholder="vous@exemple.com"
+              placeholder={t("auth.emailPh")}
               placeholderTextColor={theme.textSubtle}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -87,12 +89,12 @@ export default function SignIn() {
               style={styles.input}
             />
 
-            <Text style={[styles.label, { marginTop: 16 }]}>Mot de passe</Text>
+            <Text style={[styles.label, { marginTop: 16 }]}>{t("auth.password")}</Text>
             <TextInput
               testID="signin-password-input"
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
+              placeholder={t("auth.passwordPh")}
               placeholderTextColor={theme.textSubtle}
               secureTextEntry
               style={styles.input}
@@ -106,12 +108,12 @@ export default function SignIn() {
               disabled={busy}
               style={[styles.primaryBtn, busy && { opacity: 0.6 }]}
             >
-              <Text style={styles.primaryBtnText}>{busy ? "Connexion..." : "Se connecter"}</Text>
+              <Text style={styles.primaryBtnText}>{busy ? t("auth.signingIn") : t("auth.signIn")}</Text>
             </TouchableOpacity>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>ou</Text>
+              <Text style={styles.dividerText}>{t("auth.or")}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -121,15 +123,15 @@ export default function SignIn() {
               disabled={busy}
               style={[styles.outlineBtn, busy && { opacity: 0.6 }]}
             >
-              <Text style={styles.outlineBtnText}>Continuer avec Google</Text>
+              <Text style={styles.outlineBtnText}>{t("auth.continueWithGoogle")}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.bottom}>
-            <Text style={styles.bottomText}>Pas encore de compte ?</Text>
+            <Text style={styles.bottomText}>{t("auth.noAccount")}</Text>
             <Link href="/(auth)/sign-up" asChild>
               <TouchableOpacity testID="goto-signup-link">
-                <Text style={styles.bottomLink}> Créer un compte</Text>
+                <Text style={styles.bottomLink}> {t("auth.goSignUp")}</Text>
               </TouchableOpacity>
             </Link>
           </View>
