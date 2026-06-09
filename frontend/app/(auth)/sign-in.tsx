@@ -3,16 +3,19 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platfo
 import { KeyboardAvoidingView } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
 
 import { useAuth } from "@/src/contexts/AuthContext";
 import { theme } from "@/src/theme";
 import { BrandLockup } from "@/src/components/BrandLockup";
+import {
+  isGoogleNativeSupported,
+  nativeGoogleSignIn,
+  emergentWebGoogleSignIn,
+} from "@/src/lib/googleAuth";
 
 export default function SignIn() {
   const router = useRouter();
-  const { login, loginWithGoogleSession } = useAuth();
+  const { login, loginWithGoogleSession, loginWithGoogleIdToken } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -39,29 +42,16 @@ export default function SignIn() {
     setErr(null);
     setBusy(true);
     try {
-      const redirectUrl = Linking.createURL("auth");
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
-      if (result.type === "success" && result.url) {
-        const url = result.url;
-        let sessionId: string | null = null;
-        const hashIdx = url.indexOf("#");
-        if (hashIdx >= 0) {
-          const hash = url.slice(hashIdx + 1);
-          const params = new URLSearchParams(hash);
-          sessionId = params.get("session_id");
-        }
-        if (!sessionId) {
-          const qIdx = url.indexOf("?");
-          if (qIdx >= 0) {
-            const params = new URLSearchParams(url.slice(qIdx + 1));
-            sessionId = params.get("session_id");
-          }
-        }
-        if (!sessionId) {
-          setErr("Identifiant de session Google manquant.");
-          return;
-        }
+      if (isGoogleNativeSupported()) {
+        // Native iOS/Android flow via Google Sign-In SDK
+        const idToken = await nativeGoogleSignIn();
+        if (!idToken) return; // user cancelled
+        await loginWithGoogleIdToken(idToken);
+        router.replace("/(app)/home");
+      } else {
+        // Web fallback via Emergent OAuth (session_id flow)
+        const sessionId = await emergentWebGoogleSignIn();
+        if (!sessionId) return; // user cancelled or pending redirect
         await loginWithGoogleSession(sessionId);
         router.replace("/(app)/home");
       }

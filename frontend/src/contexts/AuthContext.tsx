@@ -26,6 +26,7 @@ type AuthState = {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogleSession: (sessionId: string) => Promise<void>;
+  loginWithGoogleIdToken: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
@@ -99,6 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await persist(data.token, data.user);
   }, [persist]);
 
+  const loginWithGoogleIdToken = useCallback(async (id_token: string) => {
+    const data = await apiPost("/auth/google-native", { id_token });
+    await persist(data.token, data.user);
+  }, [persist]);
+
   const logout = useCallback(async () => {
     await storage.secureRemove(TOKEN_KEY);
     setUser(null);
@@ -114,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogleSession, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogleSession, loginWithGoogleIdToken, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

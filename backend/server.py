@@ -28,6 +28,12 @@ REVENUECAT_ENTITLEMENT_ID = os.environ.get("REVENUECAT_ENTITLEMENT_ID", "pro")
 REVENUECAT_WEBHOOK_AUTH = os.environ.get("REVENUECAT_WEBHOOK_AUTH", "")
 REVENUECAT_API_BASE = "https://api.revenuecat.com"
 
+# Google Sign-In (native): we accept an ID token signed by Google and verify it.
+# The aud claim must match one of the OAuth client IDs we issued for this app.
+GOOGLE_OAUTH_CLIENT_IDS = [
+    s.strip() for s in os.environ.get("GOOGLE_OAUTH_CLIENT_IDS", "").split(",") if s.strip()
+]
+
 TRIAL_HOURS = 48
 
 # Display-only pricing (real billing happens via Apple App Store / Google Play through RevenueCat)
@@ -58,6 +64,10 @@ class LoginIn(BaseModel):
 
 class GoogleSessionIn(BaseModel):
     session_id: str
+
+
+class GoogleIdTokenIn(BaseModel):
+    id_token: str
 
 
 class ProStatus(BaseModel):
@@ -244,21 +254,12 @@ async def login(payload: LoginIn):
     return AuthResponse(token=create_jwt(user["user_id"]), user=user_to_out(user))
 
 
-@api_router.post("/auth/google", response_model=AuthResponse)
-async def google_session(payload: GoogleSessionIn):
-    async with httpx.AsyncClient(timeout=15.0) as http:
-        r = await http.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": payload.session_id},
-        )
-    if r.status_code != 200:
-        raise HTTPException(status_code=401, detail="Échec de l'authentification Google.")
-    data = r.json()
-    email = (data.get("email") or "").lower().strip()
-    name = data.get("name") or email.split("@")[0]
-    picture = data.get("picture")
+async def _login_or_register_google_user(email: str, name: str, picture: Optional[str]) -> dict:
+    """Shared helper used by both Emergent session-id flow and native id_token flow."""
+    email = (email or "").lower().strip()
     if not email:
         raise HTTPException(status_code=400, detail="E-mail Google manquant.")
+    name = (name or email.split("@")[0]).strip()
     now = now_utc()
     user = await db.users.find_one({"email": email})
     if not user:
@@ -279,6 +280,69 @@ async def google_session(payload: GoogleSessionIn):
         }})
         user["picture"] = picture or user.get("picture")
         user = await ensure_trial_started(user)
+    return user
+
+
+@api_router.post("/auth/google", response_model=AuthResponse)
+async def google_session(payload: GoogleSessionIn):
+    """Legacy Emergent OAuth flow (web preview). Accepts a session_id from
+    auth.emergentagent.com and exchanges it for user profile data."""
+    async with httpx.AsyncClient(timeout=15.0) as http:
+        r = await http.get(
+            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            headers={"X-Session-ID": payload.session_id},
+        )
+    if r.status_code != 200:
+        raise HTTPException(status_code=401, detail="Échec de l'authentification Google.")
+    data = r.json()
+    user = await _login_or_register_google_user(
+        email=data.get("email", ""), name=data.get("name"), picture=data.get("picture"),
+    )
+    return AuthResponse(token=create_jwt(user["user_id"]), user=user_to_out(user))
+
+
+@api_router.post("/auth/google-native", response_model=AuthResponse)
+async def google_native(payload: GoogleIdTokenIn):
+    """Native Google Sign-In flow (Android/iOS production builds).
+    Accepts a Google ID token and verifies its signature with Google's public keys.
+    The token's `aud` must match one of GOOGLE_OAUTH_CLIENT_IDS configured in .env."""
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+    except ImportError:
+        raise HTTPException(status_code=500, detail="google-auth library missing on server.")
+
+    if not GOOGLE_OAUTH_CLIENT_IDS:
+        raise HTTPException(status_code=500,
+                            detail="Google auth not configured (GOOGLE_OAUTH_CLIENT_IDS missing).")
+
+    try:
+        # Verify against ALL allowed client IDs (Web client + Android client + iOS client).
+        # google-auth requires us to pass one audience at a time, so loop until one matches.
+        info = None
+        last_err: Optional[Exception] = None
+        for aud in GOOGLE_OAUTH_CLIENT_IDS:
+            try:
+                info = google_id_token.verify_oauth2_token(
+                    payload.id_token, google_requests.Request(), aud
+                )
+                break
+            except ValueError as e:
+                last_err = e
+                continue
+        if info is None:
+            raise last_err or ValueError("Aucun client_id ne correspond à l'audience du token.")
+    except Exception as e:
+        logger.warning("Google id_token verification failed: %s", e)
+        raise HTTPException(status_code=401, detail="Jeton Google invalide.")
+
+    # info contains: iss, sub, aud, email, email_verified, name, picture, ...
+    if not info.get("email_verified"):
+        raise HTTPException(status_code=401, detail="E-mail Google non vérifié.")
+
+    user = await _login_or_register_google_user(
+        email=info.get("email", ""), name=info.get("name"), picture=info.get("picture"),
+    )
     return AuthResponse(token=create_jwt(user["user_id"]), user=user_to_out(user))
 
 
