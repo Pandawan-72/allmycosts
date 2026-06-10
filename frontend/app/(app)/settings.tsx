@@ -7,23 +7,25 @@ import * as Icons from "lucide-react-native";
 import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
-import { CURRENCIES, findCurrency } from "@/src/data/currencies";
+import { CURRENCIES, findCurrency, formatAmount } from "@/src/data/currencies";
 import { confirmAction } from "@/src/utils/confirm";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
 import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
+import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 
 const API = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function Settings() {
   const router = useRouter();
   const { user, token, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency, monthlyIncome } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [showIncome, setShowIncome] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
   const onRestore = async () => {
@@ -97,6 +99,19 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
+        <TouchableOpacity testID="income-row" onPress={() => setShowIncome(true)} style={[styles.row, { marginTop: 10 }]}>
+          <View style={styles.rowIcon}><Icons.Wallet color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("home.income")}</Text>
+            <Text style={styles.rowSub}>
+              {monthlyIncome > 0
+                ? `${formatAmount(monthlyIncome, baseCurrency)} ${t("home.perMonth")}`
+                : t("home.noIncomeYet")}
+            </Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
         <TouchableOpacity testID="manage-pro-row" onPress={() => router.push("/(app)/paywall")} style={[styles.row, { marginTop: 10 }]}>
           <View style={[styles.rowIcon, { backgroundColor: theme.accentSoft }]}><Icons.Crown color={theme.accent} size={18} /></View>
           <View style={{ flex: 1 }}>
@@ -156,6 +171,9 @@ export default function Settings() {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Income editor — shared with Home */}
+      <IncomeEditorModal visible={showIncome} onClose={() => setShowIncome(false)} />
 
       <Modal visible={showLang} animationType="slide" onRequestClose={() => setShowLang(false)}>
         <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
