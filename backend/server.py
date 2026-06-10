@@ -40,7 +40,7 @@ TRIAL_HOURS = 48
 PLAN_PRICES_EUR = {
     "monthly":  {"amount_eur": 2.99,  "interval": "month", "label": "Mensuel"},
     "yearly":   {"amount_eur": 23.88, "interval": "year",  "label": "Annuel"},
-    "lifetime": {"amount_eur": 69.00, "interval": None,    "label": "À vie"},
+    "lifetime": {"amount_eur": 29.90, "interval": None,    "label": "À vie"},
 }
 
 client = AsyncIOMotorClient(MONGO_URL)

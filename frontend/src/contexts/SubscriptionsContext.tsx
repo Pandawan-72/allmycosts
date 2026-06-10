@@ -28,6 +28,8 @@ type SubsState = {
   updateSubscription: (id: string, s: Partial<Omit<Subscription, "id" | "createdAt">>) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
   addCustomCategory: (c: Omit<Category, "id"> & { id?: string }) => Promise<Category>;
+  monthlyIncome: number;
+  setMonthlyIncome: (amount: number) => Promise<void>;
   monthlyTotal: number;
   yearlyTotal: number;
 };
@@ -50,6 +52,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
   const [baseCurrency, setBaseCurrencyState] = useState<string>("EUR");
+  const [monthlyIncome, setMonthlyIncomeState] = useState<number>(0);
 
   // Load when user becomes available
   useEffect(() => {
@@ -92,6 +95,12 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const setBaseCurrency = useCallback(async (c: string) => {
     setBaseCurrencyState(c);
     if (uidKey) await storage.setItem(userScopedKey(uidKey, "currency"), c);
+  }, [uidKey]);
+
+  const setMonthlyIncome = useCallback(async (amount: number) => {
+    const safe = Math.max(0, Number(amount) || 0);
+    setMonthlyIncomeState(safe);
+    if (uidKey) await storage.setItem(userScopedKey(uidKey, "income"), safe);
   }, [uidKey]);
 
   const addSubscription = useCallback(async (s: Omit<Subscription, "id" | "createdAt">) => {
@@ -138,6 +147,8 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         updateSubscription,
         deleteSubscription,
         addCustomCategory,
+        monthlyIncome,
+        setMonthlyIncome,
         monthlyTotal,
         yearlyTotal,
       }}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform, Modal, TextInput, KeyboardAvoidingView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
@@ -28,9 +28,11 @@ export default function Home() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, customCategories, baseCurrency, deleteSubscription } = useSubscriptions();
+  const { subscriptions, customCategories, baseCurrency, deleteSubscription, monthlyIncome, setMonthlyIncome } = useSubscriptions();
   const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  const [incomeDraft, setIncomeDraft] = useState<string>("");
 
   const allCats = useMemo(() => [...DEFAULT_CATEGORIES, ...customCategories], [customCategories]);
   const totalsCurrency = findCurrency(baseCurrency);
@@ -48,6 +50,29 @@ export default function Home() {
 
   const monthlyTotal = totals.monthly;
   const yearlyTotal = totals.yearly;
+
+  // Remaining budget (income - subscriptions cost), scaled to current toggle view.
+  const displayedRemaining = useMemo(() => {
+    if (view === "monthly") return monthlyIncome - monthlyTotal;
+    return monthlyIncome * 12 - yearlyTotal;
+  }, [view, monthlyIncome, monthlyTotal, yearlyTotal]);
+  const isOverBudget = monthlyIncome > 0 && displayedRemaining < 0;
+
+  const saveIncome = async () => {
+    const cleaned = incomeDraft.replace(",", ".").replace(/[^\d.]/g, "");
+    const value = parseFloat(cleaned);
+    if (isNaN(value) || value < 0) {
+      await setMonthlyIncome(0);
+    } else {
+      await setMonthlyIncome(value);
+    }
+    setIncomeModalOpen(false);
+  };
+
+  const clearIncome = async () => {
+    await setMonthlyIncome(0);
+    setIncomeModalOpen(false);
+  };
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
   const isPro = !!user?.pro?.is_pro;
@@ -355,9 +380,9 @@ export default function Home() {
         testID={`subscription-item-${item.name}`}
         onPress={() => router.push({ pathname: "/(app)/subscription", params: { id: item.id } })}
         onLongPress={() =>
-          confirmAction(item.name, "Supprimer cet abonnement ?", [
-            { text: "Annuler", style: "cancel" },
-            { text: "Supprimer", style: "destructive", onPress: () => deleteSubscription(item.id) },
+          confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
+            { text: t("common.cancel"), style: "cancel" },
+            { text: t("common.delete"), style: "destructive", onPress: () => deleteSubscription(item.id) },
           ])
         }
         style={styles.subItem}
@@ -452,6 +477,72 @@ export default function Home() {
                 {t("home.subsCount", { count: subscriptions.length, currency: totalsCurrency.code })}
               </Text>
             </View>
+
+            {/* Income + Remaining budget */}
+            {monthlyIncome > 0 ? (
+              <View style={styles.budgetRow}>
+                <TouchableOpacity
+                  testID="income-card"
+                  onPress={() => { setIncomeDraft(String(monthlyIncome)); setIncomeModalOpen(true); }}
+                  activeOpacity={0.7}
+                  style={styles.incomeCard}
+                >
+                  <View style={styles.incomeCardHeader}>
+                    <Icons.Wallet color={theme.text} size={16} strokeWidth={2} />
+                    <Text style={styles.incomeCardLabel}>{t("home.income")}</Text>
+                    <Icons.Pencil color={theme.textMuted} size={14} strokeWidth={2} />
+                  </View>
+                  <Text style={styles.incomeCardAmount} numberOfLines={1}>
+                    {formatAmount(view === "monthly" ? monthlyIncome : monthlyIncome * 12, baseCurrency)}
+                  </Text>
+                  <Text style={styles.incomeCardCycle}>
+                    {view === "monthly" ? t("home.perMonth") : t("home.perYear")}
+                  </Text>
+                </TouchableOpacity>
+
+                <View
+                  testID="remaining-card"
+                  style={[
+                    styles.remainingCard,
+                    isOverBudget && styles.remainingCardWarn,
+                  ]}
+                >
+                  <Text style={[styles.remainingLabel, isOverBudget && { color: theme.danger }]} numberOfLines={1}>
+                    {view === "monthly" ? t("home.remainingMonthly") : t("home.remainingYearly")}
+                  </Text>
+                  <Text
+                    testID="remaining-amount"
+                    style={[styles.remainingAmount, isOverBudget && { color: theme.danger }]}
+                    numberOfLines={1}
+                  >
+                    {formatAmount(displayedRemaining, baseCurrency)}
+                  </Text>
+                  {isOverBudget ? (
+                    <View style={styles.warnRow}>
+                      <Icons.AlertTriangle color={theme.danger} size={12} strokeWidth={2.5} />
+                      <Text style={styles.warnText} numberOfLines={2}>{t("home.overBudgetWarning")}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                testID="add-income-cta"
+                onPress={() => { setIncomeDraft(""); setIncomeModalOpen(true); }}
+                style={styles.addIncomeCta}
+                activeOpacity={0.7}
+              >
+                <View style={styles.addIncomeIcon}>
+                  <Icons.Wallet color={theme.accent} size={18} strokeWidth={2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.addIncomeTitle}>{t("home.addIncome")}</Text>
+                  <Text style={styles.addIncomeSub} numberOfLines={2}>{t("home.noIncomeYet")}</Text>
+                </View>
+                <Icons.Plus color={theme.accent} size={20} strokeWidth={2.5} />
+              </TouchableOpacity>
+            )}
+
             <Text style={styles.sectionTitle}>{t("home.yourSubs")}</Text>
             {subscriptions.length === 0 ? (
               <Text style={styles.empty}>{t("home.empty")}</Text>
@@ -473,6 +564,70 @@ export default function Home() {
       >
         <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
       </TouchableOpacity>
+
+      {/* Income editor modal */}
+      <Modal
+        visible={incomeModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIncomeModalOpen(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalBackdrop}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIncomeModalOpen(false)}
+          />
+          <View style={styles.incomeModal}>
+            <View style={styles.incomeModalHeaderRow}>
+              <View style={styles.incomeModalIcon}>
+                <Icons.Wallet color={theme.accent} size={20} strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.incomeModalTitle}>{t("home.incomeTitle")}</Text>
+                <Text style={styles.incomeModalSub} numberOfLines={2}>{t("home.incomeSubtitle")}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIncomeModalOpen(false)} style={styles.modalCloseBtn} testID="income-modal-close">
+                <Icons.X color={theme.textMuted} size={18} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.incomeInputRow}>
+              <TextInput
+                testID="income-input"
+                value={incomeDraft}
+                onChangeText={setIncomeDraft}
+                placeholder={t("home.incomePlaceholder")}
+                placeholderTextColor={theme.textSubtle}
+                keyboardType="decimal-pad"
+                autoFocus
+                style={styles.incomeInput}
+              />
+              <Text style={styles.incomeCurrency}>{baseCurrency}</Text>
+            </View>
+            <View style={styles.incomeBtnRow}>
+              {monthlyIncome > 0 ? (
+                <TouchableOpacity
+                  testID="income-clear-btn"
+                  onPress={clearIncome}
+                  style={[styles.incomeBtn, styles.incomeBtnGhost]}
+                >
+                  <Text style={[styles.incomeBtnText, { color: theme.danger }]}>{t("home.removeIncome")}</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                testID="income-save-btn"
+                onPress={saveIncome}
+                style={[styles.incomeBtn, styles.incomeBtnPrimary]}
+              >
+                <Text style={[styles.incomeBtnText, { color: "#fff" }]}>{t("common.save")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -541,4 +696,80 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginTop: 8,
   },
   trialBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: theme.accent },
+
+  // Income + Remaining budget
+  budgetRow: {
+    flexDirection: "row", gap: 12, marginBottom: 18,
+  },
+  incomeCard: {
+    flex: 1, backgroundColor: theme.surface, borderRadius: 18, padding: 14,
+    borderWidth: 1, borderColor: theme.border, minHeight: 96,
+  },
+  incomeCardHeader: {
+    flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8,
+  },
+  incomeCardLabel: { flex: 1, fontSize: 11, fontWeight: "700", color: theme.textMuted, letterSpacing: 0.5, textTransform: "uppercase" },
+  incomeCardAmount: { fontSize: 22, fontWeight: "800", color: theme.text, letterSpacing: -0.5 },
+  incomeCardCycle: { fontSize: 11, color: theme.textSubtle, marginTop: 2, fontWeight: "600" },
+  remainingCard: {
+    flex: 1, backgroundColor: theme.bgAccent || "#F0FDF4", borderRadius: 18, padding: 14,
+    borderWidth: 1, borderColor: "#86EFAC", minHeight: 96,
+  },
+  remainingCardWarn: {
+    backgroundColor: "#FEF2F2", borderColor: "#FCA5A5",
+  },
+  remainingLabel: { fontSize: 11, fontWeight: "700", color: "#15803D", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 },
+  remainingAmount: { fontSize: 22, fontWeight: "800", color: "#15803D", letterSpacing: -0.5 },
+  warnRow: {
+    flexDirection: "row", alignItems: "flex-start", gap: 4, marginTop: 6,
+  },
+  warnText: { flex: 1, fontSize: 10.5, fontWeight: "600", color: theme.danger, lineHeight: 13 },
+
+  addIncomeCta: {
+    flexDirection: "row", alignItems: "center", gap: 12, padding: 14,
+    backgroundColor: theme.surface, borderRadius: 18, borderWidth: 1, borderColor: theme.border,
+    marginBottom: 18,
+  },
+  addIncomeIcon: {
+    width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center",
+    backgroundColor: theme.accentSoft,
+  },
+  addIncomeTitle: { fontSize: 14, fontWeight: "700", color: theme.text },
+  addIncomeSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+
+  // Income modal
+  modalBackdrop: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", paddingHorizontal: 20,
+  },
+  incomeModal: {
+    backgroundColor: theme.bg, borderRadius: 24, padding: 20,
+    shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 12,
+  },
+  incomeModalHeaderRow: {
+    flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 18,
+  },
+  incomeModalIcon: {
+    width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
+    backgroundColor: theme.accentSoft,
+  },
+  incomeModalTitle: { fontSize: 17, fontWeight: "800", color: theme.text, letterSpacing: -0.3 },
+  incomeModalSub: { fontSize: 12, color: theme.textMuted, marginTop: 3, lineHeight: 16 },
+  modalCloseBtn: {
+    width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center",
+    backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
+  },
+  incomeInputRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: theme.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  incomeInput: { flex: 1, fontSize: 22, fontWeight: "800", color: theme.text, padding: 0 },
+  incomeCurrency: { fontSize: 14, fontWeight: "700", color: theme.textMuted },
+  incomeBtnRow: { flexDirection: "row", gap: 10, marginTop: 18 },
+  incomeBtn: {
+    flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", justifyContent: "center",
+  },
+  incomeBtnPrimary: { backgroundColor: theme.primary },
+  incomeBtnGhost: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+  incomeBtnText: { fontSize: 15, fontWeight: "800" },
 });

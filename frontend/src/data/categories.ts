@@ -9,6 +9,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: "video", label: "Vidéo & Streaming", icon: "PlaySquare", color: "#EF4444" },
   { id: "music", label: "Musique", icon: "Music", color: "#8B5CF6" },
   { id: "banking", label: "Banque & Finance", icon: "Landmark", color: "#10B981" },
+  { id: "rent", label: "Loyer", icon: "Home", color: "#A16207" },
+  { id: "credit", label: "Crédit", icon: "Banknote", color: "#DC2626" },
   { id: "software", label: "Logiciels", icon: "Monitor", color: "#3B82F6" },
   { id: "gaming", label: "Jeux vidéo", icon: "Gamepad2", color: "#F59E0B" },
   { id: "fitness", label: "Sport & Fitness", icon: "Dumbbell", color: "#EC4899" },
