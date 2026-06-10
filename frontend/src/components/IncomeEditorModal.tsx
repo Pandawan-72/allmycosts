@@ -81,7 +81,22 @@ export function IncomeEditorModal({
               autoFocus
               underlineColorAndroid="transparent"
               selectionColor={theme.accent}
-              style={styles.input}
+              style={[
+                styles.input,
+                // Strip the native web/Android focus ring inline — React Native Web
+                // doesn't reliably pick this up from StyleSheet.create on all versions.
+                Platform.OS === "web"
+                  ? ({
+                      outlineWidth: 0,
+                      outlineColor: "transparent",
+                      outlineStyle: "none",
+                      outline: "none",
+                      boxShadow: "none",
+                      WebkitTapHighlightColor: "transparent",
+                      WebkitAppearance: "none",
+                    } as any)
+                  : null,
+              ]}
             />
             <Text style={styles.currency}>{baseCurrency}</Text>
           </View>
@@ -160,6 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: theme.border,
+    overflow: "hidden",
   },
   input: {
     flex: 1,
@@ -167,8 +183,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: theme.text,
     padding: 0,
-    // Remove web/Android default focus outline that overflows the container.
-    ...(Platform.OS === "web" ? ({ outlineStyle: "none", outlineWidth: 0 } as any) : null),
   },
   currency: { fontSize: 14, fontWeight: "700", color: theme.textMuted },
   btnRow: { flexDirection: "row", gap: 10, marginTop: 18 },
