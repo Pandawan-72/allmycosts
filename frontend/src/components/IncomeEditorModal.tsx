@@ -79,6 +79,8 @@ export function IncomeEditorModal({
               placeholderTextColor={theme.textSubtle}
               keyboardType="decimal-pad"
               autoFocus
+              underlineColorAndroid="transparent"
+              selectionColor={theme.accent}
               style={styles.input}
             />
             <Text style={styles.currency}>{baseCurrency}</Text>
@@ -159,7 +161,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
   },
-  input: { flex: 1, fontSize: 22, fontWeight: "800", color: theme.text, padding: 0 },
+  input: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: "800",
+    color: theme.text,
+    padding: 0,
+    // Remove web/Android default focus outline that overflows the container.
+    ...(Platform.OS === "web" ? ({ outlineStyle: "none", outlineWidth: 0 } as any) : null),
+  },
   currency: { fontSize: 14, fontWeight: "700", color: theme.textMuted },
   btnRow: { flexDirection: "row", gap: 10, marginTop: 18 },
   btn: {
