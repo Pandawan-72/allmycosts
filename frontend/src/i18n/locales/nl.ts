@@ -57,7 +57,7 @@ const COMMON = {
     title: "Instellingen", preferences: "Voorkeuren", account: "Account",
     baseCurrency: "Hoofdvaluta", language: "Taal",
     proPlan: "Pro-plan", manage: "Beheren",
-    notifications: "Betalingsherinneringen", logout: "Uitloggen",
+    notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie",
     logoutConfirm: "Echt uitloggen?",
     notifEnabled: "Ingeschakeld", notifDisabled: "Uitgeschakeld",
     notifDays: "Herinner {{days}} dag(en) van tevoren",

@@ -106,6 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [persist]);
 
   const logout = useCallback(async () => {
+    // Best-effort: clear native Google session so the next sign-in shows the
+    // account picker (otherwise the SDK silently reuses the cached account).
+    try {
+      const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth");
+      await nativeGoogleSignOut();
+    } catch {
+      /* noop — non-fatal */
+    }
     await storage.secureRemove(TOKEN_KEY);
     setUser(null);
     setToken(null);

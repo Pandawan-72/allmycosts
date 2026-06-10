@@ -57,7 +57,7 @@ const COMMON = {
     title: "Impostazioni", preferences: "Preferenze", account: "Account",
     baseCurrency: "Valuta principale", language: "Lingua",
     proPlan: "Piano Pro", manage: "Gestisci",
-    notifications: "Promemoria di pagamento", logout: "Esci",
+    notifications: "Promemoria di pagamento", logout: "Esci", version: "Versione",
     logoutConfirm: "Vuoi davvero uscire?",
     notifEnabled: "Attivi", notifDisabled: "Disattivi",
     notifDays: "Ricorda {{days}} giorno(i) prima",

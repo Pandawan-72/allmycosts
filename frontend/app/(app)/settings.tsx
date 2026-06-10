@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndi
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
+import * as Application from "expo-application";
 
 import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -16,6 +17,9 @@ import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat"
 import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 
 const API = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
+const APP_BUILD = Application.nativeBuildVersion || "—";
 
 export default function Settings() {
   const router = useRouter();
@@ -170,6 +174,14 @@ export default function Settings() {
             <Text style={[styles.rowTitle, { color: theme.danger }]}>{t("settings.logout")}</Text>
           </View>
         </TouchableOpacity>
+
+        {/* Version footer */}
+        <View testID="app-version-row" style={styles.versionFooter}>
+          <Icons.Info color={theme.textSubtle} size={13} strokeWidth={2} />
+          <Text style={styles.versionText}>
+            {t("settings.version")} {APP_VERSION} ({APP_BUILD})
+          </Text>
+        </View>
       </View>
 
       {/* Income editor — shared with Home */}
@@ -267,5 +279,12 @@ const styles = StyleSheet.create({
   daysInput: {
     width: 56, paddingVertical: 8, paddingHorizontal: 10, borderWidth: 1, borderColor: theme.border,
     borderRadius: 10, textAlign: "center", color: theme.text, fontWeight: "700",
+  },
+  versionFooter: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, marginTop: 24, paddingVertical: 8, paddingBottom: 12,
+  },
+  versionText: {
+    fontSize: 12, color: theme.textSubtle, fontWeight: "600",
   },
 });

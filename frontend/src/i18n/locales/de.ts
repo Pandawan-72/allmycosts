@@ -59,7 +59,7 @@ const COMMON = {
     title: "Einstellungen", preferences: "Präferenzen", account: "Konto",
     baseCurrency: "Hauptwährung", language: "Sprache",
     proPlan: "Pro-Abo", manage: "Verwalten",
-    notifications: "Zahlungserinnerungen", logout: "Abmelden",
+    notifications: "Zahlungserinnerungen", logout: "Abmelden", version: "Version",
     logoutConfirm: "Wirklich abmelden?",
     notifEnabled: "Aktiviert", notifDisabled: "Deaktiviert",
     notifDays: "{{days}} Tag(e) vorher erinnern",

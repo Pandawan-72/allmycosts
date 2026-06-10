@@ -59,7 +59,7 @@ const COMMON = {
     title: "Paramètres", preferences: "Préférences", account: "Compte",
     baseCurrency: "Devise principale", language: "Langue",
     proPlan: "Abonnement Pro", manage: "Gérer",
-    notifications: "Rappels de paiement", logout: "Se déconnecter",
+    notifications: "Rappels de paiement", logout: "Se déconnecter", version: "Version",
     logoutConfirm: "Voulez-vous vraiment vous déconnecter ?",
     notifEnabled: "Activés", notifDisabled: "Désactivés",
     notifDays: "Rappel {{days}} jour(s) avant",

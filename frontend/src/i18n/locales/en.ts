@@ -59,7 +59,7 @@ const COMMON = {
     title: "Settings", preferences: "Preferences", account: "Account",
     baseCurrency: "Base currency", language: "Language",
     proPlan: "Pro Plan", manage: "Manage",
-    notifications: "Payment reminders", logout: "Sign out",
+    notifications: "Payment reminders", logout: "Sign out", version: "Version",
     logoutConfirm: "Do you really want to sign out?",
     notifEnabled: "Enabled", notifDisabled: "Disabled",
     notifDays: "Remind me {{days}} day(s) before",

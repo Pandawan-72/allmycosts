@@ -59,7 +59,7 @@ const COMMON = {
     title: "Ajustes", preferences: "Preferencias", account: "Cuenta",
     baseCurrency: "Moneda principal", language: "Idioma",
     proPlan: "Plan Pro", manage: "Gestionar",
-    notifications: "Recordatorios de pago", logout: "Cerrar sesión",
+    notifications: "Recordatorios de pago", logout: "Cerrar sesión", version: "Versión",
     logoutConfirm: "¿Seguro que quieres cerrar sesión?",
     notifEnabled: "Activados", notifDisabled: "Desactivados",
     notifDays: "Recordar {{days}} día(s) antes",

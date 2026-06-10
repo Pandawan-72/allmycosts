@@ -59,7 +59,7 @@ const COMMON = {
     title: "Настройки", preferences: "Параметры", account: "Аккаунт",
     baseCurrency: "Основная валюта", language: "Язык",
     proPlan: "Pro-подписка", manage: "Управлять",
-    notifications: "Напоминания о платежах", logout: "Выйти",
+    notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия",
     logoutConfirm: "Точно выйти?",
     notifEnabled: "Включены", notifDisabled: "Выключены",
     notifDays: "Напомнить за {{days}} дн.",

@@ -85,7 +85,15 @@ export async function nativeGoogleSignOut() {
   const GS = await loadGoogleSignin();
   if (!GS) return;
   try {
+    // signOut clears the cached session; revokeAccess forces the Google account
+    // picker to show again on the next sign-in (so the user can pick another
+    // account or the same one).
     await GS.signOut();
+    try {
+      await GS.revokeAccess?.();
+    } catch {
+      /* revokeAccess can fail silently when no user is currently signed in. */
+    }
   } catch {
     /* noop */
   }
