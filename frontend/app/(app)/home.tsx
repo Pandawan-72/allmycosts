@@ -251,7 +251,7 @@ export default function Home() {
             {trialExpired ? (
               <TouchableOpacity testID="upgrade-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: "#FEF2F2", borderColor: theme.danger }]}>
                 <Icons.AlertCircle color={theme.danger} size={16} />
-                <Text style={[styles.trialBannerText, { color: theme.danger }]}>Essai terminé — Passez Pro pour continuer</Text>
+                <Text style={[styles.trialBannerText, { color: theme.danger }]}>{t("home.trialExpiredBanner")}</Text>
                 <Text style={{ color: theme.danger, fontWeight: "800" }}>5,99 €</Text>
               </TouchableOpacity>
             ) : null}
@@ -282,7 +282,7 @@ export default function Home() {
                     <Icons.Wallet color={theme.textMuted} size={13} strokeWidth={2} />
                     {/* ✅ Label income corrigé selon le toggle */}
                     <Text style={styles.miniCardLabel} numberOfLines={1}>
-                      {view === "monthly" ? "REVENUS MENSUELS" : "REVENUS ANNUELS"}
+                      {view === "monthly" ? t("home.incomeMonthly") : t("home.incomeYearly")}
                     </Text>
                   </View>
                   <Text style={styles.miniCardAmount} numberOfLines={1}>

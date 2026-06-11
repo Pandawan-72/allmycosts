@@ -39,6 +39,8 @@ const COMMON = {
     remainingMonthly: "RESTEREND BUDGET", remainingYearly: "RESTEREND JAARLIJKS BUDGET",
     overBudgetWarning: "Let op, je budget moet bijgesteld worden",
     perMonth: "/ maand", perYear: "/ jaar",
+    incomeMonthly: "MAANDINKOMEN", incomeYearly: "JAARINKOMEN",
+    trialExpiredBanner: "Proefperiode voorbij — Word Pro om door te gaan",
   },
   sub: {
     newSub: "Nieuwe terugkerende betaling", editSub: "Bewerken",

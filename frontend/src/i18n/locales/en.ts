@@ -41,6 +41,8 @@ const COMMON = {
     remainingMonthly: "REMAINING BUDGET", remainingYearly: "YEARLY REMAINING BUDGET",
     overBudgetWarning: "Heads up — your budget needs adjusting",
     perMonth: "/ month", perYear: "/ year",
+    incomeMonthly: "MONTHLY INCOME", incomeYearly: "YEARLY INCOME",
+    trialExpiredBanner: "Trial ended — Go Pro to continue",
   },
   sub: {
     newSub: "New recurring payment", editSub: "Edit",

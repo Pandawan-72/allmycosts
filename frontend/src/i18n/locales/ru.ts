@@ -41,6 +41,8 @@ const COMMON = {
     remainingMonthly: "ОСТАВШИЙСЯ БЮДЖЕТ", remainingYearly: "ОСТАВШИЙСЯ ГОДОВОЙ БЮДЖЕТ",
     overBudgetWarning: "Внимание, ваш бюджет нужно пересмотреть",
     perMonth: "/ мес", perYear: "/ год",
+    incomeMonthly: "ЕЖЕМЕСЯЧНЫЙ ДОХОД", incomeYearly: "ГОДОВОЙ ДОХОД",
+    trialExpiredBanner: "Пробный период завершён — Перейдите на Pro",
   },
   sub: {
     newSub: "Новый регулярный платёж", editSub: "Изменить",

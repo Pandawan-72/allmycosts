@@ -41,6 +41,8 @@ const COMMON = {
     remainingMonthly: "VERBLEIBENDES BUDGET", remainingYearly: "VERBLEIBENDES JAHRESBUDGET",
     overBudgetWarning: "Achtung, dein Budget muss angepasst werden",
     perMonth: "/ Monat", perYear: "/ Jahr",
+    incomeMonthly: "MONATL. EINKOMMEN", incomeYearly: "JÄHRL. EINKOMMEN",
+    trialExpiredBanner: "Testphase beendet — Jetzt Pro werden",
   },
   sub: {
     newSub: "Neue wiederkehrende Zahlung", editSub: "Bearbeiten",
