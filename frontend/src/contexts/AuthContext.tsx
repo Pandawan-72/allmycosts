@@ -1,8 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
-import { storage } from "@/src/utils/storage";
-
-const API = process.env.EXPO_PUBLIC_BACKEND_URL;
-const TOKEN_KEY = "amc.auth.token";
+import {
+  firebaseLogin,
+  firebaseRegister,
+  firebaseGoogleSignIn,
+  firebaseSignOut,
+  firebaseUserToAuthUser,
+  getFirebaseAuth,
+  onAuthStateChanged,
+} from "@/src/lib/firebaseAuth";
 
 export type AuthUser = {
   user_id: string;
@@ -33,102 +38,52 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-async function apiPost(path: string, body: any, token?: string | null) {
-  const res = await fetch(`${API}/api${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = data?.detail || "Erreur réseau";
-    throw new Error(typeof msg === "string" ? msg : "Erreur réseau");
-  }
-  return data;
-}
-
-async function apiGet(path: string, token: string) {
-  const res = await fetch(`${API}/api${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("unauthorized");
-  return res.json();
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      const saved = await storage.secureGet<string>(TOKEN_KEY, "");
-      if (saved) {
-        try {
-          const me = await apiGet("/auth/me", saved);
-          setUser(me as AuthUser);
-          setToken(saved);
-        } catch {
-          await storage.secureRemove(TOKEN_KEY);
-        }
-      }
+    const auth = getFirebaseAuth();
+    const unsub = onAuthStateChanged(auth, (fbUser: any) => {
+      if (fbUser) { setUser(firebaseUserToAuthUser(fbUser)); } else { setUser(null); }
       setLoading(false);
-    })();
-  }, []);
-
-  const persist = useCallback(async (t: string, u: AuthUser) => {
-    await storage.secureSet(TOKEN_KEY, t);
-    setToken(t);
-    setUser(u);
+    });
+    return unsub;
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const data = await apiPost("/auth/login", { email, password });
-    await persist(data.token, data.user);
-  }, [persist]);
+    const u = await firebaseLogin(email, password);
+    setUser(u);
+  }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const data = await apiPost("/auth/register", { name, email, password });
-    await persist(data.token, data.user);
-  }, [persist]);
+    const u = await firebaseRegister(name, email, password);
+    setUser(u);
+  }, []);
 
-  const loginWithGoogleSession = useCallback(async (session_id: string) => {
-    const data = await apiPost("/auth/google", { session_id });
-    await persist(data.token, data.user);
-  }, [persist]);
+  const loginWithGoogleSession = useCallback(async (_sessionId: string) => {
+    throw new Error("Non supporte. Utilisez Google natif.");
+  }, []);
 
-  const loginWithGoogleIdToken = useCallback(async (id_token: string) => {
-    const data = await apiPost("/auth/google-native", { id_token });
-    await persist(data.token, data.user);
-  }, [persist]);
+  const loginWithGoogleIdToken = useCallback(async (idToken: string) => {
+    const u = await firebaseGoogleSignIn(idToken);
+    setUser(u);
+  }, []);
 
   const logout = useCallback(async () => {
-    // Best-effort: clear native Google session so the next sign-in shows the
-    // account picker (otherwise the SDK silently reuses the cached account).
-    try {
-      const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth");
-      await nativeGoogleSignOut();
-    } catch {
-      /* noop — non-fatal */
-    }
-    await storage.secureRemove(TOKEN_KEY);
+    try { const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth"); await nativeGoogleSignOut(); } catch {}
+    await firebaseSignOut();
     setUser(null);
-    setToken(null);
   }, []);
 
   const refreshUser = useCallback(async () => {
-    if (!token) return;
-    try {
-      const me = await apiGet("/auth/me", token);
-      setUser(me as AuthUser);
-    } catch {}
-  }, [token]);
+    const auth = getFirebaseAuth();
+    const fbUser = auth.currentUser;
+    if (fbUser) setUser(firebaseUserToAuthUser(fbUser));
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogleSession, loginWithGoogleIdToken, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token: null, loading, login, register, loginWithGoogleSession, loginWithGoogleIdToken, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
