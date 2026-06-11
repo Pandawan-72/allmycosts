@@ -1,3 +1,4 @@
+// AuthContext — Firebase Auth + trial 72h local.
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import {
   firebaseLogin,
@@ -8,6 +9,12 @@ import {
   getFirebaseAuth,
   onAuthStateChanged,
 } from "@/src/lib/firebaseAuth";
+import {
+  startTrialIfNeeded,
+  isTrialActive,
+  getTrialHoursLeft,
+  hasUsedTrial,
+} from "@/src/lib/trial";
 
 export type AuthUser = {
   user_id: string;
@@ -38,52 +45,118 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+// Enrichit un AuthUser de base avec les infos du trial local
+async function enrichWithTrial(baseUser: ReturnType<typeof firebaseUserToAuthUser>): Promise<AuthUser> {
+  const trialActive = await isTrialActive();
+  const trialUsed = await hasUsedTrial();
+  const hoursLeft = await getTrialHoursLeft();
+
+  // Si l'utilisateur a un achat lifetime réel (géré par RevenueCat via refreshUser)
+  // on ne touche pas à son statut pro. Sinon on calcule depuis le trial local.
+  let plan: AuthUser["pro"]["plan"] = "free";
+  let is_pro = false;
+  let trial_end: string | null = null;
+
+  if (trialActive) {
+    plan = "trialing";
+    is_pro = true; // trial actif = accès pro complet
+    const trialEndTs = Date.now() + hoursLeft * 3600000;
+    trial_end = new Date(trialEndTs).toISOString();
+  } else if (trialUsed) {
+    plan = "expired";
+    is_pro = false;
+  }
+
+  return {
+    ...baseUser,
+    pro: {
+      plan,
+      is_pro,
+      trial_end,
+      current_period_end: null,
+      has_used_trial: trialUsed,
+    },
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Écoute les changements de session Firebase
   useEffect(() => {
     const auth = getFirebaseAuth();
-    const unsub = onAuthStateChanged(auth, (fbUser: any) => {
-      if (fbUser) { setUser(firebaseUserToAuthUser(fbUser)); } else { setUser(null); }
+    const unsub = onAuthStateChanged(auth, async (fbUser: any) => {
+      if (fbUser) {
+        const base = firebaseUserToAuthUser(fbUser);
+        const enriched = await enrichWithTrial(base);
+        setUser(enriched);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return unsub;
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const u = await firebaseLogin(email, password);
-    setUser(u);
+    const base = await firebaseLogin(email, password);
+    await startTrialIfNeeded(); // démarre le trial si premier login
+    const enriched = await enrichWithTrial(base);
+    setUser(enriched);
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const u = await firebaseRegister(name, email, password);
-    setUser(u);
+    const base = await firebaseRegister(name, email, password);
+    await startTrialIfNeeded();
+    const enriched = await enrichWithTrial(base);
+    setUser(enriched);
   }, []);
 
   const loginWithGoogleSession = useCallback(async (_sessionId: string) => {
-    throw new Error("Non supporte. Utilisez Google natif.");
+    throw new Error("Non supporté. Utilisez la connexion Google native.");
   }, []);
 
   const loginWithGoogleIdToken = useCallback(async (idToken: string) => {
-    const u = await firebaseGoogleSignIn(idToken);
-    setUser(u);
+    const base = await firebaseGoogleSignIn(idToken);
+    await startTrialIfNeeded();
+    const enriched = await enrichWithTrial(base);
+    setUser(enriched);
   }, []);
 
   const logout = useCallback(async () => {
-    try { const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth"); await nativeGoogleSignOut(); } catch {}
+    try {
+      const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth");
+      await nativeGoogleSignOut();
+    } catch {}
     await firebaseSignOut();
     setUser(null);
   }, []);
 
+  // refreshUser : re-calcule le statut trial depuis le storage local
   const refreshUser = useCallback(async () => {
     const auth = getFirebaseAuth();
     const fbUser = auth.currentUser;
-    if (fbUser) setUser(firebaseUserToAuthUser(fbUser));
+    if (!fbUser) return;
+    const base = firebaseUserToAuthUser(fbUser);
+    const enriched = await enrichWithTrial(base);
+    setUser(enriched);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token: null, loading, login, register, loginWithGoogleSession, loginWithGoogleIdToken, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token: null,
+        loading,
+        login,
+        register,
+        loginWithGoogleSession,
+        loginWithGoogleIdToken,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

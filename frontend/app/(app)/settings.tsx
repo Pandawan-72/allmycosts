@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -9,21 +9,18 @@ import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { CURRENCIES, findCurrency, formatAmount } from "@/src/data/currencies";
-import { confirmAction } from "@/src/utils/confirm";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
 import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
 import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 
-const API = process.env.EXPO_PUBLIC_BACKEND_URL;
-
 const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
 const APP_BUILD = Application.nativeBuildVersion || "—";
 
 export default function Settings() {
   const router = useRouter();
-  const { user, token, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const { baseCurrency, setBaseCurrency, monthlyIncome } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
@@ -38,10 +35,6 @@ export default function Settings() {
     try {
       if (isRevenueCatSupported()) {
         await restorePurchasesRC();
-        await fetch(`${API}/api/revenuecat/sync`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => {});
       }
       await refreshUser();
     } finally {
@@ -73,7 +66,8 @@ export default function Settings() {
         <View style={styles.headerBtn} />
       </View>
 
-      <View style={{ padding: 20 }}>
+      {/* ✅ ScrollView remplace View pour permettre le scroll */}
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
             <Text style={styles.avatarTxt}>{(user?.name || "?").charAt(0).toUpperCase()}</Text>
@@ -127,12 +121,7 @@ export default function Settings() {
 
         <Text style={[styles.section, { marginTop: 24 }]}>{t("legal.aboutSection")}</Text>
 
-        <TouchableOpacity
-          testID="restore-row"
-          onPress={onRestore}
-          disabled={restoring}
-          style={styles.row}
-        >
+        <TouchableOpacity testID="restore-row" onPress={onRestore} disabled={restoring} style={styles.row}>
           <View style={styles.rowIcon}>
             {restoring ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.RotateCcw color={theme.text} size={18} />}
           </View>
@@ -142,11 +131,7 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          testID="privacy-row"
-          onPress={() => router.push("/(app)/privacy")}
-          style={[styles.row, { marginTop: 10 }]}
-        >
+        <TouchableOpacity testID="privacy-row" onPress={() => router.push("/(app)/privacy")} style={[styles.row, { marginTop: 10 }]}>
           <View style={styles.rowIcon}><Icons.ShieldCheck color={theme.text} size={18} /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{t("legal.privacyTitle")}</Text>
@@ -154,11 +139,7 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          testID="terms-row"
-          onPress={() => router.push("/(app)/terms")}
-          style={[styles.row, { marginTop: 10 }]}
-        >
+        <TouchableOpacity testID="terms-row" onPress={() => router.push("/(app)/terms")} style={[styles.row, { marginTop: 10 }]}>
           <View style={styles.rowIcon}><Icons.FileText color={theme.text} size={18} /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{t("legal.termsTitle")}</Text>
@@ -175,16 +156,14 @@ export default function Settings() {
           </View>
         </TouchableOpacity>
 
-        {/* Version footer */}
         <View testID="app-version-row" style={styles.versionFooter}>
           <Icons.Info color={theme.textSubtle} size={13} strokeWidth={2} />
           <Text style={styles.versionText}>
             {t("settings.version")} {APP_VERSION} ({APP_BUILD})
           </Text>
         </View>
-      </View>
+      </ScrollView>
 
-      {/* Income editor — shared with Home */}
       <IncomeEditorModal visible={showIncome} onClose={() => setShowIncome(false)} />
 
       <Modal visible={showLang} animationType="slide" onRequestClose={() => setShowLang(false)}>
@@ -229,10 +208,7 @@ export default function Settings() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 testID={`base-currency-${item.code}`}
-                onPress={async () => {
-                  await setBaseCurrency(item.code);
-                  setShowCurrency(false);
-                }}
+                onPress={async () => { await setBaseCurrency(item.code); setShowCurrency(false); }}
                 style={styles.currencyRow}
               >
                 <Text style={styles.currencyCode}>{item.code}</Text>
@@ -276,15 +252,9 @@ const styles = StyleSheet.create({
   currencyCode: { fontWeight: "800", color: theme.text, width: 50 },
   currencyName: { color: theme.textMuted, flex: 1 },
   currencySymbol: { color: theme.text, fontWeight: "700" },
-  daysInput: {
-    width: 56, paddingVertical: 8, paddingHorizontal: 10, borderWidth: 1, borderColor: theme.border,
-    borderRadius: 10, textAlign: "center", color: theme.text, fontWeight: "700",
-  },
   versionFooter: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
     gap: 6, marginTop: 24, paddingVertical: 8, paddingBottom: 12,
   },
-  versionText: {
-    fontSize: 12, color: theme.textSubtle, fontWeight: "600",
-  },
+  versionText: { fontSize: 12, color: theme.textSubtle, fontWeight: "600" },
 });
