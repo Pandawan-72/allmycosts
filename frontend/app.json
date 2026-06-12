@@ -19,7 +19,9 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.allmycosts.app",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "resizeableActivity": true,
+      "allowBackup": true
     },
     "web": {
       "bundler": "metro",
