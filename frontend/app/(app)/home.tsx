@@ -169,6 +169,34 @@ export default function Home() {
       </div>`;
     }).join("");
 
+    // ----- Monthly chart (12 months SVG for PDF) -----
+    const now2 = new Date();
+    const monthlyChartData = Array.from({ length: 12 }, (_, i) => {
+      const monthDate = new Date(now2.getFullYear(), now2.getMonth() - (11 - i), 1);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      let monthTotal = 0;
+      for (const s of subscriptions) {
+        const createdAt = new Date(s.createdAt);
+        if (createdAt <= monthEnd) {
+          const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+          monthTotal += convert(monthly, s.currency, baseCurrency);
+        }
+      }
+      return { label: monthDate.toLocaleString("fr-FR", { month: "short" }), value: monthTotal };
+    });
+    const chartMax2 = Math.max(...monthlyChartData.map((d) => d.value), 0.01);
+    const CW = 480, CH = 100, BW = 28, BG = (CW - 12 * BW) / 13;
+    const chartBars = monthlyChartData.map((d, i) => {
+      const bh = Math.max((d.value / chartMax2) * CH, 2);
+      const bx = BG + i * (BW + BG);
+      const by = CH - bh;
+      const isLast = i === 11;
+      const fill = isLast ? "#10B981" : "#E5E7EB";
+      const valLabel = isLast ? `<text x="${(bx + BW / 2).toFixed(1)}" y="${(by - 5).toFixed(1)}" font-size="8" fill="#10B981" text-anchor="middle" font-family="sans-serif" font-weight="bold">${formatAmount(d.value, baseCurrency)}</text>` : "";
+      return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${BW}" height="${bh.toFixed(1)}" rx="4" fill="${fill}"/><text x="${(bx + BW / 2).toFixed(1)}" y="${(CH + 14).toFixed(1)}" font-size="8" fill="#9CA3AF" text-anchor="middle" font-family="sans-serif">${d.label}</text>${valLabel}`;
+    }).join("");
+    const chartSvg = `<svg width="${CW}" height="${CH + 20}" viewBox="0 0 ${CW} ${CH + 20}" xmlns="http://www.w3.org/2000/svg">${chartBars}</svg>`;
+
     const generatedOn = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     const logoB64 = await getBrandLogoBase64();
     const logoBlock = logoB64
@@ -244,6 +272,7 @@ export default function Home() {
         .legend-amount { font-size: 13px; font-weight: 700; color: #111827; }
         .legend-pct { font-size: 11px; color: #6B7280; margin-top: 2px; }
 
+        .chart-wrap { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px 8px 4px 8px; margin-bottom: 8px; }
         .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E5E7EB;
                   color: #9CA3AF; font-size: 10px; display: flex; justify-content: space-between; }
       </style></head><body>
