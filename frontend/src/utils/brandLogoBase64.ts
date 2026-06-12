@@ -1,10 +1,9 @@
 import { Platform } from "react-native";
 import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 let _cached: string | null = null;
 
-// Returns the brand lockup PNG as base64 (no data URI prefix). Cached.
 export async function getBrandLogoBase64(): Promise<string> {
   if (_cached) return _cached;
   try {
@@ -21,7 +20,9 @@ export async function getBrandLogoBase64(): Promise<string> {
       });
       _cached = b64;
     } else {
-      _cached = await FileSystem.readAsStringAsync(uri, { encoding: "base64" as any });
+      _cached = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
     }
   } catch {
     _cached = "";

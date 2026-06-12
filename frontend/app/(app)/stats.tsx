@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import Svg, { Circle, G } from "react-native-svg";
+import Svg, { Circle, G, Rect, Text as SvgText } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 import * as Icons from "lucide-react-native";
 
@@ -18,6 +18,17 @@ function CatIcon({ name, color, size = 16 }: { name: string; color: string; size
   return <Cmp color={color} size={size} strokeWidth={2} />;
 }
 
+// Génère les 12 derniers mois sous forme de labels courts
+function getLast12Months(): string[] {
+  const months = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(d.toLocaleString("fr-FR", { month: "short" }));
+  }
+  return months;
+}
+
 export default function Stats() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -28,7 +39,7 @@ export default function Stats() {
   const isPro = !!user?.pro?.is_pro;
   const cur = findCurrency(baseCurrency);
 
-  // Aggregate monthly cost per category (converted to base currency)
+  // ─── Agrégation par catégorie ───────────────────────────────────────────
   const { groups, total } = useMemo(() => {
     const map = new Map<string, number>();
     let totalSum = 0;
@@ -47,28 +58,74 @@ export default function Stats() {
     return { groups: arr, total: totalSum };
   }, [subscriptions, customCategories, baseCurrency, convert, t]);
 
+  // ─── Top 3 dépenses les plus chères ────────────────────────────────────
+  const top3 = useMemo(() => {
+    return [...subscriptions]
+      .map((s) => {
+        const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+        const baseMonthly = convert(monthly, s.currency, baseCurrency);
+        return { ...s, baseMonthly };
+      })
+      .sort((a, b) => b.baseMonthly - a.baseMonthly)
+      .slice(0, 3);
+  }, [subscriptions, baseCurrency, convert]);
+
+  // ─── Simulation évolution 12 mois (basée sur abonnements actuels) ──────
+  const monthlyData = useMemo(() => {
+    const months = getLast12Months();
+    // On simule : le total actuel est constant sur les 12 mois
+    // (les abonnements créés après un mois ne sont pas comptés avant)
+    const now = new Date();
+    return months.map((label, i) => {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+      // N'inclure que les abonnements créés avant ou pendant ce mois
+      let monthTotal = 0;
+      for (const s of subscriptions) {
+        const createdAt = new Date(s.createdAt);
+        if (createdAt <= new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)) {
+          const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+          monthTotal += convert(monthly, s.currency, baseCurrency);
+        }
+      }
+      return { label, value: monthTotal };
+    });
+  }, [subscriptions, baseCurrency, convert]);
+
+  // ─── Comparaison mois précédent ─────────────────────────────────────────
+  const { currentMonth, prevMonth, diff, diffPct } = useMemo(() => {
+    const current = monthlyData[11]?.value || 0;
+    const prev = monthlyData[10]?.value || 0;
+    const d = current - prev;
+    const pct = prev > 0 ? (d / prev) * 100 : 0;
+    return { currentMonth: current, prevMonth: prev, diff: d, diffPct: pct };
+  }, [monthlyData]);
+
+  // ─── Prévision annuelle ──────────────────────────────────────────────────
+  const annualForecast = useMemo(() => total * 12, [total]);
+
+  // ─── Donut ───────────────────────────────────────────────────────────────
   const top = groups.slice(0, 5);
   const otherSum = groups.slice(5).reduce((s, g) => s + g.amount, 0);
   const displayGroups = otherSum > 0
     ? [...top, { id: "_other", label: t("categories.other") || "Autre", color: "#9CA3AF", icon: "MoreHorizontal", amount: otherSum }]
     : top;
 
-  // Donut geometry
-  const SIZE = 220;
-  const STROKE = 26;
+  const SIZE = 220, STROKE = 26;
   const radius = (SIZE - STROKE) / 2;
-  const cx = SIZE / 2;
-  const cy = SIZE / 2;
+  const cx = SIZE / 2, cy = SIZE / 2;
   const circumference = 2 * Math.PI * radius;
-
   let acc = 0;
   const segments = displayGroups.map((g) => {
     const proportion = total > 0 ? g.amount / total : 0;
     const length = proportion * circumference;
-    const offset = -acc; // negative because rotating; we use strokeDashoffset
+    const offset = -acc;
     acc += length;
     return { ...g, length, offset, proportion };
   });
+
+  // ─── Bar chart ────────────────────────────────────────────────────────────
+  const maxVal = Math.max(...monthlyData.map((d) => d.value), 0.01);
+  const CHART_W = 320, CHART_H = 120, BAR_W = 18, GAP = (CHART_W - 12 * BAR_W) / 13;
 
   if (!isPro) {
     return (
@@ -110,6 +167,93 @@ export default function Stats() {
           <Text style={styles.empty}>{t("home.empty")}</Text>
         ) : (
           <>
+            {/* ─── Comparaison mois précédent ─── */}
+            <View style={styles.compRow}>
+              <View style={[styles.compCard, { flex: 1 }]}>
+                <Text style={styles.compLabel}>CE MOIS</Text>
+                <Text style={styles.compAmount}>{formatAmount(currentMonth, baseCurrency)}</Text>
+              </View>
+              <View style={[styles.compCard, { flex: 1, alignItems: "center" }]}>
+                <Text style={styles.compLabel}>VS MOIS PRÉC.</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  {diff > 0
+                    ? <Icons.TrendingUp color={theme.danger} size={16} />
+                    : diff < 0
+                    ? <Icons.TrendingDown color="#10B981" size={16} />
+                    : <Icons.Minus color={theme.textMuted} size={16} />
+                  }
+                  <Text style={[styles.compAmount, { color: diff > 0 ? theme.danger : diff < 0 ? "#10B981" : theme.text }]}>
+                    {diff >= 0 ? "+" : ""}{diffPct.toFixed(0)}%
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.compCard, { flex: 1, alignItems: "flex-end" }]}>
+                <Text style={styles.compLabel}>PRÉVISION AN</Text>
+                <Text style={styles.compAmount}>{formatAmount(annualForecast, baseCurrency)}</Text>
+              </View>
+            </View>
+
+            {/* ─── Graphique 12 mois ─── */}
+            <Text style={styles.section}>ÉVOLUTION 12 MOIS</Text>
+            <View style={styles.chartCard}>
+              <Svg width={CHART_W} height={CHART_H + 20}>
+                {monthlyData.map((d, i) => {
+                  const barH = maxVal > 0 ? (d.value / maxVal) * CHART_H : 2;
+                  const x = GAP + i * (BAR_W + GAP);
+                  const y = CHART_H - barH;
+                  const isLast = i === 11;
+                  return (
+                    <G key={i}>
+                      <Rect
+                        x={x}
+                        y={y}
+                        width={BAR_W}
+                        height={Math.max(barH, 2)}
+                        rx={4}
+                        fill={isLast ? theme.accent : theme.surfaceAlt}
+                        opacity={isLast ? 1 : 0.6}
+                      />
+                      <SvgText
+                        x={x + BAR_W / 2}
+                        y={CHART_H + 16}
+                        fontSize={8}
+                        fill={theme.textSubtle}
+                        textAnchor="middle"
+                      >
+                        {d.label}
+                      </SvgText>
+                    </G>
+                  );
+                })}
+              </Svg>
+            </View>
+
+            {/* ─── Top 3 dépenses ─── */}
+            <Text style={[styles.section, { marginTop: 24 }]}>TOP 3 DES DÉPENSES</Text>
+            {top3.map((s, i) => {
+              const cat = findCategory(s.categoryId, customCategories);
+              return (
+                <View key={s.id} style={styles.top3Row}>
+                  <View style={styles.top3Badge}>
+                    <Text style={styles.top3Num}>{i + 1}</Text>
+                  </View>
+                  <View style={[styles.rowIcon, { backgroundColor: cat.color + "22" }]}>
+                    <CatIcon name={cat.icon} color={cat.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowLabel} numberOfLines={1}>{s.name}</Text>
+                    <Text style={styles.rowPct}>{getCategoryLabel(cat, t)}</Text>
+                  </View>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text style={styles.rowAmount}>{formatAmount(s.baseMonthly, baseCurrency)}</Text>
+                    <Text style={styles.rowPct}>/mois</Text>
+                  </View>
+                </View>
+              );
+            })}
+
+            {/* ─── Donut par catégorie ─── */}
+            <Text style={[styles.section, { marginTop: 24 }]}>{t("stats.breakdown")}</Text>
             <View style={styles.donutWrap}>
               <Svg width={SIZE} height={SIZE}>
                 <G rotation={-90} originX={cx} originY={cy}>
@@ -117,9 +261,7 @@ export default function Stats() {
                   {segments.map((s, idx) => (
                     <Circle
                       key={idx}
-                      cx={cx}
-                      cy={cy}
-                      r={radius}
+                      cx={cx} cy={cy} r={radius}
                       stroke={s.color}
                       strokeWidth={STROKE}
                       fill="none"
@@ -137,7 +279,6 @@ export default function Stats() {
               </View>
             </View>
 
-            <Text style={styles.section}>{t("stats.breakdown")}</Text>
             {segments.map((g) => {
               const pct = (g.proportion * 100).toFixed(0);
               return (
@@ -159,6 +300,7 @@ export default function Stats() {
               );
             })}
 
+            {/* ─── Tip ─── */}
             <View style={styles.tipCard}>
               <Icons.Lightbulb color={theme.accent} size={18} />
               <View style={{ flex: 1 }}>
@@ -187,12 +329,39 @@ const styles = StyleSheet.create({
   h1: { fontSize: 28, fontWeight: "900", color: theme.text, letterSpacing: -0.8 },
   sub: { fontSize: 14, color: theme.textMuted, marginTop: 6, marginBottom: 20 },
   empty: { color: theme.textMuted, textAlign: "center", paddingVertical: 40 },
+
+  // Comparaison
+  compRow: { flexDirection: "row", gap: 10, marginBottom: 24 },
+  compCard: {
+    backgroundColor: theme.surface, borderRadius: 14, padding: 12,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  compLabel: { fontSize: 9, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.2, marginBottom: 4 },
+  compAmount: { fontSize: 15, fontWeight: "900", color: theme.text, letterSpacing: -0.5 },
+
+  // Chart
+  section: { fontSize: 11, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 },
+  chartCard: {
+    backgroundColor: theme.surface, borderRadius: 16, padding: 16,
+    borderWidth: 1, borderColor: theme.border, alignItems: "center", marginBottom: 8,
+  },
+
+  // Top 3
+  top3Row: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  top3Badge: {
+    width: 24, height: 24, borderRadius: 12, backgroundColor: theme.primary,
+    alignItems: "center", justifyContent: "center",
+  },
+  top3Num: { color: "#fff", fontSize: 12, fontWeight: "900" },
+
+  // Donut
   donutWrap: { alignItems: "center", justifyContent: "center", marginTop: 8, marginBottom: 24 },
   donutCenter: { position: "absolute", alignItems: "center", justifyContent: "center" },
   donutLabel: { fontSize: 10, color: theme.textMuted, letterSpacing: 2, fontWeight: "700" },
   donutAmount: { fontSize: 26, fontWeight: "900", color: theme.text, letterSpacing: -1, marginTop: 4 },
   donutHint: { fontSize: 12, color: theme.textSubtle, marginTop: 4 },
-  section: { fontSize: 11, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 },
+
+  // Rows
   row: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14 },
   rowIcon: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   rowHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
@@ -201,6 +370,8 @@ const styles = StyleSheet.create({
   barTrack: { height: 6, backgroundColor: theme.surfaceAlt, borderRadius: 3, overflow: "hidden", marginTop: 6 },
   barFill: { height: 6, borderRadius: 3 },
   rowPct: { fontSize: 11, color: theme.textMuted, marginTop: 4 },
+
+  // Tip
   tipCard: {
     flexDirection: "row", alignItems: "flex-start", gap: 12,
     padding: 16, backgroundColor: theme.accentSoft, borderRadius: 16, marginTop: 12,
