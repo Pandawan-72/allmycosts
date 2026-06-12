@@ -74,7 +74,7 @@ export default function Settings() {
     if (importing) return;
 
     Alert.alert(
-      "Restaurer une sauvegarde",
+      t("settings.backup.importTitle"),
       "Cette action remplacera toutes vos données actuelles. Continuer ?",
       [
         { text: "Annuler", style: "cancel" },
@@ -102,7 +102,7 @@ export default function Settings() {
                 await addSubscription(rest);
               }
 
-              Alert.alert("✅ Sauvegarde restaurée", "Vos données ont été restaurées avec succès.");
+              Alert.alert(t("settings.backup.importSuccessTitle"), t("settings.backup.importSuccess"));
             } catch (e: any) {
               Alert.alert("Erreur", e?.message || "Impossible de restaurer la sauvegarde.");
             } finally {
@@ -195,7 +195,7 @@ export default function Settings() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Exporter mes données</Text>
-            <Text style={styles.rowSub}>{isPro ? "Sauvegarder vers un fichier" : "Pro requis"}</Text>
+            <Text style={styles.rowSub}>{isPro ? t("settings.backup.exportSub") : t("settings.backup.proRequired")}</Text>
           </View>
           {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
@@ -214,7 +214,7 @@ export default function Settings() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Restaurer une sauvegarde</Text>
-            <Text style={styles.rowSub}>{isPro ? "Importer depuis un fichier" : "Pro requis"}</Text>
+            <Text style={styles.rowSub}>{isPro ? t("settings.backup.importSub") : t("settings.backup.proRequired")}</Text>
           </View>
           {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
