@@ -1,7 +1,7 @@
 const LEGAL_EN = {
   lastUpdated: "Last updated: June 12, 2026",
   editor: "All My Costs",
-  contact: "support@allmycosts.app",
+  contact: "dev@retro-spare.fr",
   country: "France",
   openMailto: "Contact us by email",
   aboutSection: "ABOUT",
@@ -10,16 +10,16 @@ const LEGAL_EN = {
   privacy: {
     intro: "This policy explains how All My Costs collects, uses and protects your data.",
     sections: [
-      { title: "1. Publisher", body: "The All My Costs application is published by All My Costs. Contact: support@allmycosts.app." },
+      { title: "1. Publisher", body: "The All My Costs application is published by All My Costs. Contact: dev@retro-spare.fr." },
       { title: "2. Data collected", body: "Name, email address (Firebase). Google Sign-In: name, email, photo. No payment card data stored." },
       { title: "3. Local data", body: "All your recurring expenses and income are stored exclusively and locally on your device. They are never sent to our servers." },
       { title: "4. Data use", body: "We use your data only to: create and secure your account, manage your Pro access, respond to support requests." },
       { title: "5. Third-party services", body: "All My Costs uses: Google Sign-In / Firebase (authentication), RevenueCat (Pro purchases), Google Play (payments), open.er-api.com (exchange rates)." },
       { title: "6. Retention", body: "Firebase account kept while active, deleted on request. Local data deleted on uninstall." },
-      { title: "7. Your rights (GDPR)", body: "Access, correction, deletion, portability, objection. Contact us at support@allmycosts.app." },
+      { title: "7. Your rights (GDPR)", body: "Access, correction, deletion, portability, objection. Contact us at dev@retro-spare.fr." },
       { title: "8. Security", body: "Authentication via Firebase. All communications encrypted via HTTPS/TLS." },
-      { title: "9. Minors", body: "App not intended for users under 16." },
-      { title: "10. Contact", body: "support@allmycosts.app" }
+      { title: "9. Minors", body: "App not intended for users under 13." },
+      { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   },
   terms: {
@@ -34,7 +34,7 @@ const LEGAL_EN = {
       { title: "7. Acceptable use", body: "Do not circumvent limitations, reverse-engineer the App, or use it illegally." },
       { title: "8. Intellectual property", body: "The App and its content are the exclusive property of All My Costs." },
       { title: "9. Limitation of liability", body: "App provided as is. No liability for local data loss or financial decisions." },
-      { title: "10. Contact", body: "support@allmycosts.app" }
+      { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   }
 };

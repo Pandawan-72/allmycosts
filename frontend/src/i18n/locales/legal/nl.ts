@@ -1,7 +1,7 @@
 const LEGAL_NL = {
   lastUpdated: "Laatste update: 12 juni 2026",
   editor: "All My Costs",
-  contact: "support@allmycosts.app",
+  contact: "dev@retro-spare.fr",
   country: "France",
   openMailto: "Neem contact op via e-mail",
   aboutSection: "OVER",
@@ -10,16 +10,16 @@ const LEGAL_NL = {
   privacy: {
     intro: "Dit beleid legt uit hoe All My Costs uw gegevens verzamelt, gebruikt en beschermt.",
     sections: [
-      { title: "1. Uitgever", body: "All My Costs wordt uitgegeven door All My Costs. Contact: support@allmycosts.app." },
+      { title: "1. Uitgever", body: "All My Costs wordt uitgegeven door All My Costs. Contact: dev@retro-spare.fr." },
       { title: "2. Verzamelde gegevens", body: "Naam, e-mailadres (Firebase). Google Sign-In: naam, e-mail, foto. Geen bankgegevens opgeslagen." },
       { title: "3. Lokale gegevens", body: "Al uw terugkerende uitgaven en inkomsten worden uitsluitend lokaal op uw apparaat opgeslagen en nooit naar onze servers verzonden." },
       { title: "4. Gegevensgebruik", body: "We gebruiken uw gegevens alleen voor: account aanmaken en beveiligen, Pro-toegang beheren, supportverzoeken beantwoorden." },
       { title: "5. Diensten van derden", body: "All My Costs gebruikt: Google Sign-In / Firebase (authenticatie), RevenueCat (Pro-aankopen), Google Play (betalingen), open.er-api.com (wisselkoersen)." },
       { title: "6. Bewaartermijn", body: "Firebase-account bewaard zolang actief; verwijderd op verzoek. Lokale gegevens verwijderd bij deïnstallatie." },
-      { title: "7. Uw rechten (AVG)", body: "Inzage, correctie, verwijdering, overdraagbaarheid, bezwaar. Contact: support@allmycosts.app." },
+      { title: "7. Uw rechten (AVG)", body: "Inzage, correctie, verwijdering, overdraagbaarheid, bezwaar. Contact: dev@retro-spare.fr." },
       { title: "8. Beveiliging", body: "Authenticatie via Firebase. Alle communicatie versleuteld via HTTPS/TLS." },
       { title: "9. Minderjarigen", body: "App niet bestemd voor gebruikers onder de 16 jaar." },
-      { title: "10. Contact", body: "support@allmycosts.app" }
+      { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   },
   terms: {
@@ -34,7 +34,7 @@ const LEGAL_NL = {
       { title: "7. Aanvaardbaar gebruik", body: "Niet omzeilen van beperkingen, reverse engineering of illegaal gebruik." },
       { title: "8. Intellectueel eigendom", body: "De App en haar inhoud zijn uitsluitend eigendom van All My Costs." },
       { title: "9. Beperking van aansprakelijkheid", body: "App geleverd als is. Geen aansprakelijkheid voor lokaal gegevensverlies of financiële beslissingen." },
-      { title: "10. Contact", body: "support@allmycosts.app" }
+      { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   }
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -8,11 +8,12 @@ import * as Application from "expo-application";
 import { theme } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
-import { CURRENCIES, findCurrency, formatAmount } from "@/src/data/currencies";
+import { CURRENCIES, findCurrency } from "@/src/data/currencies";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
 import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
+import { exportBackup, importBackup } from "@/src/lib/backup";
 
 const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
 const APP_BUILD = Application.nativeBuildVersion || "—";
@@ -20,12 +21,16 @@ const APP_BUILD = Application.nativeBuildVersion || "—";
 export default function Settings() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency, subscriptions, customCategories, monthlyIncome, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const isPro = !!user?.pro?.is_pro;
 
   const onRestore = async () => {
     if (restoring) return;
@@ -38,6 +43,75 @@ export default function Settings() {
     } finally {
       setRestoring(false);
     }
+  };
+
+  // ✅ Export des données
+  const onExport = async () => {
+    if (!isPro) {
+      router.push("/(app)/paywall");
+      return;
+    }
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportBackup({
+        subscriptions,
+        customCategories,
+        baseCurrency,
+        monthlyIncome,
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // ✅ Import des données
+  const onImport = async () => {
+    if (!isPro) {
+      router.push("/(app)/paywall");
+      return;
+    }
+    if (importing) return;
+
+    Alert.alert(
+      "Restaurer une sauvegarde",
+      "Cette action remplacera toutes vos données actuelles. Continuer ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Continuer",
+          style: "destructive",
+          onPress: async () => {
+            setImporting(true);
+            try {
+              const backup = await importBackup();
+              if (!backup) return;
+
+              // Restaurer la devise et les revenus
+              await setCurrency(backup.baseCurrency);
+              await setMonthlyIncome(backup.monthlyIncome || 0);
+
+              // Restaurer les catégories personnalisées
+              for (const cat of backup.customCategories || []) {
+                await addCustomCategory(cat);
+              }
+
+              // Restaurer les abonnements
+              for (const sub of backup.subscriptions || []) {
+                const { id, createdAt, ...rest } = sub;
+                await addSubscription(rest);
+              }
+
+              Alert.alert("✅ Sauvegarde restaurée", "Vos données ont été restaurées avec succès.");
+            } catch (e: any) {
+              Alert.alert("Erreur", e?.message || "Impossible de restaurer la sauvegarde.");
+            } finally {
+              setImporting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const proLabel = (() => {
@@ -64,7 +138,6 @@ export default function Settings() {
         <View style={styles.headerBtn} />
       </View>
 
-      {/* ✅ ScrollView remplace View pour permettre le scroll */}
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
@@ -77,6 +150,7 @@ export default function Settings() {
         </View>
 
         <Text style={styles.section}>{t("settings.preferences")}</Text>
+
         <TouchableOpacity testID="change-currency-row" onPress={() => setShowCurrency(true)} style={styles.row}>
           <View style={styles.rowIcon}><Icons.Banknote color={theme.text} size={18} /></View>
           <View style={{ flex: 1 }}>
@@ -102,6 +176,47 @@ export default function Settings() {
             <Text style={styles.rowSub}>{proLabel}</Text>
           </View>
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
+        {/* ✅ Section Sauvegarde — Pro uniquement */}
+        <Text style={[styles.section, { marginTop: 24 }]}>SAUVEGARDE</Text>
+
+        <TouchableOpacity
+          testID="export-backup-row"
+          onPress={onExport}
+          disabled={exporting}
+          style={styles.row}
+        >
+          <View style={styles.rowIcon}>
+            {exporting
+              ? <ActivityIndicator size="small" color={theme.text} />
+              : <Icons.Download color={isPro ? theme.text : theme.textSubtle} size={18} />
+            }
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Exporter mes données</Text>
+            <Text style={styles.rowSub}>{isPro ? "Sauvegarder vers un fichier" : "Pro requis"}</Text>
+          </View>
+          {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          testID="import-backup-row"
+          onPress={onImport}
+          disabled={importing}
+          style={[styles.row, { marginTop: 10 }]}
+        >
+          <View style={styles.rowIcon}>
+            {importing
+              ? <ActivityIndicator size="small" color={theme.text} />
+              : <Icons.Upload color={isPro ? theme.text : theme.textSubtle} size={18} />
+            }
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Restaurer une sauvegarde</Text>
+            <Text style={styles.rowSub}>{isPro ? "Importer depuis un fichier" : "Pro requis"}</Text>
+          </View>
+          {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
 
         <Text style={[styles.section, { marginTop: 24 }]}>{t("legal.aboutSection")}</Text>
@@ -148,7 +263,6 @@ export default function Settings() {
           </Text>
         </View>
       </ScrollView>
-
 
       <Modal visible={showLang} animationType="slide" onRequestClose={() => setShowLang(false)}>
         <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>

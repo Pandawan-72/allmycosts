@@ -1,7 +1,7 @@
 const LEGAL_IT = {
   lastUpdated: "Ultimo aggiornamento: 12 giugno 2026",
   editor: "All My Costs",
-  contact: "support@allmycosts.app",
+  contact: "dev@retro-spare.fr",
   country: "France",
   openMailto: "Contattaci via email",
   aboutSection: "INFORMAZIONI",
@@ -10,16 +10,16 @@ const LEGAL_IT = {
   privacy: {
     intro: "Questa informativa spiega come All My Costs raccoglie, utilizza e protegge i tuoi dati.",
     sections: [
-      { title: "1. Editore", body: "All My Costs è pubblicata da All My Costs. Contatto: support@allmycosts.app." },
+      { title: "1. Editore", body: "All My Costs è pubblicata da All My Costs. Contatto: dev@retro-spare.fr." },
       { title: "2. Dati raccolti", body: "Nome, indirizzo email (Firebase). Google Sign-In: nome, email, foto. Nessun dato bancario memorizzato." },
       { title: "3. Dati locali", body: "Tutte le tue spese ricorrenti e le entrate sono memorizzate esclusivamente in locale sul tuo dispositivo e non vengono mai inviate ai nostri server." },
       { title: "4. Uso dei dati", body: "Utilizziamo i tuoi dati solo per: creare e proteggere il tuo account, gestire l'accesso Pro, rispondere alle richieste di assistenza." },
       { title: "5. Servizi di terze parti", body: "All My Costs usa: Google Sign-In / Firebase (autenticazione), RevenueCat (acquisti Pro), Google Play (pagamenti), open.er-api.com (tassi di cambio)." },
       { title: "6. Conservazione", body: "Account Firebase conservato finché attivo; eliminato su richiesta. Dati locali eliminati alla disinstallazione." },
-      { title: "7. I tuoi diritti (GDPR)", body: "Accesso, rettifica, cancellazione, portabilità, opposizione. Contatto: support@allmycosts.app." },
+      { title: "7. I tuoi diritti (GDPR)", body: "Accesso, rettifica, cancellazione, portabilità, opposizione. Contatto: dev@retro-spare.fr." },
       { title: "8. Sicurezza", body: "Autenticazione tramite Firebase. Tutte le comunicazioni crittografate HTTPS/TLS." },
       { title: "9. Minori", body: "App non destinata agli utenti sotto i 16 anni." },
-      { title: "10. Contatto", body: "support@allmycosts.app" }
+      { title: "10. Contatto", body: "dev@retro-spare.fr" }
     ]
   },
   terms: {
@@ -34,7 +34,7 @@ const LEGAL_IT = {
       { title: "7. Uso accettabile", body: "Non aggirare le limitazioni, fare reverse engineering o usare l'App illegalmente." },
       { title: "8. Proprietà intellettuale", body: "L'App e il suo contenuto sono proprietà esclusiva di All My Costs." },
       { title: "9. Limitazione di responsabilità", body: "App fornita così com'è. Nessuna responsabilità per perdita di dati locali o decisioni finanziarie." },
-      { title: "10. Contatto", body: "support@allmycosts.app" }
+      { title: "10. Contatto", body: "dev@retro-spare.fr" }
     ]
   }
 };

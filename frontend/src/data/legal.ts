@@ -6,7 +6,7 @@
 export const LEGAL_META = {
   appName: "All My Costs",
   company: "All My Costs",
-  contactEmail: "support@allmycosts.app",
+  contactEmail: "dev@retro-spare.fr",
   lastUpdated: "12 juin 2026 / June 12, 2026",
 };
 
@@ -73,7 +73,7 @@ L'authentification est gérée par Firebase Authentication (Google). Toutes les 
 
 ## 8. Mineurs
 
-L'Application n'est pas destinée aux moins de 16 ans. Nous ne collectons pas sciemment de données concernant des mineurs.
+L'Application n'est pas destinée aux moins de 13 ans. Nous ne collectons pas sciemment de données concernant des mineurs.
 
 ## 9. Modifications
 
