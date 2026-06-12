@@ -168,7 +168,7 @@ export default function Stats() {
         ) : (
           <>
             {/* ─── Top 3 dépenses ─── */}
-            <Text style={[styles.section, { marginTop: 24 }]}>TOP 3 DES DÉPENSES</Text>
+            <Text style={[styles.section, { marginTop: 4 }]}>{t("stats.top3")}</Text>
             {top3.map((s, i) => {
               const cat = findCategory(s.categoryId, customCategories);
               return (
@@ -185,7 +185,7 @@ export default function Stats() {
                   </View>
                   <View style={{ alignItems: "flex-end" }}>
                     <Text style={styles.rowAmount}>{formatAmount(s.baseMonthly, baseCurrency)}</Text>
-                    <Text style={styles.rowPct}>/mois</Text>
+                    <Text style={styles.rowPct}>{t("stats.perMonth")}</Text>
                   </View>
                 </View>
               );
@@ -242,11 +242,11 @@ export default function Stats() {
             {/* ─── Comparaison mois précédent ─── */}
             <View style={styles.compRow}>
               <View style={[styles.compCard, { flex: 1 }]}>
-                <Text style={styles.compLabel}>CE MOIS</Text>
+                <Text style={styles.compLabel}>{t("stats.thisMonth")}</Text>
                 <Text style={styles.compAmount}>{formatAmount(currentMonth, baseCurrency)}</Text>
               </View>
               <View style={[styles.compCard, { flex: 1, alignItems: "center" }]}>
-                <Text style={styles.compLabel}>VS MOIS PRÉC.</Text>
+                <Text style={styles.compLabel}>{t("stats.vsPrevMonth")}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                   {diff > 0
                     ? <Icons.TrendingUp color={theme.danger} size={16} />
@@ -260,13 +260,13 @@ export default function Stats() {
                 </View>
               </View>
               <View style={[styles.compCard, { flex: 1, alignItems: "flex-end" }]}>
-                <Text style={styles.compLabel}>PRÉVISION AN</Text>
+                <Text style={styles.compLabel}>{t("stats.annualForecast")}</Text>
                 <Text style={styles.compAmount}>{formatAmount(annualForecast, baseCurrency)}</Text>
               </View>
             </View>
 
             {/* ─── Graphique 12 mois ─── */}
-            <Text style={styles.section}>ÉVOLUTION 12 MOIS</Text>
+            <Text style={[styles.section, { marginTop: 24 }]}>{t("stats.evolution12")}</Text>
             <View style={styles.chartCard}>
               <Svg width={CHART_W} height={CHART_H + 20}>
                 {monthlyData.map((d, i) => {
@@ -277,8 +277,7 @@ export default function Stats() {
                   return (
                     <G key={i}>
                       <Rect
-                        x={x}
-                        y={y}
+                        x={x} y={y}
                         width={BAR_W}
                         height={Math.max(barH, 2)}
                         rx={4}
