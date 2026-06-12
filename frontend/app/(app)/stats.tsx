@@ -193,41 +193,6 @@ export default function Stats() {
               </View>
             </View>
 
-            {/* ─── Graphique 12 mois ─── */}
-            <Text style={styles.section}>ÉVOLUTION 12 MOIS</Text>
-            <View style={styles.chartCard}>
-              <Svg width={CHART_W} height={CHART_H + 20}>
-                {monthlyData.map((d, i) => {
-                  const barH = maxVal > 0 ? (d.value / maxVal) * CHART_H : 2;
-                  const x = GAP + i * (BAR_W + GAP);
-                  const y = CHART_H - barH;
-                  const isLast = i === 11;
-                  return (
-                    <G key={i}>
-                      <Rect
-                        x={x}
-                        y={y}
-                        width={BAR_W}
-                        height={Math.max(barH, 2)}
-                        rx={4}
-                        fill={isLast ? theme.accent : theme.surfaceAlt}
-                        opacity={isLast ? 1 : 0.6}
-                      />
-                      <SvgText
-                        x={x + BAR_W / 2}
-                        y={CHART_H + 16}
-                        fontSize={8}
-                        fill={theme.textSubtle}
-                        textAnchor="middle"
-                      >
-                        {d.label}
-                      </SvgText>
-                    </G>
-                  );
-                })}
-              </Svg>
-            </View>
-
             {/* ─── Top 3 dépenses ─── */}
             <Text style={[styles.section, { marginTop: 24 }]}>TOP 3 DES DÉPENSES</Text>
             {top3.map((s, i) => {
@@ -299,6 +264,41 @@ export default function Stats() {
                 </View>
               );
             })}
+
+            {/* ─── Graphique 12 mois ─── */}
+            <Text style={styles.section}>ÉVOLUTION 12 MOIS</Text>
+            <View style={styles.chartCard}>
+              <Svg width={CHART_W} height={CHART_H + 20}>
+                {monthlyData.map((d, i) => {
+                  const barH = maxVal > 0 ? (d.value / maxVal) * CHART_H : 2;
+                  const x = GAP + i * (BAR_W + GAP);
+                  const y = CHART_H - barH;
+                  const isLast = i === 11;
+                  return (
+                    <G key={i}>
+                      <Rect
+                        x={x}
+                        y={y}
+                        width={BAR_W}
+                        height={Math.max(barH, 2)}
+                        rx={4}
+                        fill={isLast ? theme.accent : theme.surfaceAlt}
+                        opacity={isLast ? 1 : 0.6}
+                      />
+                      <SvgText
+                        x={x + BAR_W / 2}
+                        y={CHART_H + 16}
+                        fontSize={8}
+                        fill={theme.textSubtle}
+                        textAnchor="middle"
+                      >
+                        {d.label}
+                      </SvgText>
+                    </G>
+                  );
+                })}
+              </Svg>
+            </View>
 
             {/* ─── Tip ─── */}
             <View style={styles.tipCard}>
