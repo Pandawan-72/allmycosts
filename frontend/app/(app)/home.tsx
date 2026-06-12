@@ -169,32 +169,6 @@ export default function Home() {
       </div>`;
     }).join("");
 
-    // ----- Top 3 subscriptions -----
-    const top3Subs = [...subscriptions]
-      .map((s) => {
-        const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-        const base = convert(monthly, s.currency, baseCurrency);
-        const cat = findCategory(s.categoryId, customCategories);
-        return { ...s, base, catLabel: getCategoryLabel(cat, t), catColor: cat.color };
-      })
-      .sort((a, b) => b.base - a.base)
-      .slice(0, 3);
-
-    const top3Rows = top3Subs.map((s, i) => `
-      <div class="top3-row">
-        <div class="top3-badge">${i + 1}</div>
-        <div class="top3-dot" style="background:${s.catColor}"></div>
-        <div class="top3-info">
-          <div class="top3-name">${escapeHtml(s.name)}</div>
-          <div class="top3-cat">${escapeHtml(s.catLabel)}</div>
-        </div>
-        <div class="top3-amount">${formatAmount(s.base, baseCurrency)}<span class="top3-cycle">/mois</span></div>
-      </div>`).join("");
-
-    // ----- Comparison data -----
-    const prevMonthTotal = monthlyBase; // same as current (no history in PDF)
-    const annualForecast = monthlyBase * 12;
-
     const generatedOn = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     const logoB64 = await getBrandLogoBase64();
     const logoBlock = logoB64
@@ -270,21 +244,6 @@ export default function Home() {
         .legend-amount { font-size: 13px; font-weight: 700; color: #111827; }
         .legend-pct { font-size: 11px; color: #6B7280; margin-top: 2px; }
 
-        .top3-list { margin-bottom: 8px; }
-        .top3-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
-        .top3-row:last-child { border-bottom: none; }
-        .top3-badge { width: 22px; height: 22px; border-radius: 50%; background: #111827; color: #fff; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .top3-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .top3-info { flex: 1; }
-        .top3-name { font-size: 14px; font-weight: 700; color: #111827; }
-        .top3-cat { font-size: 11px; color: #6B7280; margin-top: 2px; }
-        .top3-amount { font-size: 14px; font-weight: 800; color: #111827; white-space: nowrap; }
-        .top3-cycle { font-size: 11px; color: #6B7280; font-weight: 400; margin-left: 2px; }
-        .comp-row { display: flex; gap: 14px; margin-bottom: 8px; }
-        .comp-card { flex: 1; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px 16px; }
-        .comp-label { font-size: 9px; letter-spacing: 1.5px; color: #6B7280; font-weight: 700; }
-        .comp-value { font-size: 22px; font-weight: 900; color: #111827; margin-top: 4px; }
-        .comp-value.dark { color: #10B981; }
         .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E5E7EB;
                   color: #9CA3AF; font-size: 10px; display: flex; justify-content: space-between; }
       </style></head><body>
@@ -304,8 +263,15 @@ export default function Home() {
         </div>
       </div>
 
-      <h2>Top 3 des dépenses</h2>
-      <div class="top3-list">${top3Rows}</div>
+      <h2>Détail des abonnements</h2>
+      <table>
+        <thead><tr>
+          <th>Abonnement</th>
+          <th class="num">Mensuel</th>
+          <th class="num">Annuel</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
 
       <h2>Répartition par catégorie</h2>
       <div class="stats">
@@ -324,27 +290,8 @@ export default function Home() {
         <div class="legend">${legend}</div>
       </div>
 
-      <h2>Comparaison & prévision</h2>
-      <div class="comp-row">
-        <div class="comp-card">
-          <div class="comp-label">TOTAL MENSUEL</div>
-          <div class="comp-value">${formatAmount(monthlyBase, baseCurrency)}</div>
-        </div>
-        <div class="comp-card">
-          <div class="comp-label">TOTAL ANNUEL</div>
-          <div class="comp-value dark">${formatAmount(annualForecast, baseCurrency)}</div>
-        </div>
-      </div>
-
-      <h2>Détail des abonnements</h2>
-      <table>
-        <thead><tr>
-          <th>Abonnement</th>
-          <th class="num">Mensuel</th>
-          <th class="num">Annuel</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <h2>Évolution 12 mois</h2>
+      <div class="chart-wrap">${chartSvg}</div>
 
       <div class="footer">
         <span>Généré le ${generatedOn}</span>
