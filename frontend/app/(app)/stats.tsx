@@ -167,32 +167,6 @@ export default function Stats() {
           <Text style={styles.empty}>{t("home.empty")}</Text>
         ) : (
           <>
-            {/* ─── Comparaison mois précédent ─── */}
-            <View style={styles.compRow}>
-              <View style={[styles.compCard, { flex: 1 }]}>
-                <Text style={styles.compLabel}>CE MOIS</Text>
-                <Text style={styles.compAmount}>{formatAmount(currentMonth, baseCurrency)}</Text>
-              </View>
-              <View style={[styles.compCard, { flex: 1, alignItems: "center" }]}>
-                <Text style={styles.compLabel}>VS MOIS PRÉC.</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  {diff > 0
-                    ? <Icons.TrendingUp color={theme.danger} size={16} />
-                    : diff < 0
-                    ? <Icons.TrendingDown color="#10B981" size={16} />
-                    : <Icons.Minus color={theme.textMuted} size={16} />
-                  }
-                  <Text style={[styles.compAmount, { color: diff > 0 ? theme.danger : diff < 0 ? "#10B981" : theme.text }]}>
-                    {diff >= 0 ? "+" : ""}{diffPct.toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-              <View style={[styles.compCard, { flex: 1, alignItems: "flex-end" }]}>
-                <Text style={styles.compLabel}>PRÉVISION AN</Text>
-                <Text style={styles.compAmount}>{formatAmount(annualForecast, baseCurrency)}</Text>
-              </View>
-            </View>
-
             {/* ─── Top 3 dépenses ─── */}
             <Text style={[styles.section, { marginTop: 24 }]}>TOP 3 DES DÉPENSES</Text>
             {top3.map((s, i) => {
@@ -264,6 +238,32 @@ export default function Stats() {
                 </View>
               );
             })}
+
+            {/* ─── Comparaison mois précédent ─── */}
+            <View style={styles.compRow}>
+              <View style={[styles.compCard, { flex: 1 }]}>
+                <Text style={styles.compLabel}>CE MOIS</Text>
+                <Text style={styles.compAmount}>{formatAmount(currentMonth, baseCurrency)}</Text>
+              </View>
+              <View style={[styles.compCard, { flex: 1, alignItems: "center" }]}>
+                <Text style={styles.compLabel}>VS MOIS PRÉC.</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  {diff > 0
+                    ? <Icons.TrendingUp color={theme.danger} size={16} />
+                    : diff < 0
+                    ? <Icons.TrendingDown color="#10B981" size={16} />
+                    : <Icons.Minus color={theme.textMuted} size={16} />
+                  }
+                  <Text style={[styles.compAmount, { color: diff > 0 ? theme.danger : diff < 0 ? "#10B981" : theme.text }]}>
+                    {diff >= 0 ? "+" : ""}{diffPct.toFixed(0)}%
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.compCard, { flex: 1, alignItems: "flex-end" }]}>
+                <Text style={styles.compLabel}>PRÉVISION AN</Text>
+                <Text style={styles.compAmount}>{formatAmount(annualForecast, baseCurrency)}</Text>
+              </View>
+            </View>
 
             {/* ─── Graphique 12 mois ─── */}
             <Text style={styles.section}>ÉVOLUTION 12 MOIS</Text>
