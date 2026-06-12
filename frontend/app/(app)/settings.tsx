@@ -75,7 +75,7 @@ export default function Settings() {
 
     Alert.alert(
       t("settings.backup.importTitle"),
-      "Cette action remplacera toutes vos données actuelles. Continuer ?",
+      t("settings.backup.importConfirmMsg"),
       [
         { text: "Annuler", style: "cancel" },
         {
@@ -194,7 +194,7 @@ export default function Settings() {
             }
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Exporter mes données</Text>
+            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.exportTitle")}</Text>
             <Text style={styles.rowSub}>{isPro ? t("settings.backup.exportSub") : t("settings.backup.proRequired")}</Text>
           </View>
           {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
@@ -213,7 +213,7 @@ export default function Settings() {
             }
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>Restaurer une sauvegarde</Text>
+            <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.importTitle")}</Text>
             <Text style={styles.rowSub}>{isPro ? t("settings.backup.importSub") : t("settings.backup.proRequired")}</Text>
           </View>
           {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
