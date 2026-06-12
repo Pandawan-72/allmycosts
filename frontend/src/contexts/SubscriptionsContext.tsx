@@ -10,11 +10,11 @@ export type BillingCycle = "monthly" | "yearly";
 export type Subscription = {
   id: string;
   name: string;
-  price: number; // amount per billing cycle in the chosen currency
+  price: number;
   currency: string;
   cycle: BillingCycle;
   categoryId: string;
-  dueDate?: string | null; // ISO YYYY-MM-DD
+  dueDate?: string | null;
   createdAt: string;
 };
 
@@ -54,13 +54,14 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const [baseCurrency, setBaseCurrencyState] = useState<string>("EUR");
   const [monthlyIncome, setMonthlyIncomeState] = useState<number>(0);
 
-  // Load when user becomes available
+  // ✅ Charge TOUTES les données au démarrage, y compris les revenus
   useEffect(() => {
     let canceled = false;
     (async () => {
       if (!uidKey) {
         setSubscriptions([]);
         setCustomCategories([]);
+        setMonthlyIncomeState(0);
         setLoading(false);
         return;
       }
@@ -68,9 +69,15 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
       const subs = await storage.getItem<Subscription[]>(userScopedKey(uidKey, "subs"), []);
       const cats = await storage.getItem<Category[]>(userScopedKey(uidKey, "cats"), []);
       const cur = await storage.getItem<string>(userScopedKey(uidKey, "currency"), "");
+      // ✅ Charge les revenus depuis le storage local
+      const income = await storage.getItem<number>(userScopedKey(uidKey, "income"), 0);
+
       if (canceled) return;
       setSubscriptions(subs || []);
       setCustomCategories(cats || []);
+      // ✅ Restaure les revenus
+      setMonthlyIncomeState(income || 0);
+
       if (cur) {
         setBaseCurrencyState(cur);
       } else {
@@ -97,6 +104,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     if (uidKey) await storage.setItem(userScopedKey(uidKey, "currency"), c);
   }, [uidKey]);
 
+  // ✅ Sauvegarde les revenus à chaque modification
   const setMonthlyIncome = useCallback(async (amount: number) => {
     const safe = Math.max(0, Number(amount) || 0);
     setMonthlyIncomeState(safe);
@@ -123,7 +131,6 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   }, [persistCats, customCategories]);
 
   const { monthlyTotal, yearlyTotal } = useMemo(() => {
-    // Sum only matching base currency (no conversion). Future: integrate FX rates.
     let m = 0;
     let y = 0;
     for (const s of subscriptions) {

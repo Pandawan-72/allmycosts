@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
 import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
-import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 
 const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
 const APP_BUILD = Application.nativeBuildVersion || "—";
@@ -21,12 +20,11 @@ const APP_BUILD = Application.nativeBuildVersion || "—";
 export default function Settings() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency, monthlyIncome } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showLang, setShowLang] = useState(false);
-  const [showIncome, setShowIncome] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
   const onRestore = async () => {
@@ -97,19 +95,6 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
-        <TouchableOpacity testID="income-row" onPress={() => setShowIncome(true)} style={[styles.row, { marginTop: 10 }]}>
-          <View style={styles.rowIcon}><Icons.Wallet color={theme.text} size={18} /></View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{t("home.income")}</Text>
-            <Text style={styles.rowSub}>
-              {monthlyIncome > 0
-                ? `${formatAmount(monthlyIncome, baseCurrency)} ${t("home.perMonth")}`
-                : t("home.noIncomeYet")}
-            </Text>
-          </View>
-          <Icons.ChevronRight color={theme.textSubtle} size={18} />
-        </TouchableOpacity>
-
         <TouchableOpacity testID="manage-pro-row" onPress={() => router.push("/(app)/paywall")} style={[styles.row, { marginTop: 10 }]}>
           <View style={[styles.rowIcon, { backgroundColor: theme.accentSoft }]}><Icons.Crown color={theme.accent} size={18} /></View>
           <View style={{ flex: 1 }}>
@@ -164,7 +149,6 @@ export default function Settings() {
         </View>
       </ScrollView>
 
-      <IncomeEditorModal visible={showIncome} onClose={() => setShowIncome(false)} />
 
       <Modal visible={showLang} animationType="slide" onRequestClose={() => setShowLang(false)}>
         <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>

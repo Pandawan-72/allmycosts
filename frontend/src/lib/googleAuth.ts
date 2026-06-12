@@ -1,3 +1,5 @@
+// Google Sign-In helper — version sans Emergent.
+// ✅ Fix : force le sélecteur de compte à chaque connexion
 import { Platform } from "react-native";
 
 export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "";
@@ -44,6 +46,14 @@ export async function nativeGoogleSignIn(): Promise<string | null> {
   if (!GS) throw new Error("Google Sign-In SDK not available on this platform.");
   await configureGoogleSignin();
   try {
+    // ✅ Se déconnecter d'abord pour forcer le sélecteur de compte
+    try {
+      await GS.signOut();
+      await GS.revokeAccess?.();
+    } catch {
+      // Ignorer si pas encore connecté
+    }
+
     await GS.hasPlayServices?.({ showPlayServicesUpdateDialog: true });
     const result = await GS.signIn();
     if (result && result.type === "cancelled") return null;
@@ -71,6 +81,6 @@ export async function nativeGoogleSignOut() {
 }
 
 export async function emergentWebGoogleSignIn(): Promise<string | null> {
-  console.warn("[GoogleAuth] emergentWebGoogleSignIn n'est plus supporte.");
+  console.warn("[GoogleAuth] emergentWebGoogleSignIn n'est plus supporté.");
   return null;
 }

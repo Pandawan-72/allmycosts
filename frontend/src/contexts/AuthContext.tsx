@@ -1,4 +1,4 @@
-// AuthContext — Firebase Auth + trial 72h local.
+// AuthContext — Firebase Auth + trial 72h local + compte de test dev.
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import {
   firebaseLogin,
@@ -16,6 +16,10 @@ import {
   hasUsedTrial,
 } from "@/src/lib/trial";
 
+// ✅ Compte de test local (défini dans .env, jamais exposé sur GitHub)
+const DEV_EMAIL = process.env.EXPO_PUBLIC_DEV_EMAIL || "";
+const DEV_PASSWORD = process.env.EXPO_PUBLIC_DEV_PASSWORD || "";
+
 export type AuthUser = {
   user_id: string;
   name: string;
@@ -29,6 +33,22 @@ export type AuthUser = {
     current_period_end?: string | null;
     has_used_trial: boolean;
   };
+};
+
+// ✅ Utilisateur de test avec accès Pro complet
+const DEV_USER: AuthUser = {
+  user_id: "dev_local_user",
+  name: "Dev User",
+  email: DEV_EMAIL || "dev@local.test",
+  provider: "dev",
+  picture: null,
+  pro: {
+    plan: "lifetime",
+    is_pro: true,
+    trial_end: null,
+    current_period_end: null,
+    has_used_trial: true,
+  },
 };
 
 type AuthState = {
@@ -51,15 +71,13 @@ async function enrichWithTrial(baseUser: ReturnType<typeof firebaseUserToAuthUse
   const trialUsed = await hasUsedTrial();
   const hoursLeft = await getTrialHoursLeft();
 
-  // Si l'utilisateur a un achat lifetime réel (géré par RevenueCat via refreshUser)
-  // on ne touche pas à son statut pro. Sinon on calcule depuis le trial local.
   let plan: AuthUser["pro"]["plan"] = "free";
   let is_pro = false;
   let trial_end: string | null = null;
 
   if (trialActive) {
     plan = "trialing";
-    is_pro = true; // trial actif = accès pro complet
+    is_pro = true;
     const trialEndTs = Date.now() + hoursLeft * 3600000;
     trial_end = new Date(trialEndTs).toISOString();
   } else if (trialUsed) {
@@ -83,7 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Écoute les changements de session Firebase
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsub = onAuthStateChanged(auth, async (fbUser: any) => {
@@ -100,8 +117,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    // ✅ Compte de test local — bypass Firebase
+    if (
+      DEV_EMAIL &&
+      DEV_PASSWORD &&
+      email.toLowerCase().trim() === DEV_EMAIL.toLowerCase().trim() &&
+      password === DEV_PASSWORD
+    ) {
+      setUser(DEV_USER);
+      return;
+    }
+
+    // Connexion Firebase normale
     const base = await firebaseLogin(email, password);
-    await startTrialIfNeeded(); // démarre le trial si premier login
+    await startTrialIfNeeded();
     const enriched = await enrichWithTrial(base);
     setUser(enriched);
   }, []);
@@ -125,23 +154,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // ✅ Si c'est le compte de test, juste vider le state
+    if (user?.user_id === "dev_local_user") {
+      setUser(null);
+      return;
+    }
     try {
       const { nativeGoogleSignOut } = await import("@/src/lib/googleAuth");
       await nativeGoogleSignOut();
     } catch {}
     await firebaseSignOut();
     setUser(null);
-  }, []);
+  }, [user]);
 
-  // refreshUser : re-calcule le statut trial depuis le storage local
   const refreshUser = useCallback(async () => {
+    // ✅ Ne pas rafraîchir le compte de test
+    if (user?.user_id === "dev_local_user") return;
+
     const auth = getFirebaseAuth();
     const fbUser = auth.currentUser;
     if (!fbUser) return;
     const base = firebaseUserToAuthUser(fbUser);
     const enriched = await enrichWithTrial(base);
     setUser(enriched);
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider

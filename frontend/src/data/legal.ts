@@ -1,14 +1,13 @@
 /**
  * Legal text content for the app (Privacy Policy + Terms).
- * Plain JavaScript — easy to update without touching components.
- * Tokens like {{APP_NAME}}, {{COMPANY}}, {{EMAIL}}, {{LAST_UPDATED}} are replaced at render time.
+ * ✅ Mis à jour : nouveau business model freemium + achat unique 5,99€
  */
 
 export const LEGAL_META = {
   appName: "All My Costs",
   company: "All My Costs",
   contactEmail: "support@allmycosts.app",
-  lastUpdated: "8 juin 2026 / June 8, 2026",
+  lastUpdated: "12 juin 2026 / June 12, 2026",
 };
 
 export const PRIVACY_FR = `# Politique de confidentialité
@@ -21,23 +20,24 @@ La présente Politique de Confidentialité décrit la façon dont **${LEGAL_META
 
 Lors de votre utilisation de l'Application, nous pouvons collecter :
 
-- **Informations de compte** : nom, adresse e-mail, mot de passe haché (bcrypt).
+- **Informations de compte** : nom, adresse e-mail (via Firebase Authentication).
 - **Données d'authentification Google** (si vous choisissez Google Sign-In) : nom, e-mail, photo de profil.
-- **Données d'abonnement** : nom, montant, devise, cycle, catégorie et date de prochain paiement de chacun de vos abonnements personnels. Ces données sont **stockées localement sur votre appareil** et ne sont jamais transmises à nos serveurs.
-- **Données de paiement** : gérées exclusivement par notre prestataire de paiement (Stripe, Apple App Store ou Google Play). Nous ne stockons aucune information de carte bancaire.
+- **Données d'abonnement** : nom, montant, devise, cycle, catégorie et date de prochain paiement de chacune de vos dépenses récurrentes. Ces données sont **stockées exclusivement en local sur votre appareil** et ne sont jamais transmises à nos serveurs.
+- **Données de revenus** : votre revenu mensuel saisi dans l'Application. Ces données sont également **stockées localement** et ne quittent jamais votre appareil.
+- **Données de paiement** : gérées exclusivement par Google Play Store. Nous ne stockons aucune information de carte bancaire.
 - **Données techniques** : type d'appareil, langue, fuseau horaire, version de l'application, journaux d'erreur anonymisés.
 
 ## 2. Finalités
 
 - Permettre la création et la gestion de votre compte
-- Sécuriser l'accès à vos données (authentification)
-- Traiter les paiements liés à l'offre Pro
+- Sécuriser l'accès à vos données (authentification Firebase)
+- Traiter les paiements liés à l'offre Pro (achat unique)
 - Fournir et améliorer les fonctionnalités de l'Application
 - Vous contacter en cas de support utilisateur
 
 ## 3. Base légale (RGPD)
 
-- Exécution du contrat : création de compte, gestion des abonnements Pro.
+- Exécution du contrat : création de compte, gestion de l'accès Pro.
 - Consentement : connexion via Google.
 - Intérêt légitime : amélioration de l'Application, prévention de la fraude.
 
@@ -45,16 +45,15 @@ Lors de votre utilisation de l'Application, nous pouvons collecter :
 
 Nous ne vendons ni ne louons vos données. Nous partageons uniquement avec :
 
-- **Stripe Payments Europe Ltd.** — traitement des paiements (https://stripe.com/privacy).
-- **Apple Inc.** et **Google LLC** — distribution de l'Application et achats intégrés (lorsque applicable).
-- **MongoDB Atlas** — hébergement chiffré des comptes utilisateurs.
+- **Google LLC (Firebase)** — authentification des utilisateurs (https://firebase.google.com/support/privacy).
+- **Google LLC (Play Store)** — distribution de l'Application et achats intégrés.
+- **RevenueCat Inc.** — gestion des achats intégrés (https://www.revenuecat.com/privacy).
 - **Open ER API** — taux de change en lecture seule.
 - **Autorités légales** uniquement si requis par la loi.
 
 ## 5. Conservation
 
-- Compte utilisateur : conservé tant que le compte est actif ; supprimé sur demande.
-- Données de paiement Stripe : conservées 10 ans (obligation comptable).
+- Compte utilisateur (Firebase) : conservé tant que le compte est actif ; supprimé sur demande.
 - Données locales sur l'appareil : supprimées à la désinstallation de l'Application ou via le bouton « Se déconnecter ».
 
 ## 6. Vos droits (RGPD)
@@ -70,7 +69,7 @@ Pour exercer vos droits, écrivez-nous à **${LEGAL_META.contactEmail}**. Nous v
 
 ## 7. Sécurité
 
-Vos mots de passe sont hachés avec bcrypt. Toutes les communications avec nos serveurs se font en HTTPS (TLS 1.2+). Les paiements sont chiffrés bout en bout par Stripe.
+L'authentification est gérée par Firebase Authentication (Google). Toutes les communications sont chiffrées en HTTPS/TLS. Les paiements sont sécurisés par Google Play.
 
 ## 8. Mineurs
 
@@ -78,14 +77,12 @@ L'Application n'est pas destinée aux moins de 16 ans. Nous ne collectons pas sc
 
 ## 9. Modifications
 
-Nous pouvons mettre à jour cette politique à tout moment. La date de dernière mise à jour est indiquée en haut de cette page. En cas de modification substantielle, nous vous en informerons par e-mail ou dans l'Application.
+Nous pouvons mettre à jour cette politique à tout moment. La date de dernière mise à jour est indiquée en haut de cette page.
 
 ## 10. Contact
 
 **${LEGAL_META.company}**
 E-mail : ${LEGAL_META.contactEmail}
-
-Pour toute question concernant cette politique, contactez-nous à l'adresse ci-dessus.
 `;
 
 export const TERMS_FR = `# Conditions Générales d'Utilisation
@@ -96,68 +93,77 @@ Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisati
 
 ## 1. Objet
 
-L'Application permet aux utilisateurs de répertorier et de suivre leurs abonnements personnels, de visualiser leur coût total, d'exporter des rapports PDF et de bénéficier de statistiques détaillées.
+L'Application permet aux utilisateurs de répertorier et de suivre leurs dépenses récurrentes personnelles, de visualiser leur coût total, d'exporter des rapports PDF et de bénéficier de statistiques détaillées.
 
-## 2. Compte utilisateur
+## 2. Version gratuite
 
-Vous devez créer un compte (e-mail/mot de passe ou Google) pour utiliser l'Application. Vous vous engagez à fournir des informations exactes et à maintenir la confidentialité de vos identifiants. Tout usage de votre compte vous est imputable.
+La version gratuite de l'Application est accessible sans paiement et comprend :
 
-## 3. Période d'essai gratuite
+- Suivi de **5 dépenses récurrentes** maximum
+- Affichage du total mensuel et annuel
+- Gestion de la devise de base
+- Conversion de devises en temps réel
 
-Toute nouvelle inscription bénéficie d'un **essai gratuit de 48 heures** donnant accès à l'ensemble des fonctionnalités Pro. À l'issue de cette période, l'accès Pro est suspendu sauf souscription à une formule payante.
+Les fonctionnalités suivantes sont **réservées à la version Pro** :
+- Dépenses récurrentes en nombre illimité
+- Statistiques par catégorie
+- Export PDF
+- Catégories personnalisées illimitées
 
-## 4. Formules payantes (Pro)
+## 3. Essai gratuit de 72 heures
 
-- **Mensuelle** : 2,99 €/mois — facturée chaque mois jusqu'à résiliation.
-- **Annuelle** : 23,88 €/an — facturée une fois par an jusqu'à résiliation.
-- **À vie** : 69 € — paiement unique, accès permanent à toutes les fonctionnalités Pro.
+À la première connexion, chaque nouvel utilisateur bénéficie d'un **essai gratuit de 72 heures** donnant accès à toutes les fonctionnalités Pro. Passé ce délai, l'accès aux fonctionnalités Pro est suspendu sauf achat de la version Pro.
 
-Les prix peuvent varier selon votre devise locale (conversion via taux de change quotidien). La facturation effective est réalisée en EUR.
+## 4. Version Pro — Achat unique
 
-## 5. Paiement et résiliation
+L'accès à toutes les fonctionnalités Pro est disponible via un **achat unique de 5,99 €**, donnant un accès permanent et illimité, sans abonnement ni frais récurrents.
 
-- **Sur le Web** : les paiements sont traités par **Stripe**. Vous pouvez résilier votre abonnement à tout moment depuis l'Application ou en nous contactant.
-- **Sur iOS** : achats gérés par l'App Store, résiliation via vos Réglages Apple.
-- **Sur Android** : achats gérés par Google Play Store, résiliation via votre compte Google Play.
+Le paiement est géré par **Google Play Store**. Une fois l'achat effectué, il est définitif et lié à votre compte Google Play.
 
-Conformément à la législation européenne, vous disposez d'un **droit de rétractation de 14 jours** pour les abonnements numériques, **sauf** si vous avez expressément accepté de bénéficier immédiatement du service Pro (case cochée lors du paiement).
+## 5. Remboursements
 
-## 6. Utilisation acceptable
+Les remboursements sont gérés directement par Google Play selon leur politique. Conformément à l'article L221-28 du Code de la consommation, le droit de rétractation de 14 jours ne s'applique pas aux contenus numériques dont l'exécution a commencé après accord exprès du consommateur.
+
+## 6. Restauration des achats
+
+Si vous réinstallez l'Application ou changez d'appareil, vous pouvez restaurer votre achat Pro via le bouton « Restaurer mes achats » dans les paramètres, en utilisant le même compte Google Play.
+
+## 7. Utilisation acceptable
 
 Vous vous engagez à ne pas :
 
 - Tenter d'accéder à des comptes autres que le vôtre
 - Faire de l'ingénierie inverse de l'Application
-- Utiliser l'Application à des fins illégales ou contraires aux bonnes mœurs
-- Surcharger volontairement nos serveurs
+- Utiliser l'Application à des fins illégales
+- Contourner les restrictions de la version gratuite par des moyens techniques
 
-## 7. Propriété intellectuelle
+## 8. Propriété intellectuelle
 
-L'Application, son code, son design, son logo et son contenu sont la propriété exclusive de **${LEGAL_META.company}** et protégés par les lois sur la propriété intellectuelle. Toute reproduction non autorisée est interdite.
+L'Application, son code, son design, son logo et son contenu sont la propriété exclusive de **${LEGAL_META.company}** et protégés par les lois sur la propriété intellectuelle.
 
-## 8. Limitation de responsabilité
+## 9. Limitation de responsabilité
 
 L'Application est fournie « en l'état ». Nous ne pouvons être tenus responsables :
 
-- D'une indisponibilité temporaire du service
-- De la perte de données causée par une mauvaise utilisation
-- De toute décision financière prise sur la base des informations affichées dans l'Application
+- De la perte de données locales (les données étant stockées sur votre appareil, leur sauvegarde vous incombe)
+- De toute décision financière prise sur la base des informations affichées
+- De l'exactitude des taux de change affichés
 
 L'Application est un outil d'aide à la gestion personnelle ; elle ne constitue **pas** un conseil financier.
 
-## 9. Données
+## 10. Données
 
-L'utilisation de l'Application est soumise à notre Politique de Confidentialité, accessible dans l'Application et sur notre site.
+L'utilisation de l'Application est soumise à notre Politique de Confidentialité, accessible dans l'Application.
 
-## 10. Modifications des CGU
+## 11. Modifications des CGU
 
-Nous nous réservons le droit de modifier ces CGU à tout moment. Les utilisateurs seront notifiés par e-mail ou par notification dans l'Application des modifications substantielles.
+Nous nous réservons le droit de modifier ces CGU à tout moment. Les utilisateurs seront notifiés dans l'Application des modifications substantielles.
 
-## 11. Droit applicable
+## 12. Droit applicable
 
-Les présentes CGU sont régies par le droit français. Tout litige relève de la compétence exclusive des tribunaux du ressort de notre siège social.
+Les présentes CGU sont régies par le droit français. Tout litige relève de la compétence exclusive des tribunaux français.
 
-## 12. Contact
+## 13. Contact
 
 **${LEGAL_META.company}**
 E-mail : ${LEGAL_META.contactEmail}
@@ -167,29 +173,27 @@ export const PRIVACY_EN = `# Privacy Policy
 
 **Last updated:** ${LEGAL_META.lastUpdated}
 
-This Privacy Policy describes how **${LEGAL_META.appName}** ("the App") collects, uses and protects your personal data when you use our services.
+This Privacy Policy describes how **${LEGAL_META.appName}** ("the App") collects, uses and protects your personal data.
 
 ## 1. Data Collected
 
-We may collect:
-
-- **Account information**: name, email address, hashed password (bcrypt).
+- **Account information**: name, email address (via Firebase Authentication).
 - **Google authentication data** (if you use Google Sign-In): name, email, profile picture.
-- **Subscription data**: name, amount, currency, billing cycle, category and next payment date of each of your personal subscriptions. This data is **stored locally on your device** and never sent to our servers.
-- **Payment data**: handled exclusively by our payment processor (Stripe, Apple App Store or Google Play). We do not store any credit card information.
+- **Recurring expense data**: stored **locally on your device only**, never sent to our servers.
+- **Income data**: your monthly income entered in the App, stored **locally only**.
+- **Payment data**: handled exclusively by Google Play Store.
 - **Technical data**: device type, language, time zone, app version, anonymized error logs.
 
 ## 2. Purposes
 
-- Enable account creation and management
-- Secure access to your data (authentication)
-- Process payments for the Pro plan
+- Account creation and management
+- Secure authentication (Firebase)
+- Process Pro plan purchases
 - Provide and improve App features
-- Contact you in case of user support
 
 ## 3. Legal Basis (GDPR)
 
-- Contract performance: account creation, Pro plan management.
+- Contract performance: account creation, Pro access management.
 - Consent: Google login.
 - Legitimate interest: App improvement, fraud prevention.
 
@@ -197,120 +201,94 @@ We may collect:
 
 We do not sell or rent your data. We share only with:
 
-- **Stripe Payments Europe Ltd.** — payment processing (https://stripe.com/privacy).
-- **Apple Inc.** and **Google LLC** — App distribution and in-app purchases (when applicable).
-- **MongoDB Atlas** — encrypted hosting of user accounts.
+- **Google LLC (Firebase)** — user authentication.
+- **Google LLC (Play Store)** — App distribution and in-app purchases.
+- **RevenueCat Inc.** — in-app purchase management.
 - **Open ER API** — read-only exchange rates.
 - **Legal authorities** only if required by law.
 
 ## 5. Retention
 
-- User account: kept while account is active; deleted upon request.
-- Stripe payment data: retained 10 years (accounting obligation).
-- Local data on device: deleted on app uninstall or via "Sign out" button.
+- User account (Firebase): kept while active; deleted upon request.
+- Local device data: deleted on uninstall or via "Sign out".
 
 ## 6. Your Rights (GDPR)
 
-You have the right to:
-
-- Access, correct and erase your data
-- Restrict and object to processing
-- Data portability
-- Withdraw consent
-
-To exercise your rights, write to **${LEGAL_META.contactEmail}**. We will respond within 30 days.
+Access, correct, erase, restrict, or port your data. Write to **${LEGAL_META.contactEmail}**.
 
 ## 7. Security
 
-Passwords are hashed with bcrypt. All communications with our servers use HTTPS (TLS 1.2+). Payments are end-to-end encrypted by Stripe.
+Authentication via Firebase. All communications encrypted via HTTPS/TLS.
 
 ## 8. Minors
 
-The App is not intended for users under 16 years old. We do not knowingly collect data about minors.
+The App is not intended for users under 16.
 
-## 9. Changes
+## 9. Contact
 
-We may update this policy at any time. The last update date is shown at the top. For substantial changes, we will notify you by email or in the App.
-
-## 10. Contact
-
-**${LEGAL_META.company}**
-Email: ${LEGAL_META.contactEmail}
-
-For any question, contact us at the address above.
+**${LEGAL_META.company}** — ${LEGAL_META.contactEmail}
 `;
 
 export const TERMS_EN = `# Terms of Service
 
 **Last updated:** ${LEGAL_META.lastUpdated}
 
-These Terms of Service ("Terms") govern your use of **${LEGAL_META.appName}** ("the App"). By accessing the App, you accept these Terms in full.
+These Terms govern your use of **${LEGAL_META.appName}**.
 
 ## 1. Purpose
 
-The App allows users to list and track their personal subscriptions, visualize their total cost, export PDF reports and access detailed statistics.
+The App allows users to track recurring personal expenses, visualize costs, export PDF reports and access statistics.
 
-## 2. User Account
+## 2. Free Version
 
-You must create an account (email/password or Google) to use the App. You agree to provide accurate information and keep your credentials confidential. Any use of your account is your responsibility.
+The free version includes:
 
-## 3. Free Trial
+- Up to **5 recurring expenses**
+- Monthly and yearly total display
+- Base currency management
+- Real-time currency conversion
 
-Every new sign-up benefits from a **48-hour free trial** granting access to all Pro features. After this period, Pro access is suspended unless you subscribe to a paid plan.
+The following features require a **Pro upgrade**:
+- Unlimited recurring expenses
+- Category statistics
+- PDF export
+- Unlimited custom categories
 
-## 4. Paid Plans (Pro)
+## 3. Free 72-Hour Trial
 
-- **Monthly**: €2.99/month — billed monthly until cancellation.
-- **Yearly**: €23.88/year — billed once a year until cancellation.
-- **Lifetime**: €69 — one-time payment, permanent access to all Pro features.
+Every new user gets a **free 72-hour trial** with full Pro access upon first sign-in.
 
-Prices may vary based on your local currency (daily exchange rate conversion). Actual billing is in EUR.
+## 4. Pro Version — One-Time Purchase
 
-## 5. Payment and Cancellation
+Full Pro access is available as a **one-time purchase of €5.99**, granting permanent unlimited access with no subscription or recurring fees.
 
-- **On the Web**: payments are processed by **Stripe**. You can cancel anytime from the App or by contacting us.
-- **On iOS**: purchases handled by the App Store, cancel via Apple Settings.
-- **On Android**: purchases handled by Google Play Store, cancel via your Google Play account.
+Payment is processed by **Google Play Store**.
 
-Per European law, you have a **14-day right of withdrawal** for digital subscriptions, **unless** you explicitly agreed to immediate Pro service (checkbox at payment).
+## 5. Refunds
 
-## 6. Acceptable Use
+Refunds are handled by Google Play per their policy.
 
-You agree not to:
+## 6. Restoring Purchases
 
-- Try to access accounts other than yours
-- Reverse-engineer the App
-- Use the App for illegal or immoral purposes
-- Deliberately overload our servers
+Reinstall the App or switch devices? Use "Restore my purchases" in settings with the same Google Play account.
 
-## 7. Intellectual Property
+## 7. Acceptable Use
 
-The App, its code, design, logo and content are the exclusive property of **${LEGAL_META.company}** and protected by intellectual property laws. Unauthorized reproduction is prohibited.
+You agree not to reverse-engineer the App, access other accounts, or circumvent free-tier limitations.
 
-## 8. Limitation of Liability
+## 8. Intellectual Property
 
-The App is provided "as is". We cannot be held liable for:
+The App and all its content are the exclusive property of **${LEGAL_META.company}**.
 
-- Temporary service unavailability
-- Data loss caused by misuse
-- Any financial decision made based on information displayed in the App
+## 9. Limitation of Liability
 
-The App is a personal management tool; it does **not** constitute financial advice.
+The App is provided "as is". We are not liable for local data loss or financial decisions based on App data.
 
-## 9. Data
+## 10. Governing Law
 
-Use of the App is subject to our Privacy Policy, accessible in the App and on our website.
+These Terms are governed by French law.
 
-## 10. Changes to the Terms
+## 11. Contact
 
-We reserve the right to amend these Terms at any time. Users will be notified by email or in-app notification of substantial changes.
-
-## 11. Governing Law
-
-These Terms are governed by French law. Any dispute falls under the exclusive jurisdiction of the courts of our registered office.
-
-## 12. Contact
-
-**${LEGAL_META.company}**
-Email: ${LEGAL_META.contactEmail}
+**${LEGAL_META.company}** — ${LEGAL_META.contactEmail}
 `;
