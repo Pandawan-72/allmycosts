@@ -1,11 +1,11 @@
-// Gestion du trial 72h en local (sans backend).
+// Gestion du trial 5 jours en local (sans backend).
 // Au premier login, on enregistre l'heure de début.
-// Le trial est actif tant que moins de 72h se sont écoulées.
+// Le trial est actif tant que moins de 5 jours se sont écoulés.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TRIAL_KEY = "amc.trial_start";
-const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000; // 72 heures
+const TRIAL_DURATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 jours
 
 // Démarre le trial si ce n'est pas déjà fait (appelé au login)
 export async function startTrialIfNeeded(): Promise<void> {

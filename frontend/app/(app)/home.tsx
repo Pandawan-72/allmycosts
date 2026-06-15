@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -18,7 +18,7 @@ import { confirmAction } from "@/src/utils/confirm";
 import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
 import { useTranslation } from "react-i18next";
 
-const FREE_SUB_LIMIT = 3;
+const FREE_SUB_LIMIT = 5;
 
 function CatIcon({ name, color, size = 22 }: { name: string; color: string; size?: number }) {
   const Cmp = (Icons as any)[name] || (Icons as any).Tag;
@@ -60,12 +60,34 @@ export default function Home() {
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
   const isPro = !!user?.pro?.is_pro;
+  const isTrialing = user?.pro?.plan === "trialing";
+  const trialExpired = user?.pro?.plan === "expired" || (user?.pro?.plan === "free" && !!user?.pro?.has_used_trial);
   const trialHoursLeft = (() => {
     const te = user?.pro?.trial_end;
-    if (!te || user?.pro?.plan !== "trialing") return 0;
+    if (!te || !isTrialing) return 0;
     return Math.max(0, Math.ceil((new Date(te).getTime() - Date.now()) / 3600000));
   })();
+  const trialDaysLeft = Math.ceil(trialHoursLeft / 24);
   const showPaywallGate = !isPro;
+
+  const lockedSubIds = useMemo(() => {
+    if (isPro) return new Set<string>();
+    return new Set(subscriptions.slice(FREE_SUB_LIMIT).map((s) => s.id));
+  }, [subscriptions, isPro]);
+
+  useEffect(() => {
+    if (isTrialing && trialDaysLeft <= 2 && trialDaysLeft > 0) {
+      Alert.alert(
+        t("paywall.trialEndingTitle"),
+        t("paywall.trialEndingBody"),
+        [
+          { text: t("common.later"), style: "cancel" },
+          { text: t("paywall.goProNow"), onPress: () => router.push("/(app)/paywall") },
+        ]
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * ============================================================================
@@ -391,32 +413,45 @@ export default function Home() {
     // Convert to user's base currency for the secondary line.
     const displayBase = convert(displayOwn, item.currency, baseCurrency);
     const cycleLabel = view === "monthly" ? t("common.monthly") : t("common.yearly");
+    const locked = lockedSubIds.has(item.id);
     return (
       <TouchableOpacity
         testID={`subscription-item-${item.name}`}
-        onPress={() => router.push({ pathname: "/(app)/subscription", params: { id: item.id } })}
-        onLongPress={() =>
+        onPress={() => {
+          if (locked) { router.push("/(app)/paywall"); return; }
+          router.push({ pathname: "/(app)/subscription", params: { id: item.id } });
+        }}
+        onLongPress={() => {
+          if (locked) { router.push("/(app)/paywall"); return; }
           confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
             { text: t("common.cancel"), style: "cancel" },
             { text: t("common.delete"), style: "destructive", onPress: () => deleteSubscription(item.id) },
-          ])
-        }
+          ]);
+        }}
         style={styles.subItem}
       >
-        <View style={[styles.subIcon, { backgroundColor: cat.color + "22" }]}>
-          <CatIcon name={cat.icon} color={cat.color} />
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 14, opacity: locked ? 0.45 : 1 }}>
+          <View style={[styles.subIcon, { backgroundColor: cat.color + "22" }]}>
+            <CatIcon name={cat.icon} color={cat.color} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.subCat} numberOfLines={1}>{catLabel}</Text>
+          </View>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={styles.subPrice}>{formatAmount(displayOwn, item.currency)}</Text>
+            <Text style={styles.subCycle}>{cycleLabel}</Text>
+            {item.currency !== baseCurrency ? (
+              <Text style={styles.subFx}>≈ {formatAmount(displayBase, baseCurrency)}</Text>
+            ) : null}
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.subCat} numberOfLines={1}>{catLabel}</Text>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.subPrice}>{formatAmount(displayOwn, item.currency)}</Text>
-          <Text style={styles.subCycle}>{cycleLabel}</Text>
-          {item.currency !== baseCurrency ? (
-            <Text style={styles.subFx}>≈ {formatAmount(displayBase, baseCurrency)}</Text>
-          ) : null}
-        </View>
+        {locked ? (
+          <View style={styles.lockedOverlay}>
+            <Icons.Lock color="#fff" size={18} strokeWidth={2.5} />
+            <Text style={styles.lockedText}>{t("home.lockedCard")}</Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
     );
   };
@@ -454,19 +489,25 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20 }}
         ListHeaderComponent={
           <View>
-            {user?.pro?.plan === "trialing" && trialHoursLeft > 0 ? (
+            {isTrialing && trialDaysLeft > 0 ? (
               <TouchableOpacity testID="trial-banner" onPress={() => router.push("/(app)/paywall")} style={styles.trialBanner}>
                 <Icons.Sparkles color={theme.accent} size={16} />
-                <Text style={styles.trialBannerText}>{t("home.trialBanner", { hours: trialHoursLeft })}</Text>
+                <Text style={styles.trialBannerText}>{t("home.trialDaysLeft", { count: trialDaysLeft })}</Text>
                 <Icons.ChevronRight color={theme.accent} size={16} />
               </TouchableOpacity>
             ) : null}
-            {(user?.pro?.plan === "expired" || (user?.pro?.plan === "free" && user?.pro?.has_used_trial)) ? (
+            {trialExpired ? (
               <TouchableOpacity testID="upgrade-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: "#FEF2F2", borderColor: theme.danger }]}>
                 <Icons.AlertCircle color={theme.danger} size={16} />
                 <Text style={[styles.trialBannerText, { color: theme.danger }]}>{t("home.trialEnded")}</Text>
                 <Text style={{ color: theme.danger, fontWeight: "800" }}>{t("home.upgrade")}</Text>
               </TouchableOpacity>
+            ) : null}
+            {isPro && !isTrialing && !trialExpired ? (
+              <View style={[styles.trialBanner, styles.proActivatedBanner]}>
+                <Icons.BadgeCheck color={theme.accent} size={16} />
+                <Text style={styles.proActivatedBannerText}>{t("home.proUnlocked")}</Text>
+              </View>
             ) : null}
             <View style={styles.heroCard}>
               <View style={styles.heroToggle}>
@@ -646,7 +687,7 @@ const styles = StyleSheet.create({
   empty: { color: theme.textMuted, paddingVertical: 24, textAlign: "center" },
   subItem: {
     flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: theme.border,
+    borderBottomWidth: 1, borderBottomColor: theme.border, position: "relative",
   },
   subIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   subName: { fontSize: 16, fontWeight: "700", color: theme.text },
@@ -665,6 +706,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginTop: 8,
   },
   trialBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: theme.accent },
+  proActivatedBanner: { alignSelf: "center" },
+  proActivatedBannerText: { fontSize: 13, fontWeight: "700", color: theme.accent },
+  lockedOverlay: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(107,114,128,0.75)",
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+  },
+  lockedText: { color: "#fff", fontSize: 13, fontWeight: "800" },
 
   // Income + Remaining budget — compact pill-like cards
   budgetRow: {

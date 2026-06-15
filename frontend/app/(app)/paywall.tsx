@@ -53,14 +53,14 @@ export default function Paywall() {
     try {
       if (isRevenueCatSupported()) {
         const pkg = findPackageByPlan("lifetime");
-        if (!pkg) throw new Error("Cette offre n'est pas encore disponible dans le store.");
+        if (!pkg) throw new Error(t("paywall.offerUnavailable"));
         const res = await purchaseRCPackage(pkg.rcPackage);
         if (res.userCancelled) return;
         await refreshUser();
         router.replace("/(app)/home");
       }
     } catch (e: any) {
-      setErr(e?.message || "Erreur lors de l'achat.");
+      setErr(e?.message || t("paywall.purchaseError"));
     } finally {
       setBusy(false);
     }
@@ -75,7 +75,7 @@ export default function Paywall() {
       }
       await refreshUser();
     } catch (e: any) {
-      setErr(e?.message || "Erreur");
+      setErr(e?.message || t("paywall.genericError"));
     } finally {
       setRestoring(false);
     }
@@ -89,7 +89,7 @@ export default function Paywall() {
         <TouchableOpacity testID="close-paywall" onPress={() => router.back()} style={styles.headerBtn}>
           <Icons.X color={theme.text} size={22} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Passer Pro</Text>
+        <Text style={styles.headerTitle}>{t("paywall.headerTitle")}</Text>
         <TouchableOpacity testID="restore-purchases" onPress={onRestore} style={styles.headerBtn} disabled={restoring}>
           {restoring ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.RotateCcw color={theme.text} size={20} />}
         </TouchableOpacity>
@@ -99,56 +99,55 @@ export default function Paywall() {
 
         {isPro ? (
           <View style={styles.alreadyPro}>
-            <Icons.Crown color={theme.accent} size={32} />
-            <Text style={styles.alreadyProTitle}>Vous êtes déjà Pro !</Text>
-            <Text style={styles.alreadyProSub}>Profitez de toutes les fonctionnalités sans limite.</Text>
+            <Icons.Crown color={theme.accent} size={20} />
+            <Text style={styles.alreadyProTitle}>{t("paywall.alreadyPro")}</Text>
           </View>
-        ) : (
-          <>
-            <Text style={styles.h1}>Débloquez tout.</Text>
-            <Text style={styles.sub}>Une seule fois. Pour toujours.</Text>
+        ) : null}
+
+        <Text style={styles.h1}>{t("paywall.unlockEverything")}</Text>
+            <Text style={styles.sub}>{t("paywall.onceForever")}</Text>
 
             {/* Comparaison gratuit vs pro */}
             <View style={styles.compareCard}>
               <View style={styles.compareCol}>
-                <Text style={styles.compareTitle}>Gratuit</Text>
+                <Text style={styles.compareTitle}>{t("paywall.free")}</Text>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
-                  <Text style={styles.compareText}>5 dépenses récurrentes</Text>
+                  <Text style={styles.compareText}>{t("paywall.freeLimitFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
-                  <Text style={[styles.compareText, { color: theme.textMuted }]}>Statistiques</Text>
+                  <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.statsFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
-                  <Text style={[styles.compareText, { color: theme.textMuted }]}>Export PDF</Text>
+                  <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.pdfFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
-                  <Text style={[styles.compareText, { color: theme.textMuted }]}>Catégories illimitées</Text>
+                  <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.unlimitedCategoriesFeature")}</Text>
                 </View>
               </View>
 
               <View style={styles.compareDivider} />
 
               <View style={styles.compareCol}>
-                <Text style={[styles.compareTitle, { color: theme.accent }]}>Pro ✨</Text>
+                <Text style={[styles.compareTitle, { color: theme.accent }]}>{t("paywall.proColumn")}</Text>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
-                  <Text style={styles.compareText}>Dépenses illimitées</Text>
+                  <Text style={styles.compareText}>{t("paywall.unlimitedExpensesFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
-                  <Text style={styles.compareText}>Statistiques</Text>
+                  <Text style={styles.compareText}>{t("paywall.statsFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
-                  <Text style={styles.compareText}>Export PDF</Text>
+                  <Text style={styles.compareText}>{t("paywall.pdfFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
-                  <Text style={styles.compareText}>Catégories illimitées</Text>
+                  <Text style={styles.compareText}>{t("paywall.unlimitedCategoriesFeature")}</Text>
                 </View>
               </View>
             </View>
@@ -156,14 +155,14 @@ export default function Paywall() {
             {/* Offre lifetime */}
             <View style={styles.planCard}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>PAIEMENT UNIQUE</Text>
+                <Text style={styles.badgeText}>{t("paywall.oneTimePayment")}</Text>
               </View>
-              <Text style={styles.planName}>All My Costs Pro</Text>
+              <Text style={styles.planName}>{t("paywall.planName")}</Text>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 8 }}>
                 <Text style={styles.planPrice}>{format(LIFETIME_PRICE_EUR)}</Text>
-                <Text style={styles.planUnit}>une seule fois</Text>
+                <Text style={styles.planUnit}>{t("paywall.onceLabel")}</Text>
               </View>
-              <Text style={styles.planDesc}>Payez une fois, accédez à vie. Aucun abonnement.</Text>
+              <Text style={styles.planDesc}>{t("paywall.planDesc")}</Text>
 
               <TouchableOpacity
                 testID="buy-lifetime"
@@ -173,7 +172,7 @@ export default function Paywall() {
               >
                 {busy
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.planBtnText}>Acheter maintenant — {format(LIFETIME_PRICE_EUR)}</Text>
+                  : <Text style={styles.planBtnText}>{t("paywall.buyNow", { price: format(LIFETIME_PRICE_EUR) })}</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -188,9 +187,7 @@ export default function Paywall() {
               </Text>
             </TouchableOpacity>
 
-            <Text style={styles.note}>Le paiement est traité par Google Play. Aucun abonnement récurrent.</Text>
-          </>
-        )}
+            <Text style={styles.note}>{t("paywall.googlePlayNote")}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -207,9 +204,8 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: "800", color: theme.text },
   h1: { fontSize: 34, fontWeight: "900", color: theme.text, letterSpacing: -1 },
   sub: { fontSize: 16, color: theme.textMuted, marginTop: 6, marginBottom: 24 },
-  alreadyPro: { alignItems: "center", paddingVertical: 40, gap: 12 },
-  alreadyProTitle: { fontSize: 24, fontWeight: "900", color: theme.text },
-  alreadyProSub: { fontSize: 15, color: theme.textMuted, textAlign: "center" },
+  alreadyPro: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: theme.accentSoft, borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: theme.accent },
+  alreadyProTitle: { fontSize: 16, fontWeight: "800", color: theme.accent },
   compareCard: {
     flexDirection: "row", backgroundColor: theme.surface, borderRadius: 20,
     borderWidth: 1, borderColor: theme.border, padding: 20, marginBottom: 24, gap: 12,

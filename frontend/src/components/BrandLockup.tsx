@@ -6,9 +6,9 @@ type Props = {
 };
 
 // Wide brand lockup: coin emblem + "All My Costs" text baked in.
-// Source image aspect ratio ~4:1 (1622x408).
+// Source image aspect ratio ~3.9:1 (1000x256).
 export function BrandLockup({ height = 36, style }: Props) {
-  const width = height * (1622 / 408);
+  const width = height * (1000 / 256);
   return (
     <View testID="brand-lockup" style={[{ height, width }, style]}>
       <Image
