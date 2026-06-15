@@ -26,9 +26,9 @@ const LEGAL_PT = {
     intro: "Estes Termos regem o uso da aplicação All My Costs.",
     sections: [
       { title: "1. Aceitação", body: "Ao utilizar a Aplicação, aceita estes Termos." },
-      { title: "2. Versão gratuita e Pro", body: "Gratuito: até 5 despesas recorrentes, total mensal/anual, moeda base. Pro (5,99 € compra única): despesas ilimitadas, estatísticas, exportação PDF, categorias ilimitadas." },
+      { title: "2. Versão gratuita e Pro", body: "Gratuito: até 5 despesas recorrentes, total mensal/anual, moeda base. Pro (2,99 € compra única): despesas ilimitadas, estatísticas, exportação PDF, categorias ilimitadas." },
       { title: "3. Teste gratuito 72h", body: "Cada novo utilizador obtém um período de teste gratuito de 72 horas com acesso Pro completo no primeiro início de sessão." },
-      { title: "4. Compra única Pro", body: "O acesso Pro está disponível mediante uma compra única de 5,99 € no Google Play. Sem subscrição nem encargos recorrentes." },
+      { title: "4. Compra única Pro", body: "O acesso Pro está disponível mediante uma compra única de 2,99 € no Google Play. Sem subscrição nem encargos recorrentes." },
       { title: "5. Restaurar compras", body: "Use o botão Restaurar compras nas definições com a mesma conta Google Play." },
       { title: "6. Reembolsos", body: "Os reembolsos são geridos pelo Google Play segundo a sua política." },
       { title: "7. Uso aceitável", body: "Não contornar limitações, fazer engenharia inversa nem usar a Aplicação ilegalmente." },

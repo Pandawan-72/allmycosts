@@ -8,6 +8,12 @@ const COMMON = {
     none: "Keine", loading: "Lädt…",
   },
   auth: {
+    forgotPassword: "Passwort vergessen?",
+    resetTitle: "Passwort zurücksetzen",
+    resetDesc: "Geben Sie Ihre E-Mail-Adresse ein, und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.",
+    resetSend: "Link senden",
+    resetSuccess: "E-Mail gesendet! Überprüfen Sie Ihr Postfach (auch die Ordner Spam/Werbung).",
+    resetError: "E-Mail konnte nicht gesendet werden. Bitte überprüfen Sie die Adresse.",
     welcome: "Willkommen.", welcomeName: "Willkommen, {{name}} 👋", greeting: "Hallo {{name}} 👋",
     createAccount: "Konto erstellen.",
     subtitlePro: "Behalte deine wiederkehrenden Ausgaben im Griff.",

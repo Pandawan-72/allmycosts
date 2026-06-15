@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platform, Modal, ActivityIndicator } from "react-native";
 import { KeyboardAvoidingView } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +13,7 @@ import {
   nativeGoogleSignIn,
   emergentWebGoogleSignIn,
 } from "@/src/lib/googleAuth";
+import { firebaseSendPasswordReset } from "@/src/lib/firebaseAuth";
 
 export default function SignIn() {
   const router = useRouter();
@@ -22,6 +23,10 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const submit = async () => {
     setErr(null);
@@ -64,6 +69,26 @@ export default function SignIn() {
     }
   };
 
+  const onResetPassword = async () => {
+    if (!resetEmail) return;
+    setResetLoading(true);
+    setResetMsg(null);
+    try {
+      await firebaseSendPasswordReset(resetEmail.trim());
+      setResetMsg({ type: "success", text: t("auth.resetSuccess") });
+    } catch {
+      setResetMsg({ type: "error", text: t("auth.resetError") });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const openForgotPassword = () => {
+    setResetEmail(email);
+    setResetMsg(null);
+    setShowForgot(true);
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -99,6 +124,10 @@ export default function SignIn() {
               secureTextEntry
               style={styles.input}
             />
+
+            <TouchableOpacity testID="forgot-password-link" onPress={openForgotPassword} style={styles.forgotLink}>
+              <Text style={styles.forgotLinkText}>{t("auth.forgotPassword")}</Text>
+            </TouchableOpacity>
 
             {err ? <Text testID="signin-error" style={styles.error}>{err}</Text> : null}
 
@@ -136,6 +165,40 @@ export default function SignIn() {
             </Link>
           </View>
         </ScrollView>
+
+        <Modal visible={showForgot} transparent animationType="slide" onRequestClose={() => setShowForgot(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t("auth.resetTitle")}</Text>
+              <Text style={styles.modalDesc}>{t("auth.resetDesc")}</Text>
+              <TextInput
+                value={resetEmail}
+                onChangeText={setResetEmail}
+                placeholder={t("auth.emailPh")}
+                placeholderTextColor={theme.textSubtle}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={styles.input}
+              />
+              {resetMsg ? (
+                <Text style={resetMsg.type === "error" ? styles.error : styles.success}>{resetMsg.text}</Text>
+              ) : null}
+              <TouchableOpacity
+                onPress={onResetPassword}
+                disabled={resetLoading}
+                style={[styles.primaryBtn, { marginTop: 16 }, resetLoading && { opacity: 0.6 }]}
+              >
+                {resetLoading
+                  ? <ActivityIndicator color={theme.primaryInverse} />
+                  : <Text style={styles.primaryBtnText}>{t("auth.resetSend")}</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowForgot(false)} style={{ alignItems: "center", marginTop: 16 }}>
+                <Text style={styles.bottomLink}>{t("common.cancel")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -169,4 +232,11 @@ const styles = StyleSheet.create({
   bottom: { flexDirection: "row", justifyContent: "center", marginTop: 28 },
   bottomText: { color: theme.textMuted },
   bottomLink: { color: theme.text, fontWeight: "700" },
+  forgotLink: { alignSelf: "flex-end", marginTop: 12 },
+  forgotLinkText: { color: theme.text, fontSize: 13, fontWeight: "700" },
+  success: { color: theme.text, marginTop: 12, fontSize: 14 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
+  modalContent: { backgroundColor: theme.bg, borderRadius: 20, padding: 24 },
+  modalTitle: { fontSize: 18, fontWeight: "900", color: theme.text, marginBottom: 8 },
+  modalDesc: { fontSize: 14, color: theme.textMuted, lineHeight: 20, marginBottom: 16 },
 });

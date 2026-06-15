@@ -26,9 +26,9 @@ const LEGAL_FR = {
     intro: "Les présentes CGU régissent l'utilisation de l'application All My Costs.",
     sections: [
       { title: "1. Acceptation", body: "En utilisant l'Application, vous acceptez les présentes CGU." },
-      { title: "2. Version gratuite et Pro", body: "Gratuit : jusqu'à 5 dépenses récurrentes, total mensuel/annuel, devise de base. Pro (5,99 € achat unique) : dépenses illimitées, statistiques, export PDF, catégories illimitées." },
+      { title: "2. Version gratuite et Pro", body: "Gratuit : jusqu'à 5 dépenses récurrentes, total mensuel/annuel, devise de base. Pro (2,99 € achat unique) : dépenses illimitées, statistiques, export PDF, catégories illimitées." },
       { title: "3. Essai gratuit 72h", body: "À la première connexion, chaque utilisateur bénéficie d'un essai gratuit de 72 heures avec accès complet Pro." },
-      { title: "4. Achat unique Pro", body: "L'accès Pro est disponible via un achat unique de 5,99 € sur Google Play. Aucun abonnement, aucun frais récurrent." },
+      { title: "4. Achat unique Pro", body: "L'accès Pro est disponible via un achat unique de 2,99 € sur Google Play. Aucun abonnement, aucun frais récurrent." },
       { title: "5. Restauration", body: "Utilisez le bouton Restaurer mes achats dans les paramètres avec le même compte Google Play." },
       { title: "6. Remboursements", body: "Les remboursements sont gérés par Google Play selon leur politique." },
       { title: "7. Utilisation acceptable", body: "Ne pas contourner les limitations, faire de l'ingénierie inverse ou utiliser l'Application illégalement." },

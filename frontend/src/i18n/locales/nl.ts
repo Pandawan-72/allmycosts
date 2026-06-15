@@ -8,6 +8,12 @@ const COMMON = {
     none: "Geen", loading: "Laden…",
   },
   auth: {
+    forgotPassword: "Wachtwoord vergeten?",
+    resetTitle: "Wachtwoord opnieuw instellen",
+    resetDesc: "Voer je e-mailadres in en we sturen je een link om je wachtwoord opnieuw in te stellen.",
+    resetSend: "Link verzenden",
+    resetSuccess: "E-mail verzonden! Controleer je inbox (ook de map Spam/Promoties).",
+    resetError: "E-mail kon niet worden verzonden. Controleer het adres.",
     welcome: "Welkom.", welcomeName: "Welkom, {{name}} 👋", greeting: "Hallo {{name}} 👋",
     createAccount: "Account aanmaken.",
     subtitlePro: "Beheer al je terugkerende uitgaven.",

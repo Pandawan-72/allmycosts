@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -80,4 +81,10 @@ export async function firebaseGoogleSignIn(idToken: string) {
 export async function firebaseSignOut() {
   const auth = getFirebaseAuth();
   await signOut(auth);
+}
+
+// Envoie un e-mail de réinitialisation de mot de passe.
+export async function firebaseSendPasswordReset(email: string): Promise<void> {
+  const auth = getFirebaseAuth();
+  await sendPasswordResetEmail(auth, email.trim());
 }

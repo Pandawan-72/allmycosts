@@ -21,7 +21,7 @@ const APP_BUILD = Application.nativeBuildVersion || "—";
 export default function Settings() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency, subscriptions, customCategories, monthlyIncome, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency, subscriptions, customCategories, monthlyIncome, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllCustomCategories } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
@@ -91,16 +91,12 @@ export default function Settings() {
               await setCurrency(backup.baseCurrency);
               await setMonthlyIncome(backup.monthlyIncome || 0);
 
-              // Restaurer les catégories personnalisées
-              for (const cat of backup.customCategories || []) {
-                await addCustomCategory(cat);
-              }
-
-              // Restaurer les abonnements
-              for (const sub of backup.subscriptions || []) {
-                const { id, createdAt, ...rest } = sub;
-                await addSubscription(rest);
-              }
+              // Remplace l'intégralité des catégories personnalisées et des
+              // abonnements en une seule opération atomique (conserve les
+              // id/dates d'origine, évite les pertes et les doublons liés
+              // aux anciennes boucles addSubscription/addCustomCategory).
+              await replaceAllCustomCategories(backup.customCategories || []);
+              await replaceAllSubscriptions(backup.subscriptions || []);
 
               Alert.alert(t("settings.backup.importSuccessTitle"), t("settings.backup.importSuccess"));
             } catch (e: any) {
