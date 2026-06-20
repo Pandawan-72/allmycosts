@@ -127,6 +127,10 @@ export default function Paywall() {
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
                   <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.unlimitedCategoriesFeature")}</Text>
                 </View>
+                <View style={styles.compareRow}>
+                  <Icons.X color={theme.danger} size={16} strokeWidth={3} />
+                  <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.backupFeature")}</Text>
+                </View>
               </View>
 
               <View style={styles.compareDivider} />
@@ -148,6 +152,10 @@ export default function Paywall() {
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
                   <Text style={styles.compareText}>{t("paywall.unlimitedCategoriesFeature")}</Text>
+                </View>
+                <View style={styles.compareRow}>
+                  <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
+                  <Text style={styles.compareText}>{t("paywall.backupFeature")}</Text>
                 </View>
               </View>
             </View>

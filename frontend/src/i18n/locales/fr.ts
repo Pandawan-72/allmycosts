@@ -97,6 +97,7 @@ const COMMON = {
     statsFeature: "Statistiques",
     pdfFeature: "Export PDF",
     unlimitedCategoriesFeature: "Catégories illimitées",
+    backupFeature: "Sauvegarde & restauration",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Dépenses illimitées",
     oneTimePayment: "PAIEMENT UNIQUE",
