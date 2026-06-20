@@ -67,7 +67,7 @@ const COMMON = {
     deleteConfirm: "Delete \"{{name}}\"?",
   },
   settings: {
-    title: "Settings", preferences: "Preferences", account: "Account",
+    title: "Settings", preferences: "Preferences", darkMode: "Dark mode", account: "Account",
     baseCurrency: "Base currency", language: "Language",
     proPlan: "Pro Plan", manage: "Manage",
     notifications: "Payment reminders", logout: "Sign out", version: "Version",
@@ -98,6 +98,7 @@ const COMMON = {
     pdfFeature: "PDF export",
     unlimitedCategoriesFeature: "Unlimited categories",
     backupFeature: "Backup & restore",
+    darkModeFeature: "Dark mode",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Unlimited expenses",
     oneTimePayment: "ONE-TIME PAYMENT",

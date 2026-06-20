@@ -9,6 +9,7 @@ import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { SubscriptionsProvider } from "@/src/contexts/SubscriptionsContext";
 import { LanguageProvider } from "@/src/contexts/LanguageContext";
+import { ThemeProvider } from "@/src/contexts/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,14 +26,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <SubscriptionsProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F9FAFB" } }} />
-          </SubscriptionsProvider>
-        </AuthProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <SubscriptionsProvider>
+              <StatusBar style="auto" />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F9FAFB" } }} />
+            </SubscriptionsProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

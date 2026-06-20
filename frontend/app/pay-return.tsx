@@ -5,10 +5,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Icons from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 
 export default function PayReturn() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { plan } = useLocalSearchParams<{ plan?: string }>();
   const { user, refreshUser, loading } = useAuth();
@@ -69,7 +71,7 @@ export default function PayReturn() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   iconWrap: {
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: "900", color: theme.text, textAlign: "center", letterSpacing: -0.5 },
   sub: { fontSize: 14, color: theme.textMuted, textAlign: "center", marginTop: 10, lineHeight: 20 },
-  btn: { marginTop: 28, backgroundColor: theme.primary, borderRadius: 999, paddingVertical: 14, paddingHorizontal: 28 },
+  btn: { marginTop: 28, backgroundColor: theme.cardBg, borderRadius: 999, paddingVertical: 14, paddingHorizontal: 28 },
   btnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 });
+}

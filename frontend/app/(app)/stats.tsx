@@ -6,7 +6,7 @@ import Svg, { Circle, G, Rect, Text as SvgText } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 import * as Icons from "lucide-react-native";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
@@ -30,6 +30,8 @@ function getLast12Months(): string[] {
 }
 
 export default function Stats() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -316,7 +318,7 @@ export default function Stats() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 12, paddingVertical: 8,
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
   // Top 3
   top3Row: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
   top3Badge: {
-    width: 24, height: 24, borderRadius: 12, backgroundColor: theme.primary,
+    width: 24, height: 24, borderRadius: 12, backgroundColor: theme.cardBg,
     alignItems: "center", justifyContent: "center",
   },
   top3Num: { color: "#fff", fontSize: 12, fontWeight: "900" },
@@ -378,6 +380,7 @@ const styles = StyleSheet.create({
   },
   tipTitle: { fontSize: 13, fontWeight: "800", color: theme.accent, marginBottom: 4 },
   tipText: { fontSize: 13, color: theme.text, lineHeight: 18 },
-  primaryBtn: { backgroundColor: theme.primary, borderRadius: 999, paddingVertical: 16, paddingHorizontal: 32, marginTop: 24 },
+  primaryBtn: { backgroundColor: theme.cardBg, borderRadius: 999, paddingVertical: 16, paddingHorizontal: 32, marginTop: 24 },
   primaryBtnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 });
+}

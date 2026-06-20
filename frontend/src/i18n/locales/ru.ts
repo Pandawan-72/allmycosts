@@ -67,7 +67,7 @@ const COMMON = {
     deleteConfirm: "Удалить «{{name}}»?",
   },
   settings: {
-    title: "Настройки", preferences: "Параметры", account: "Аккаунт",
+    title: "Настройки", preferences: "Параметры", darkMode: "Тёмный режим", account: "Аккаунт",
     baseCurrency: "Основная валюта", language: "Язык",
     proPlan: "Pro-подписка", manage: "Управлять",
     notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия",
@@ -98,6 +98,7 @@ const COMMON = {
     pdfFeature: "Экспорт в PDF",
     unlimitedCategoriesFeature: "Неограниченные категории",
     backupFeature: "Резервное копирование и восстановление",
+    darkModeFeature: "Тёмный режим",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Неограниченные расходы",
     oneTimePayment: "РАЗОВЫЙ ПЛАТЁЖ",

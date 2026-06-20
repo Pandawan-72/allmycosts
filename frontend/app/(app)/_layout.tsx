@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { configureRC, loginRC } from "@/src/lib/revenuecat";
 
 export default function AppLayout() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -35,6 +37,7 @@ export default function AppLayout() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.bg },
 });
+}

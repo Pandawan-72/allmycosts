@@ -65,7 +65,7 @@ const COMMON = {
     deleteConfirm: "\"{{name}}\" verwijderen?",
   },
   settings: {
-    title: "Instellingen", preferences: "Voorkeuren", account: "Account",
+    title: "Instellingen", preferences: "Voorkeuren", darkMode: "Donkere modus", account: "Account",
     baseCurrency: "Hoofdvaluta", language: "Taal",
     proPlan: "Pro-plan", manage: "Beheren",
     notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie",
@@ -96,6 +96,7 @@ const COMMON = {
     pdfFeature: "PDF-export",
     unlimitedCategoriesFeature: "Onbeperkte categorieën",
     backupFeature: "Back-up & herstel",
+    darkModeFeature: "Donkere modus",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Onbeperkte uitgaven",
     oneTimePayment: "EENMALIGE BETALING",

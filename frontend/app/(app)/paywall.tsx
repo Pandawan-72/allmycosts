@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Icons from "lucide-react-native";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import {
   configureRC,
@@ -25,6 +25,8 @@ function format(amount: number) {
 }
 
 export default function Paywall() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
@@ -116,6 +118,10 @@ export default function Paywall() {
                   <Text style={styles.compareText}>{t("paywall.freeLimitFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
+                  <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
+                  <Text style={styles.compareText}>{t("paywall.darkModeFeature")}</Text>
+                </View>
+                <View style={styles.compareRow}>
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
                   <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.statsFeature")}</Text>
                 </View>
@@ -140,6 +146,10 @@ export default function Paywall() {
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
                   <Text style={styles.compareText}>{t("paywall.unlimitedExpensesFeature")}</Text>
+                </View>
+                <View style={styles.compareRow}>
+                  <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
+                  <Text style={styles.compareText}>{t("paywall.darkModeFeature")}</Text>
                 </View>
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
@@ -201,7 +211,7 @@ export default function Paywall() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 12, paddingVertical: 8,
@@ -224,7 +234,7 @@ const styles = StyleSheet.create({
   compareText: { fontSize: 13, color: theme.text, fontWeight: "500" },
   compareDivider: { width: 1, backgroundColor: theme.border },
   planCard: {
-    backgroundColor: theme.primary, borderRadius: 20, padding: 24,
+    backgroundColor: theme.cardBg, borderRadius: 20, padding: 24,
     position: "relative", overflow: "hidden",
   },
   badge: {
@@ -244,3 +254,4 @@ const styles = StyleSheet.create({
   planBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
   note: { color: theme.textSubtle, fontSize: 12, textAlign: "center", marginTop: 16, lineHeight: 18 },
 });
+}

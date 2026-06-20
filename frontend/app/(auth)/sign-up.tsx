@@ -4,10 +4,12 @@ import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/contexts/AuthContext";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { BrandLockup } from "@/src/components/BrandLockup";
 
 export default function SignUp() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { register } = useAuth();
   const [name, setName] = useState("");
@@ -110,7 +112,7 @@ export default function SignUp() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   container: { padding: 24, paddingTop: 16, paddingBottom: 32 },
   brand: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 32 },
@@ -129,3 +131,4 @@ const styles = StyleSheet.create({
   bottomText: { color: theme.textMuted },
   bottomLink: { color: theme.text, fontWeight: "700" },
 });
+}

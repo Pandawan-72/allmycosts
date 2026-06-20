@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Redirect } from "expo-router";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 
 export default function Index() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -18,6 +20,7 @@ export default function Index() {
   return user ? <Redirect href="/(app)/home" /> : <Redirect href="/(auth)/sign-in" />;
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.bg },
 });
+}

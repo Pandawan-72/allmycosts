@@ -3,12 +3,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 
 type Section = { title: string; body: string };
 type LegalDocProps = { kind: "privacy" | "terms" };
 
 export default function LegalDocument({ kind }: LegalDocProps) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -62,7 +64,7 @@ export default function LegalDocument({ kind }: LegalDocProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 12, paddingVertical: 8,
@@ -81,7 +83,8 @@ const styles = StyleSheet.create({
   contactBtn: {
     marginTop: 28,
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-    backgroundColor: theme.primary, paddingVertical: 14, borderRadius: 14,
+    backgroundColor: theme.cardBg, paddingVertical: 14, borderRadius: 14,
   },
   contactBtnTxt: { color: "#fff", fontWeight: "800", fontSize: 14 },
 });
+}

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
 import * as Application from "expo-application";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
@@ -19,6 +19,8 @@ const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
 const APP_BUILD = Application.nativeBuildVersion || "—";
 
 export default function Settings() {
+  const { theme, isDark, toggleTheme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
   const { baseCurrency, setBaseCurrency, subscriptions, customCategories, monthlyIncome, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllCustomCategories } = useSubscriptions();
@@ -143,6 +145,21 @@ export default function Settings() {
             <Text style={styles.name}>{user?.name}</Text>
             <Text style={styles.email}>{user?.email}</Text>
           </View>
+        </View>
+
+        <View style={[styles.row, { marginBottom: 10 }]}>
+          <View style={[styles.rowIcon, { backgroundColor: isDark ? "#374151" : "#F3F4F6" }]}>
+            <Icons.Moon color={theme.text} size={18} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.darkMode")}</Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: "#E5E7EB", true: theme.accent }}
+            thumbColor="#fff"
+          />
         </View>
 
         <Text style={styles.section}>{t("settings.preferences")}</Text>
@@ -317,7 +334,7 @@ export default function Settings() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 12, paddingVertical: 8,
@@ -328,7 +345,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: "800", color: theme.text },
   profileCard: {
     flexDirection: "row", alignItems: "center", gap: 14, padding: 20,
-    backgroundColor: theme.primary, borderRadius: 20, marginBottom: 24,
+    backgroundColor: theme.cardBg, borderRadius: 20, marginBottom: 24,
   },
   avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "#374151", alignItems: "center", justifyContent: "center" },
   avatarTxt: { color: "#fff", fontSize: 20, fontWeight: "800" },
@@ -352,3 +369,4 @@ const styles = StyleSheet.create({
   },
   versionText: { fontSize: 12, color: theme.textSubtle, fontWeight: "600" },
 });
+}

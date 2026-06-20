@@ -12,7 +12,7 @@ import {
 import * as Icons from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 
 /**
@@ -26,6 +26,8 @@ export function IncomeEditorModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const { t } = useTranslation();
   const { baseCurrency, monthlyIncome, setMonthlyIncome } = useSubscriptions();
   const [draft, setDraft] = useState<string>("");
@@ -127,7 +129,7 @@ export function IncomeEditorModal({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
@@ -193,7 +195,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimary: { backgroundColor: theme.primary },
+  btnPrimary: { backgroundColor: theme.cardBg },
   btnGhost: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
   btnText: { fontSize: 15, fontWeight: "800" },
 });
+}

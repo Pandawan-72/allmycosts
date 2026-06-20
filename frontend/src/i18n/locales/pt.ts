@@ -67,7 +67,7 @@ const COMMON = {
     deleteConfirm: "Excluir \"{{name}}\"?",
   },
   settings: {
-    title: "Ajustes", preferences: "Preferências", account: "Conta",
+    title: "Ajustes", preferences: "Preferências", darkMode: "Modo escuro", account: "Conta",
     baseCurrency: "Moeda principal", language: "Idioma",
     proPlan: "Plano Pro", manage: "Gerenciar",
     notifications: "Lembretes de pagamento", logout: "Sair", version: "Versão",
@@ -98,6 +98,7 @@ const COMMON = {
     pdfFeature: "Exportação PDF",
     unlimitedCategoriesFeature: "Categorias ilimitadas",
     backupFeature: "Cópia de segurança e restauro",
+    darkModeFeature: "Modo escuro",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Despesas ilimitadas",
     oneTimePayment: "PAGAMENTO ÚNICO",

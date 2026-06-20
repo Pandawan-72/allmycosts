@@ -8,7 +8,7 @@ import * as Sharing from "expo-sharing";
 import * as Icons from "lucide-react-native";
 import { BrandLockup } from "@/src/components/BrandLockup";
 import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { findCategory, DEFAULT_CATEGORIES, getCategoryLabel } from "@/src/data/categories";
@@ -26,6 +26,8 @@ function CatIcon({ name, color, size = 22 }: { name: string; color: string; size
 }
 
 export default function Home() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -646,7 +648,7 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]!));
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8,
@@ -671,7 +673,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
   },
   heroCard: {
-    backgroundColor: theme.primary, borderRadius: 24, padding: 24, marginTop: 8, marginBottom: 24, overflow: "hidden",
+    backgroundColor: theme.cardBg, borderRadius: 24, padding: 24, marginTop: 8, marginBottom: 24, overflow: "hidden",
   },
   heroToggle: {
     flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999, padding: 4, alignSelf: "flex-start", marginBottom: 16,
@@ -679,7 +681,7 @@ const styles = StyleSheet.create({
   toggleBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999 },
   toggleBtnActive: { backgroundColor: "#fff" },
   toggleText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
-  toggleTextActive: { color: theme.text },
+  toggleTextActive: { color: "#111827" },
   heroLabel: { color: "#9CA3AF", fontSize: 11, letterSpacing: 2, fontWeight: "700" },
   heroAmount: { color: theme.accent, fontSize: 44, fontWeight: "900", letterSpacing: -1.5, marginTop: 6 },
   heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 8 },
@@ -697,7 +699,7 @@ const styles = StyleSheet.create({
   subFx: { fontSize: 11, color: theme.textMuted, marginTop: 2, fontStyle: "italic" },
   fab: {
     position: "absolute", right: 20, bottom: 24, width: 60, height: 60, borderRadius: 30,
-    backgroundColor: theme.primary, alignItems: "center", justifyContent: "center",
+    backgroundColor: theme.cardBg, alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 6,
   },
   trialBanner: {
@@ -706,7 +708,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginTop: 8,
   },
   trialBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: theme.accent },
-  proActivatedBanner: { alignSelf: "center" },
+  proActivatedBanner: { alignSelf: "center", backgroundColor: "transparent", borderWidth: 0, paddingHorizontal: 4, paddingVertical: 6 },
   proActivatedBannerText: { fontSize: 13, fontWeight: "700", color: theme.accent },
   lockedOverlay: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
@@ -762,3 +764,4 @@ const styles = StyleSheet.create({
   addIncomeTitle: { fontSize: 13, fontWeight: "700", color: theme.text },
   addIncomeSub: { fontSize: 11, color: theme.textMuted, marginTop: 1 },
 });
+}

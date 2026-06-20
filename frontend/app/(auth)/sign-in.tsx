@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import * as Icons from "lucide-react-native";
 
 import { useAuth } from "@/src/contexts/AuthContext";
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { BrandLockup } from "@/src/components/BrandLockup";
 import {
   isGoogleNativeSupported,
@@ -17,6 +17,8 @@ import {
 import { firebaseSendPasswordReset } from "@/src/lib/firebaseAuth";
 
 export default function SignIn() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
   const { login, loginWithGoogleSession, loginWithGoogleIdToken } = useAuth();
@@ -202,7 +204,7 @@ export default function SignIn() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   container: { flexGrow: 1, backgroundColor: theme.bg, padding: 24, justifyContent: "center" },
   logoWrap: { alignItems: "center", marginBottom: 40 },
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: 14, fontSize: 15, color: theme.text, marginBottom: 12,
   },
   error: { color: theme.danger, fontSize: 13, marginBottom: 12 },
-  btn: { backgroundColor: theme.primary, borderRadius: 14, padding: 16, alignItems: "center", marginTop: 4 },
+  btn: { backgroundColor: theme.cardBg, borderRadius: 14, padding: 16, alignItems: "center", marginTop: 4 },
   btnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
   divider: { flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 20 },
   dividerLine: { flex: 1, height: 1, backgroundColor: theme.border },
@@ -234,3 +236,4 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: "900", color: theme.text, marginBottom: 8 },
   modalDesc: { fontSize: 14, color: theme.textMuted, lineHeight: 20, marginBottom: 16 },
 });
+}

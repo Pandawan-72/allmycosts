@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
-import { theme } from "@/src/theme";
+import { useTheme } from "@/src/contexts/ThemeContext";
 import { confirmAction } from "@/src/utils/confirm";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { DEFAULT_CATEGORIES, Category, getCategoryLabel } from "@/src/data/categories";
@@ -19,6 +19,8 @@ function CatIcon({ name, color, size = 20 }: { name: string; color: string; size
 }
 
 export default function SubscriptionForm() {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
@@ -165,7 +167,7 @@ export default function SubscriptionForm() {
                   key={cat.id}
                   testID={`category-pill-${cat.id}`}
                   onPress={() => setCategoryId(cat.id)}
-                  style={[styles.catPill, active && { backgroundColor: theme.primary, borderColor: theme.primary }]}
+                  style={[styles.catPill, active && { backgroundColor: theme.cardBg, borderColor: theme.cardBg }]}
                 >
                   <CatIcon name={cat.icon} color={active ? "#fff" : cat.color} size={14} />
                   <Text style={[styles.catPillText, active && { color: "#fff" }]} numberOfLines={1}>{getCategoryLabel(cat, t)}</Text>
@@ -245,7 +247,7 @@ export default function SubscriptionForm() {
                   key={ic}
                   testID={`custom-icon-${ic}`}
                   onPress={() => setCustomIcon(ic)}
-                  style={[styles.iconChoice, customIcon === ic && { borderColor: theme.primary, backgroundColor: theme.primary }]}
+                  style={[styles.iconChoice, customIcon === ic && { borderColor: theme.cardBg, backgroundColor: theme.cardBg }]}
                 >
                   <CatIcon name={ic} color={customIcon === ic ? "#fff" : theme.text} size={18} />
                 </TouchableOpacity>
@@ -272,7 +274,7 @@ export default function SubscriptionForm() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 12, paddingVertical: 8,
@@ -292,7 +294,7 @@ const styles = StyleSheet.create({
   cycleBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.surface, alignItems: "center",
   },
-  cycleBtnActive: { backgroundColor: theme.primary, borderColor: theme.primary },
+  cycleBtnActive: { backgroundColor: theme.cardBg, borderColor: theme.cardBg },
   cycleText: { fontWeight: "700", color: theme.text },
   cycleTextActive: { color: "#fff" },
   catGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -302,7 +304,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border, backgroundColor: theme.surface, flexShrink: 0,
   },
   catPillText: { color: theme.text, fontSize: 13, fontWeight: "600" },
-  saveBtn: { backgroundColor: theme.primary, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 28 },
+  saveBtn: { backgroundColor: theme.cardBg, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 28 },
   saveBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
   error: { color: theme.danger, marginTop: 16, textAlign: "center" },
   modalSafe: { flex: 1, backgroundColor: theme.bg },
@@ -320,3 +322,4 @@ const styles = StyleSheet.create({
   colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   colorDot: { width: 36, height: 36, borderRadius: 18 },
 });
+}
