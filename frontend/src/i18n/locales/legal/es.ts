@@ -27,7 +27,7 @@ const LEGAL_ES = {
     sections: [
       { title: "1. Aceptación", body: "Al usar la Aplicación, aceptas estos Términos." },
       { title: "2. Versión gratuita y Pro", body: "Gratuito: hasta 5 gastos recurrentes, total mensual/anual, divisa base. Pro (2,99 € pago único): gastos ilimitados, estadísticas, exportación PDF, categorías ilimitadas." },
-      { title: "3. Prueba gratuita 72h", body: "Cada nuevo usuario obtiene una prueba gratuita de 72 horas con acceso Pro completo al registrarse." },
+      { title: "3. Prueba gratuita de 15 días", body: "Al iniciar sesión por primera vez, cada usuario obtiene una prueba gratuita de 15 días con acceso Pro completo." },
       { title: "4. Compra única Pro", body: "El acceso Pro está disponible mediante un pago único de 2,99 € en Google Play. Sin suscripción ni cargos recurrentes." },
       { title: "5. Restaurar compras", body: "Usa el botón Restaurar compras en ajustes con la misma cuenta de Google Play." },
       { title: "6. Reembolsos", body: "Los reembolsos son gestionados por Google Play según su política." },

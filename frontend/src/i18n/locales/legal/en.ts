@@ -27,7 +27,7 @@ const LEGAL_EN = {
     sections: [
       { title: "1. Acceptance", body: "By using the App, you accept these Terms." },
       { title: "2. Free and Pro version", body: "Free: up to 5 recurring expenses, monthly/yearly total, base currency. Pro (€2.99 one-time): unlimited expenses, statistics, PDF export, unlimited categories." },
-      { title: "3. 72-hour free trial", body: "Every new user gets a free 72-hour trial with full Pro access upon first sign-in." },
+      { title: "3. 15-day free trial", body: "On first login, each user gets a 15-day free trial with full Pro access." },
       { title: "4. Pro one-time purchase", body: "Pro access is available as a one-time purchase of €2.99 on Google Play. No subscription, no recurring fees." },
       { title: "5. Restore purchases", body: "Use the Restore purchases button in settings with the same Google Play account." },
       { title: "6. Refunds", body: "Refunds are handled by Google Play per their policy." },

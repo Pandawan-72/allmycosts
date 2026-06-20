@@ -492,7 +492,7 @@ export default function Home() {
         ListHeaderComponent={
           <View>
             {isTrialing && trialDaysLeft > 0 ? (
-              <TouchableOpacity testID="trial-banner" onPress={() => router.push("/(app)/paywall")} style={styles.trialBanner}>
+              <TouchableOpacity testID="trial-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, styles.proActivatedBanner]}>
                 <Icons.Sparkles color={theme.accent} size={16} />
                 <Text style={styles.trialBannerText}>{t("home.trialDaysLeft", { count: trialDaysLeft })}</Text>
                 <Icons.ChevronRight color={theme.accent} size={16} />
@@ -673,18 +673,18 @@ function makeStyles(theme: any) { return StyleSheet.create({
     backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
   },
   heroCard: {
-    backgroundColor: theme.cardBg, borderRadius: 24, padding: 24, marginTop: 8, marginBottom: 24, overflow: "hidden",
+    backgroundColor: theme.cardBg, borderRadius: 24, padding: 20, marginTop: 8, marginBottom: 20, overflow: "hidden",
   },
   heroToggle: {
-    flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999, padding: 4, alignSelf: "flex-start", marginBottom: 16,
+    flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999, padding: 4, alignSelf: "flex-start", marginBottom: 12,
   },
-  toggleBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999 },
+  toggleBtn: { paddingVertical: 5, paddingHorizontal: 14, borderRadius: 999 },
   toggleBtnActive: { backgroundColor: "#fff" },
   toggleText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
   toggleTextActive: { color: "#111827" },
   heroLabel: { color: "#9CA3AF", fontSize: 11, letterSpacing: 2, fontWeight: "700" },
-  heroAmount: { color: theme.accent, fontSize: 44, fontWeight: "900", letterSpacing: -1.5, marginTop: 6 },
-  heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 8 },
+  heroAmount: { color: theme.accent, fontSize: 38, fontWeight: "900", letterSpacing: -1.5, marginTop: 4 },
+  heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 6 },
   sectionTitle: { fontSize: 13, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 },
   empty: { color: theme.textMuted, paddingVertical: 24, textAlign: "center" },
   subItem: {

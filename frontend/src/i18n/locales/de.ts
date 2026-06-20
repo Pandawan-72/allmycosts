@@ -142,6 +142,7 @@ const COMMON = {
     title: "Statistik", subtitle: "Deine wiederkehrenden Zahlungen nach Kategorie.",
     helper: "Alle Beträge in deine Hauptwährung umgerechnet.",
     breakdown: "Aufteilung", categoriesCount: "Kategorie(n)",
+    top3: "Top 3 Ausgaben", evolution12: "Entwicklung über 12 Monate",
     lockedTitle: "Pro erforderlich", lockedDesc: "Werde Pro, um die detaillierte Statistik zu sehen.",
     tipTitle: "Gut zu wissen", tipText: "Du gibst {{amount}} pro Jahr für wiederkehrende Zahlungen aus ({{currency}}).",
   },

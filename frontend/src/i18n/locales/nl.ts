@@ -140,6 +140,7 @@ const COMMON = {
     title: "Statistieken", subtitle: "Je terugkerende betalingen per categorie.",
     helper: "Alle bedragen in je hoofdvaluta.",
     breakdown: "Verdeling", categoriesCount: "categorie(ën)",
+    top3: "Top 3 uitgaven", evolution12: "Verloop over 12 maanden",
     lockedTitle: "Pro nodig", lockedDesc: "Ga Pro voor gedetailleerde statistieken.",
     tipTitle: "Goed om te weten", tipText: "Je geeft per jaar {{amount}} uit aan terugkerende betalingen ({{currency}}).",
   },

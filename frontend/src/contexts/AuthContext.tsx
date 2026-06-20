@@ -11,6 +11,7 @@ import {
 } from "@/src/lib/firebaseAuth";
 import {
   startTrialIfNeeded,
+  syncTrialFromRemote,
   isTrialActive,
   getTrialHoursLeft,
   hasUsedTrial,
@@ -106,6 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (fbUser: any) => {
       if (fbUser) {
         const base = firebaseUserToAuthUser(fbUser);
+        // Resynchronise depuis Firestore avant tout calcul : essentiel après une
+        // réinstallation de l'app, où le cache local AsyncStorage a été effacé.
+        await syncTrialFromRemote(fbUser.uid);
         const enriched = await enrichWithTrial(base);
         setUser(enriched);
       } else {
@@ -130,14 +134,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Connexion Firebase normale
     const base = await firebaseLogin(email, password);
-    await startTrialIfNeeded();
+    await syncTrialFromRemote(base.user_id);
+    await startTrialIfNeeded(base.user_id);
     const enriched = await enrichWithTrial(base);
     setUser(enriched);
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     const base = await firebaseRegister(name, email, password);
-    await startTrialIfNeeded();
+    await startTrialIfNeeded(base.user_id);
     const enriched = await enrichWithTrial(base);
     setUser(enriched);
   }, []);
@@ -148,7 +153,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogleIdToken = useCallback(async (idToken: string) => {
     const base = await firebaseGoogleSignIn(idToken);
-    await startTrialIfNeeded();
+    await syncTrialFromRemote(base.user_id);
+    await startTrialIfNeeded(base.user_id);
     const enriched = await enrichWithTrial(base);
     setUser(enriched);
   }, []);

@@ -27,7 +27,7 @@ const LEGAL_DE = {
     sections: [
       { title: "1. Zustimmung", body: "Mit der Nutzung der App stimmen Sie diesen Bedingungen zu." },
       { title: "2. Kostenlose und Pro-Version", body: "Kostenlos: bis zu 5 wiederkehrende Ausgaben, monatliche/jährliche Summe, Basiswährung. Pro (2,99 € Einmalkauf): unbegrenzte Ausgaben, Statistiken, PDF-Export, unbegrenzte Kategorien." },
-      { title: "3. 72-Stunden-Testphase", body: "Jeder neue Nutzer erhält bei der ersten Anmeldung eine kostenlose 72-Stunden-Testphase mit vollem Pro-Zugang." },
+      { title: "3. 15 Tage kostenlose Testversion", body: "Bei der ersten Anmeldung erhält jeder Nutzer eine 15-tägige kostenlose Testversion mit vollem Pro-Zugang." },
       { title: "4. Pro-Einmalkauf", body: "Pro-Zugang ist als Einmalkauf von 2,99 € über Google Play verfügbar. Kein Abonnement, keine Folgekosten." },
       { title: "5. Käufe wiederherstellen", body: "Verwenden Sie die Schaltfläche Käufe wiederherstellen in den Einstellungen mit demselben Google Play-Konto." },
       { title: "6. Rückerstattungen", body: "Rückerstattungen werden von Google Play gemäß deren Richtlinien abgewickelt." },

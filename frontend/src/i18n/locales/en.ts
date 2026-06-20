@@ -142,6 +142,7 @@ const COMMON = {
     title: "Stats", subtitle: "Your recurring payments by category.",
     helper: "All amounts converted to your base currency.",
     breakdown: "Breakdown", categoriesCount: "categorie(s)",
+    top3: "Top 3 expenses", evolution12: "12-month trend",
     lockedTitle: "Pro required", lockedDesc: "Go Pro to unlock detailed stats.",
     tipTitle: "Good to know", tipText: "You spend {{amount}} per year on recurring payments ({{currency}}).",
   },

@@ -142,6 +142,7 @@ const COMMON = {
     title: "Statistiques", subtitle: "Vos paiements récurrents par catégorie.",
     helper: "Tous les montants sont convertis vers votre devise principale.",
     breakdown: "Répartition", categoriesCount: "catégorie(s)",
+    top3: "Top 3 des dépenses", evolution12: "Évolution sur 12 mois",
     lockedTitle: "Pro requis", lockedDesc: "Passez Pro pour débloquer les statistiques détaillées.",
     tipTitle: "Bon à savoir", tipText: "Vous dépensez {{amount}} par an en paiements récurrents ({{currency}}).",
   },

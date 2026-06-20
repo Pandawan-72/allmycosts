@@ -27,7 +27,7 @@ const LEGAL_NL = {
     sections: [
       { title: "1. Aanvaarding", body: "Door de App te gebruiken, aanvaardt u deze Voorwaarden." },
       { title: "2. Gratis en Pro-versie", body: "Gratis: tot 5 terugkerende uitgaven, maandelijks/jaarlijks totaal, basisvaluta. Pro (€ 2,99 eenmalige aankoop): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën." },
-      { title: "3. Gratis proefperiode 72u", body: "Elke nieuwe gebruiker krijgt bij eerste aanmelding een gratis proefperiode van 72 uur met volledige Pro-toegang." },
+      { title: "3. 15 dagen gratis proefperiode", body: "Bij de eerste aanmelding krijgt elke gebruiker een gratis proefperiode van 15 dagen met volledige Pro-toegang." },
       { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop van € 2,99 via Google Play. Geen abonnement, geen terugkerende kosten." },
       { title: "5. Aankopen herstellen", body: "Gebruik de knop Aankopen herstellen in de instellingen met hetzelfde Google Play-account." },
       { title: "6. Terugbetalingen", body: "Terugbetalingen worden afgehandeld door Google Play volgens hun beleid." },

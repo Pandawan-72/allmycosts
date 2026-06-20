@@ -140,6 +140,7 @@ const COMMON = {
     title: "Statistiche", subtitle: "I tuoi pagamenti ricorrenti per categoria.",
     helper: "Importi convertiti nella tua valuta principale.",
     breakdown: "Ripartizione", categoriesCount: "categoria/e",
+    top3: "Top 3 spese", evolution12: "Andamento su 12 mesi",
     lockedTitle: "Serve Pro", lockedDesc: "Passa a Pro per le statistiche dettagliate.",
     tipTitle: "Da sapere", tipText: "Spendi {{amount}} all'anno in pagamenti ricorrenti ({{currency}}).",
   },
