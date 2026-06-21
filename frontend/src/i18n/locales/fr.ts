@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Suivez vos paiements récurrents en un coup d'œil." },
+  app: { name: "All My Costs", tagline: "Suivez tous vos abonnements et dépenses en un coup d'œil." },
   common: {
     later: "Plus tard",
     cancel: "Annuler", save: "Enregistrer", add: "Ajouter", delete: "Supprimer",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Revenus mensuels", editIncome: "Modifier les revenus",
     pdfEmptyTitle: "Aucune donnée", pdfEmptyMessage: "Ajoutez d'abord des abonnements ou des dépenses pour exporter un PDF.",
     fabScanReceipt: "Scanner ticket ponctuel", fabAddOneoff: "Ajouter dépense ponctuelle", fabAddRecurring: "Ajouter paiement récurrent",
+    fabAddRecurringSub: "Abonnement qui revient chaque mois", fabAddOneoffSub: "Achat ou dépense isolée", fabScanReceiptSub: "Pré-remplissage automatique par IA",
     incomeTitle: "Vos revenus mensuels", incomeSubtitle: "Pour calculer votre budget restant",
     incomeTitleMonth: "Revenu pour {{month}}", incomeSubtitleMonth: "Remplace le revenu par défaut pour ce mois uniquement", resetToDefaultIncome: "Revenir au revenu par défaut",
     incomePlaceholder: "0,00", noIncomeYet: "Définissez vos revenus pour voir votre budget",
@@ -109,11 +110,12 @@ const COMMON = {
     unlockEverything: "Débloquez tout.",
     onceForever: "Une seule fois. Pour toujours.",
     free: "Gratuit",
-    freeLimitFeature: "5 dépenses récurrentes",
+    freeLimitFeature: "6 dépenses par mois",
     statsFeature: "Statistiques",
     pdfFeature: "Export PDF",
     unlimitedCategoriesFeature: "Catégories illimitées",
     backupFeature: "Sauvegarde & restauration",
+    receiptScanFeature: "Scan de tickets par IA",
     darkModeFeature: "Mode sombre",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Dépenses illimitées",

@@ -17,8 +17,8 @@ import {
   RCPlan,
 } from "@/src/lib/revenuecat";
 
-// ✅ Nouveau business model : lifetime uniquement à 2,99€
-const LIFETIME_PRICE_EUR = 2.99;
+// Business model : lifetime uniquement à 5,99€
+const LIFETIME_PRICE_EUR = 5.99;
 
 function format(amount: number) {
   return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
@@ -137,6 +137,10 @@ export default function Paywall() {
                   <Icons.X color={theme.danger} size={16} strokeWidth={3} />
                   <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.backupFeature")}</Text>
                 </View>
+                <View style={styles.compareRow}>
+                  <Icons.X color={theme.danger} size={16} strokeWidth={3} />
+                  <Text style={[styles.compareText, { color: theme.textMuted }]}>{t("paywall.receiptScanFeature")}</Text>
+                </View>
               </View>
 
               <View style={styles.compareDivider} />
@@ -166,6 +170,10 @@ export default function Paywall() {
                 <View style={styles.compareRow}>
                   <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
                   <Text style={styles.compareText}>{t("paywall.backupFeature")}</Text>
+                </View>
+                <View style={styles.compareRow}>
+                  <Icons.Check color={theme.accent} size={16} strokeWidth={3} />
+                  <Text style={styles.compareText}>{t("paywall.receiptScanFeature")}</Text>
                 </View>
               </View>
             </View>
@@ -231,7 +239,7 @@ function makeStyles(theme: any) { return StyleSheet.create({
   compareCol: { flex: 1, gap: 10 },
   compareTitle: { fontSize: 14, fontWeight: "800", color: theme.text, marginBottom: 4 },
   compareRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  compareText: { fontSize: 13, color: theme.text, fontWeight: "500" },
+  compareText: { fontSize: 12, color: theme.text, fontWeight: "500" },
   compareDivider: { width: 1, backgroundColor: theme.border },
   planCard: {
     backgroundColor: theme.cardBg, borderRadius: 20, padding: 24,

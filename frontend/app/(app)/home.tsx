@@ -20,7 +20,7 @@ import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
 import { buildPdfHtml } from "@/src/lib/pdfExport";
 import { useTranslation } from "react-i18next";
 
-const FREE_SUB_LIMIT = 5;
+const FREE_SUB_LIMIT = 6; // Limite combinée : récurrents + ponctuels confondus.
 
 function CatIcon({ name, color, size = 22 }: { name: string; color: string; size?: number }) {
   const Cmp = (Icons as any)[name] || (Icons as any).Tag;
@@ -136,10 +136,26 @@ export default function Home() {
   const trialDaysLeft = Math.ceil(trialHoursLeft / 24);
   const showPaywallGate = !isPro;
 
-  const lockedSubIds = useMemo(() => {
-    if (isPro) return new Set<string>();
-    return new Set(subscriptions.slice(FREE_SUB_LIMIT).map((s) => s.id));
-  }, [subscriptions, isPro]);
+  // Limite combinée gratuite : 6 éléments au total, abonnements récurrents et
+  // dépenses ponctuelles confondus. Les plus anciens (par createdAt) restent
+  // accessibles en premier ; tout ce qui dépasse est verrouillé.
+  const { lockedSubIds, lockedExpenseIds, totalEntriesCount } = useMemo(() => {
+    if (isPro) return { lockedSubIds: new Set<string>(), lockedExpenseIds: new Set<string>(), totalEntriesCount: subscriptions.length + expenses.length };
+
+    const allEntries = [
+      ...subscriptions.map((s) => ({ id: s.id, createdAt: s.createdAt, kind: "sub" as const })),
+      ...expenses.map((e) => ({ id: e.id, createdAt: e.createdAt, kind: "exp" as const })),
+    ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    const lockedSubs = new Set<string>();
+    const lockedExps = new Set<string>();
+    allEntries.slice(FREE_SUB_LIMIT).forEach((e) => {
+      if (e.kind === "sub") lockedSubs.add(e.id);
+      else lockedExps.add(e.id);
+    });
+
+    return { lockedSubIds: lockedSubs, lockedExpenseIds: lockedExps, totalEntriesCount: allEntries.length };
+  }, [subscriptions, expenses, isPro]);
 
   useEffect(() => {
     if (isTrialing && trialDaysLeft <= 2 && trialDaysLeft > 0) {
@@ -302,11 +318,16 @@ export default function Home() {
     const cat = findCategory(item.categoryId, customCategories);
     const catLabel = getCategoryLabel(cat, t);
     const displayBase = convert(item.price, item.currency, baseCurrency);
+    const locked = lockedExpenseIds.has(item.id);
     return (
       <TouchableOpacity
         testID={`expense-item-${item.name}`}
-        onPress={() => router.push({ pathname: "/(app)/subscription", params: { id: item.id } })}
+        onPress={() => {
+          if (locked) { router.push("/(app)/paywall"); return; }
+          router.push({ pathname: "/(app)/subscription", params: { id: item.id } });
+        }}
         onLongPress={() => {
+          if (locked) { router.push("/(app)/paywall"); return; }
           confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
             { text: t("common.cancel"), style: "cancel" },
             { text: t("common.delete"), style: "destructive", onPress: () => deleteExpense(item.id) },
@@ -314,7 +335,7 @@ export default function Home() {
         }}
         style={styles.subItem}
       >
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 14 }}>
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 14, opacity: locked ? 0.45 : 1 }}>
           <View style={[styles.subIcon, { backgroundColor: cat.color + "22" }]}>
             <CatIcon name={cat.icon} color={cat.color} />
           </View>
@@ -333,6 +354,12 @@ export default function Home() {
             ) : null}
           </View>
         </View>
+        {locked ? (
+          <View style={styles.lockedOverlay}>
+            <Icons.Lock color="#fff" size={18} strokeWidth={2.5} />
+            <Text style={styles.lockedText}>{t("home.lockedCard")}</Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
     );
   };
@@ -609,133 +636,88 @@ export default function Home() {
       />
 
       {showFabMenu ? (
-        <TouchableOpacity
-          testID="fab-menu-overlay"
-          style={StyleSheet.absoluteFillObject}
-          activeOpacity={1}
-          onPress={closeFabMenu}
-        >
-          <Animated.View
-            style={[
-              styles.fabBackdrop,
-              { opacity: fabMenuAnim },
-            ]}
-          />
-        </TouchableOpacity>
+        <TouchableOpacity testID="fab-menu-overlay" style={styles.fabOverlay} activeOpacity={1} onPress={closeFabMenu} />
       ) : null}
 
       {showFabMenu ? (
-        <View style={styles.fabMenuWrap} pointerEvents="box-none">
-          <Animated.View
-            style={[
-              styles.fabMenuItem,
-              {
-                opacity: fabMenuAnim,
-                transform: [
-                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                ],
-              },
-            ]}
+        <Animated.View style={[styles.fabMenu, {
+          opacity: fabMenuAnim,
+          transform: [{ translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }]
+        }]}>
+          <TouchableOpacity
+            testID="fab-add-recurring"
+            style={styles.fabMenuItemRow}
+            onPress={() => {
+              closeFabMenu();
+              if (showPaywallGate && totalEntriesCount >= FREE_SUB_LIMIT) {
+                setTimeout(() => router.push("/(app)/paywall"), 200);
+              } else {
+                setTimeout(() => router.push("/(app)/subscription"), 200);
+              }
+            }}
           >
-            <TouchableOpacity
-              testID="fab-scan-receipt"
-              onPress={() => {
-                closeFabMenu();
-                const isPro = !!user?.pro?.is_pro;
-                const isTrialing = user?.pro?.plan === "trialing";
-                if (!isPro && !isTrialing) {
-                  router.push("/(app)/paywall");
-                } else {
-                  router.push("/(app)/receipt-scan");
-                }
-              }}
-              style={styles.fabMenuRow}
-            >
-              <Text style={styles.fabMenuLabel}>{t("home.fabScanReceipt")}</Text>
-              <View style={[styles.fabMenuIcon, { backgroundColor: "#F59E0B" }]}>
-                <Icons.ScanLine color="#fff" size={20} strokeWidth={2.5} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
+            <View style={[styles.fabMenuIcon, { backgroundColor: theme.accentSoft }]}>
+              <Icons.RefreshCw color={theme.accent} size={20} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fabMenuTitle}>{t("home.fabAddRecurring")}</Text>
+              <Text style={styles.fabMenuSub}>{t("home.fabAddRecurringSub")}</Text>
+            </View>
+          </TouchableOpacity>
 
-          <Animated.View
-            style={[
-              styles.fabMenuItem,
-              {
-                opacity: fabMenuAnim,
-                transform: [
-                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                ],
-              },
-            ]}
-          >
-            <TouchableOpacity
-              testID="fab-add-oneoff"
-              onPress={() => {
-                closeFabMenu();
-                router.push({ pathname: "/(app)/subscription", params: { prefillType: "oneoff" } });
-              }}
-              style={styles.fabMenuRow}
-            >
-              <Text style={styles.fabMenuLabel}>{t("home.fabAddOneoff")}</Text>
-              <View style={[styles.fabMenuIcon, { backgroundColor: "#3B82F6" }]}>
-                <Icons.Calendar color="#fff" size={20} strokeWidth={2.5} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
+          <View style={styles.fabMenuDivider} />
 
-          <Animated.View
-            style={[
-              styles.fabMenuItem,
-              {
-                opacity: fabMenuAnim,
-                transform: [
-                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                ],
-              },
-            ]}
+          <TouchableOpacity
+            testID="fab-add-oneoff"
+            style={styles.fabMenuItemRow}
+            onPress={() => {
+              closeFabMenu();
+              if (showPaywallGate && totalEntriesCount >= FREE_SUB_LIMIT) {
+                setTimeout(() => router.push("/(app)/paywall"), 200);
+              } else {
+                setTimeout(() => router.push({ pathname: "/(app)/subscription", params: { prefillType: "oneoff" } }), 200);
+              }
+            }}
           >
-            <TouchableOpacity
-              testID="fab-add-recurring"
-              onPress={() => {
-                closeFabMenu();
-                if (showPaywallGate && subscriptions.length >= FREE_SUB_LIMIT) {
-                  router.push("/(app)/paywall");
-                } else {
-                  router.push("/(app)/subscription");
-                }
-              }}
-              style={styles.fabMenuRow}
-            >
-              <Text style={styles.fabMenuLabel}>{t("home.fabAddRecurring")}</Text>
-              <View style={[styles.fabMenuIcon, { backgroundColor: theme.cardBg }]}>
-                <Icons.RefreshCw color="#fff" size={20} strokeWidth={2.5} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
+            <View style={[styles.fabMenuIcon, { backgroundColor: "#EFF6FF" }]}>
+              <Icons.Calendar color="#3B82F6" size={20} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fabMenuTitle}>{t("home.fabAddOneoff")}</Text>
+              <Text style={styles.fabMenuSub}>{t("home.fabAddOneoffSub")}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.fabMenuDivider} />
+
+          <TouchableOpacity
+            testID="fab-scan-receipt"
+            style={styles.fabMenuItemRow}
+            onPress={() => {
+              closeFabMenu();
+              const isPro = !!user?.pro?.is_pro;
+              const isTrialing = user?.pro?.plan === "trialing";
+              if (!isPro && !isTrialing) {
+                setTimeout(() => router.push("/(app)/paywall"), 200);
+              } else {
+                setTimeout(() => router.push("/(app)/receipt-scan"), 200);
+              }
+            }}
+          >
+            <View style={[styles.fabMenuIcon, { backgroundColor: (!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? "#FFFBEB" : theme.surfaceAlt }]}>
+              <Icons.ScanLine color={(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? "#F59E0B" : theme.textSubtle} size={20} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.fabMenuTitle, !(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") && { color: theme.textMuted }]}>{t("home.fabScanReceipt")}</Text>
+              <Text style={styles.fabMenuSub}>{(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? t("home.fabScanReceiptSub") : t("settings.backup.proRequired")}</Text>
+            </View>
+            {!(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? <Icons.Lock color={theme.textSubtle} size={16} /> : null}
+          </TouchableOpacity>
+        </Animated.View>
       ) : null}
 
-      <TouchableOpacity
-        testID="add-subscription-button"
-        onPress={() => {
-          if (showFabMenu) closeFabMenu();
-          else openFabMenu();
-        }}
-        style={styles.fab}
-      >
-        <Animated.View
-          style={{
-            transform: [{
-              rotate: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "45deg"] }),
-            }],
-          }}
-        >
-          <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
-        </Animated.View>
+      <TouchableOpacity testID="add-subscription-button" style={styles.fab} onPress={showFabMenu ? closeFabMenu : openFabMenu}>
+        <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
       </TouchableOpacity>
 
       {/* Income editor — shared with Settings */}
@@ -894,28 +876,19 @@ function makeStyles(theme: any) { return StyleSheet.create({
   subPrice: { fontSize: 16, fontWeight: "800", color: theme.text },
   subCycle: { fontSize: 11, color: theme.textSubtle, marginTop: 2 },
   subFx: { fontSize: 11, color: theme.textMuted, marginTop: 2, fontStyle: "italic" },
-  fabBackdrop: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.4)",
+  fabOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  fabMenu: {
+    position: "absolute", alignSelf: "center", left: "10%", right: "10%", bottom: "18%",
+    backgroundColor: theme.surface, borderRadius: 20,
+    shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 }, elevation: 10,
+    overflow: "hidden",
   },
-  fabMenuWrap: {
-    position: "absolute", right: 20, bottom: 96, alignItems: "flex-end", gap: 12,
-  },
-  fabMenuItem: {
-    alignItems: "flex-end",
-  },
-  fabMenuRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-  },
-  fabMenuLabel: {
-    backgroundColor: theme.surface, color: theme.text, fontSize: 13, fontWeight: "700",
-    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999,
-    borderWidth: 1, borderColor: theme.border,
-    shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3,
-  },
-  fabMenuIcon: {
-    width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center",
-    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 5,
-  },
+  fabMenuItemRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
+  fabMenuIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  fabMenuTitle: { fontSize: 15, fontWeight: "700", color: theme.text },
+  fabMenuSub: { fontSize: 12, color: theme.textMuted, marginTop: 1 },
+  fabMenuDivider: { height: 1, backgroundColor: theme.border, marginHorizontal: 16 },
   fab: {
     position: "absolute", right: 20, bottom: 24, width: 60, height: 60, borderRadius: 30,
     backgroundColor: theme.cardBg, alignItems: "center", justifyContent: "center",

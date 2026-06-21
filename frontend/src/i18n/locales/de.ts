@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Behalte all deine wiederkehrenden Zahlungen im Blick." },
+  app: { name: "All My Costs", tagline: "Behalten Sie alle Ihre Abos und Ausgaben im Blick." },
   common: {
     later: "Später",
     cancel: "Abbrechen", save: "Speichern", add: "Hinzufügen", delete: "Löschen",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Monatliches Einkommen", editIncome: "Einkommen bearbeiten",
     pdfEmptyTitle: "Keine Daten", pdfEmptyMessage: "Fügen Sie zuerst Abos oder Ausgaben hinzu, um ein PDF zu exportieren.",
     fabScanReceipt: "Beleg scannen", fabAddOneoff: "Einmalige Ausgabe hinzufügen", fabAddRecurring: "Wiederkehrende Zahlung hinzufügen",
+    fabAddRecurringSub: "Abo, das jeden Monat anfällt", fabAddOneoffSub: "Einmaliger Kauf oder Ausgabe", fabScanReceiptSub: "Automatisch ausgefüllt mit KI",
     incomeTitle: "Dein monatliches Einkommen", incomeSubtitle: "Hilft, dein verbleibendes Budget zu berechnen",
     incomeTitleMonth: "Einkommen für {{month}}", incomeSubtitleMonth: "Ersetzt das Standardeinkommen nur für diesen Monat", resetToDefaultIncome: "Auf Standardeinkommen zurücksetzen",
     incomePlaceholder: "0,00", noIncomeYet: "Lege dein Einkommen fest, um dein Budget zu sehen",
@@ -109,11 +110,12 @@ const COMMON = {
     unlockEverything: "Alles freischalten.",
     onceForever: "Einmalig. Für immer.",
     free: "Kostenlos",
-    freeLimitFeature: "5 wiederkehrende Ausgaben",
+    freeLimitFeature: "6 Ausgaben pro Monat",
     statsFeature: "Statistiken",
     pdfFeature: "PDF-Export",
     unlimitedCategoriesFeature: "Unbegrenzte Kategorien",
     backupFeature: "Backup & Wiederherstellung",
+    receiptScanFeature: "KI-Belegscan",
     darkModeFeature: "Dunkelmodus",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Unbegrenzte Ausgaben",

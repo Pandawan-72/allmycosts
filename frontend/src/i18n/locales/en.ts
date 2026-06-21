@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Track all your recurring payments at a glance." },
+  app: { name: "All My Costs", tagline: "Track all your subscriptions and expenses at a glance." },
   common: {
     later: "Later",
     cancel: "Cancel", save: "Save", add: "Add", delete: "Delete",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Monthly income", editIncome: "Edit income",
     pdfEmptyTitle: "No data", pdfEmptyMessage: "Add subscriptions or expenses first to export a PDF.",
     fabScanReceipt: "Scan receipt", fabAddOneoff: "Add one-off expense", fabAddRecurring: "Add recurring payment",
+    fabAddRecurringSub: "Subscription that repeats monthly", fabAddOneoffSub: "One-time purchase or expense", fabScanReceiptSub: "Auto-filled with AI",
     incomeTitle: "Your monthly income", incomeSubtitle: "Helps compute your remaining budget",
     incomeTitleMonth: "Income for {{month}}", incomeSubtitleMonth: "Replaces the default income for this month only", resetToDefaultIncome: "Reset to default income",
     incomePlaceholder: "0.00", noIncomeYet: "Set your income to see your budget",
@@ -109,11 +110,12 @@ const COMMON = {
     unlockEverything: "Unlock everything.",
     onceForever: "Once. Forever.",
     free: "Free",
-    freeLimitFeature: "5 recurring expenses",
+    freeLimitFeature: "6 expenses per month",
     statsFeature: "Statistics",
     pdfFeature: "PDF export",
     unlimitedCategoriesFeature: "Unlimited categories",
     backupFeature: "Backup & restore",
+    receiptScanFeature: "AI receipt scanning",
     darkModeFeature: "Dark mode",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Unlimited expenses",

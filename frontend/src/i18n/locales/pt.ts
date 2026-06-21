@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Acompanhe todos os seus pagamentos recorrentes." },
+  app: { name: "All My Costs", tagline: "Acompanhe todas as suas subscrições e despesas num relance." },
   common: {
     later: "Mais tarde",
     cancel: "Cancelar", save: "Salvar", add: "Adicionar", delete: "Excluir",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Renda mensal", editIncome: "Editar renda",
     pdfEmptyTitle: "Sem dados", pdfEmptyMessage: "Adicione primeiro subscrições ou despesas para exportar um PDF.",
     fabScanReceipt: "Digitalizar recibo", fabAddOneoff: "Adicionar despesa pontual", fabAddRecurring: "Adicionar pagamento recorrente",
+    fabAddRecurringSub: "Subscrição que se repete todos os meses", fabAddOneoffSub: "Compra ou despesa pontual", fabScanReceiptSub: "Preenchimento automático com IA",
     incomeTitle: "Sua renda mensal", incomeSubtitle: "Para calcular o orçamento restante",
     incomeTitleMonth: "Rendimento para {{month}}", incomeSubtitleMonth: "Substitui o rendimento padrão apenas para este mês", resetToDefaultIncome: "Repor rendimento padrão",
     incomePlaceholder: "0,00", noIncomeYet: "Defina sua renda para ver o orçamento",
@@ -109,11 +110,12 @@ const COMMON = {
     unlockEverything: "Desbloqueie tudo.",
     onceForever: "Uma vez. Para sempre.",
     free: "Gratuito",
-    freeLimitFeature: "5 despesas recorrentes",
+    freeLimitFeature: "6 despesas por mês",
     statsFeature: "Estatísticas",
     pdfFeature: "Exportação PDF",
     unlimitedCategoriesFeature: "Categorias ilimitadas",
     backupFeature: "Cópia de segurança e restauro",
+    receiptScanFeature: "Digitalização de recibos com IA",
     darkModeFeature: "Modo escuro",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Despesas ilimitadas",

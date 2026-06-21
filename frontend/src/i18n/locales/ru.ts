@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Следите за всеми регулярными платежами одним взглядом." },
+  app: { name: "All My Costs", tagline: "Отслеживайте все подписки и расходы одним взглядом." },
   common: {
     later: "Позже",
     cancel: "Отмена", save: "Сохранить", add: "Добавить", delete: "Удалить",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Ежемесячный доход", editIncome: "Изменить доход",
     pdfEmptyTitle: "Нет данных", pdfEmptyMessage: "Сначала добавьте подписки или расходы, чтобы экспортировать PDF.",
     fabScanReceipt: "Сканировать чек", fabAddOneoff: "Добавить разовый расход", fabAddRecurring: "Добавить регулярный платёж",
+    fabAddRecurringSub: "Подписка, повторяющаяся каждый месяц", fabAddOneoffSub: "Разовая покупка или расход", fabScanReceiptSub: "Автозаполнение с помощью ИИ",
     incomeTitle: "Ваш ежемесячный доход", incomeSubtitle: "Чтобы рассчитать оставшийся бюджет",
     incomeTitleMonth: "Доход за {{month}}", incomeSubtitleMonth: "Заменяет доход по умолчанию только для этого месяца", resetToDefaultIncome: "Вернуть доход по умолчанию",
     incomePlaceholder: "0,00", noIncomeYet: "Укажите доход, чтобы увидеть бюджет",
@@ -109,11 +110,12 @@ const COMMON = {
     unlockEverything: "Откройте всё.",
     onceForever: "Один раз. Навсегда.",
     free: "Бесплатно",
-    freeLimitFeature: "5 регулярных расходов",
+    freeLimitFeature: "6 расходов в месяц",
     statsFeature: "Статистика",
     pdfFeature: "Экспорт в PDF",
     unlimitedCategoriesFeature: "Неограниченные категории",
     backupFeature: "Резервное копирование и восстановление",
+    receiptScanFeature: "Сканирование чеков с ИИ",
     darkModeFeature: "Тёмный режим",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Неограниченные расходы",

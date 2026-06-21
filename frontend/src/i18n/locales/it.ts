@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Tieni d'occhio tutti i tuoi pagamenti ricorrenti." },
+  app: { name: "All My Costs", tagline: "Tieni traccia di tutti i tuoi abbonamenti e spese a colpo d'occhio." },
   common: {
     later: "Più tardi",
     cancel: "Annulla", save: "Salva", add: "Aggiungi", delete: "Elimina",
@@ -55,6 +55,7 @@ const COMMON = {
     income: "Reddito mensile", editIncome: "Modifica reddito",
     pdfEmptyTitle: "Nessun dato", pdfEmptyMessage: "Aggiungi prima abbonamenti o spese per esportare un PDF.",
     fabScanReceipt: "Scansiona scontrino", fabAddOneoff: "Aggiungi spesa una tantum", fabAddRecurring: "Aggiungi pagamento ricorrente",
+    fabAddRecurringSub: "Abbonamento che si ripete ogni mese", fabAddOneoffSub: "Acquisto o spesa isolata", fabScanReceiptSub: "Compilazione automatica con IA",
     incomeTitle: "Il tuo reddito mensile", incomeSubtitle: "Per calcolare il budget rimanente",
     incomeTitleMonth: "Reddito per {{month}}", incomeSubtitleMonth: "Sostituisce il reddito predefinito solo per questo mese", resetToDefaultIncome: "Ripristina il reddito predefinito",
     incomePlaceholder: "0,00", noIncomeYet: "Imposta il reddito per vedere il budget",
@@ -107,11 +108,12 @@ const COMMON = {
     unlockEverything: "Sblocca tutto.",
     onceForever: "Una volta. Per sempre.",
     free: "Gratuito",
-    freeLimitFeature: "5 spese ricorrenti",
+    freeLimitFeature: "6 spese al mese",
     statsFeature: "Statistiche",
     pdfFeature: "Esportazione PDF",
     unlimitedCategoriesFeature: "Categorie illimitate",
     backupFeature: "Backup & ripristino",
+    receiptScanFeature: "Scansione scontrini con IA",
     darkModeFeature: "Modalità scura",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Spese illimitate",

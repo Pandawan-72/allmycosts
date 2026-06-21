@@ -1,5 +1,5 @@
 const COMMON = {
-  app: { name: "All My Costs", tagline: "Houd al je terugkerende betalingen in één oogopslag bij." },
+  app: { name: "All My Costs", tagline: "Houd al uw abonnementen en uitgaven in één oogopslag bij." },
   common: {
     later: "Later",
     cancel: "Annuleren", save: "Opslaan", add: "Toevoegen", delete: "Verwijderen",
@@ -53,6 +53,7 @@ const COMMON = {
     income: "Maandinkomen", editIncome: "Inkomen bewerken",
     pdfEmptyTitle: "Geen gegevens", pdfEmptyMessage: "Voeg eerst abonnementen of uitgaven toe om een PDF te exporteren.",
     fabScanReceipt: "Bon scannen", fabAddOneoff: "Eenmalige uitgave toevoegen", fabAddRecurring: "Terugkerende betaling toevoegen",
+    fabAddRecurringSub: "Abonnement dat elke maand terugkomt", fabAddOneoffSub: "Eenmalige aankoop of uitgave", fabScanReceiptSub: "Automatisch ingevuld met AI",
     incomeTitle: "Je maandinkomen", incomeSubtitle: "Voor het berekenen van je resterende budget",
     incomeTitleMonth: "Inkomen voor {{month}}", incomeSubtitleMonth: "Vervangt het standaardinkomen alleen voor deze maand", resetToDefaultIncome: "Terugzetten naar standaardinkomen",
     incomePlaceholder: "0,00", noIncomeYet: "Stel je inkomen in om je budget te zien",
@@ -107,11 +108,12 @@ const COMMON = {
     unlockEverything: "Ontgrendel alles.",
     onceForever: "Eenmalig. Voor altijd.",
     free: "Gratis",
-    freeLimitFeature: "5 terugkerende uitgaven",
+    freeLimitFeature: "6 uitgaven per maand",
     statsFeature: "Statistieken",
     pdfFeature: "PDF-export",
     unlimitedCategoriesFeature: "Onbeperkte categorieën",
     backupFeature: "Back-up & herstel",
+    receiptScanFeature: "AI-bonscan",
     darkModeFeature: "Donkere modus",
     proColumn: "Pro ✨",
     unlimitedExpensesFeature: "Onbeperkte uitgaven",
