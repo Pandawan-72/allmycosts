@@ -117,11 +117,17 @@ export default function Home() {
     [getIncomeForMonth, selectedYear, selectedMonth]
   );
 
-  // Remaining budget (income - subscriptions cost), scaled to current toggle view.
+  // Remaining budget (income - ALL expenses), toujours basé sur le total
+  // cumulé (récurrent + ponctuel) réel, indépendamment du mode d'affichage
+  // sélectionné via le toggle — le budget restant doit refléter la réalité
+  // des dépenses, pas seulement ce qui est actuellement filtré à l'écran.
+  const alwaysCombinedMonthlyTotal = recurringMonthlyTotal + oneoffMonthlyTotal;
+  const alwaysCombinedYearlyTotal = recurringYearlyTotal + oneoffYearlyTotal;
+
   const displayedRemaining = useMemo(() => {
-    if (view === "monthly") return effectiveIncome - monthlyTotal;
-    return effectiveIncome * 12 - yearlyTotal;
-  }, [view, effectiveIncome, monthlyTotal, yearlyTotal]);
+    if (view === "monthly") return effectiveIncome - alwaysCombinedMonthlyTotal;
+    return effectiveIncome * 12 - alwaysCombinedYearlyTotal;
+  }, [view, effectiveIncome, alwaysCombinedMonthlyTotal, alwaysCombinedYearlyTotal]);
   const isOverBudget = effectiveIncome > 0 && displayedRemaining < 0;
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
