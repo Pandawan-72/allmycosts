@@ -79,6 +79,7 @@ const COMMON = {
     removeReceiptPhoto: "Удалить фото", removeReceiptPhotoConfirm: "Вы уверены, что хотите удалить это фото чека?",
     sharingUnavailable: "Функция «Поделиться» недоступна на этом устройстве.",
     dateInvalid: "Неверная дата. Формат YYYY-MM-DD.",
+    saveError: "Ошибка при сохранении",
     pickCurrency: "Выберите валюту", dateOptional: "Дата следующего платежа (необязательно)",
     deleteConfirm: "Удалить «{{name}}»?",
   },

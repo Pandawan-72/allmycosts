@@ -72,7 +72,7 @@ const COMMON = {
     clearDate: "Cancella", newCategory: "Nuova", customCat: "Nuova categoria",
     customName: "Nome", customNamePh: "es. VPN, Coaching…",
     icon: "Icona", color: "Colore", create: "Crea",
-    nameRequired: "Nome obbligatorio.", priceInvalid: "Prezzo non valido.",
+    nameRequired: "Nome obbligatorio.", priceInvalid: "Prezzo non valido.", dateInvalid: "Data non valida.", saveError: "Errore durante il salvataggio",
     expenseType: "Tipo di spesa", recurring: "Ricorrente", oneoff: "Una tantum", expenseDate: "Data della spesa",
     receiptPhoto: "Foto dello scontrino", addReceiptPhoto: "Aggiungi foto dello scontrino",
     addReceiptPhotoProOnly: "Foto dello scontrino (Pro)", shareReceiptPhoto: "Condividi",

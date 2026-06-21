@@ -77,6 +77,7 @@ const COMMON = {
     removeReceiptPhoto: "Foto verwijderen", removeReceiptPhotoConfirm: "Weet u zeker dat u deze bonfoto wilt verwijderen?",
     sharingUnavailable: "Delen is niet beschikbaar op dit apparaat.",
     dateInvalid: "Ongeldige datum. Formaat YYYY-MM-DD.",
+    saveError: "Fout bij opslaan",
     pickCurrency: "Kies een valuta", dateOptional: "Volgende betaaldatum (optioneel)",
     deleteConfirm: "\"{{name}}\" verwijderen?",
   },

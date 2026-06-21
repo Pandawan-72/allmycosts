@@ -79,6 +79,7 @@ const COMMON = {
     removeReceiptPhoto: "Eliminar foto", removeReceiptPhotoConfirm: "¿Seguro que quieres eliminar esta foto del ticket?",
     sharingUnavailable: "Compartir no está disponible en este dispositivo.",
     dateInvalid: "Fecha no válida. Formato YYYY-MM-DD.",
+    saveError: "Error al guardar",
     pickCurrency: "Elegir una moneda", dateOptional: "Fecha del próximo pago (opcional)",
     deleteConfirm: "¿Eliminar \"{{name}}\"?",
   },
