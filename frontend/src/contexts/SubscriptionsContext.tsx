@@ -18,6 +18,18 @@ export type Subscription = {
   createdAt: string;
 };
 
+// Dépense ponctuelle (one-off), ex: "Courses Super U" à une date précise.
+// Distincte des abonnements récurrents (Subscription ci-dessus).
+export type Expense = {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  categoryId: string;
+  date: string; // ISO date (YYYY-MM-DD) — date à laquelle la dépense a eu lieu
+  createdAt: string;
+};
+
 type SubsState = {
   loading: boolean;
   baseCurrency: string;
@@ -32,8 +44,21 @@ type SubsState = {
   replaceAllCustomCategories: (next: Category[]) => Promise<void>;
   monthlyIncome: number;
   setMonthlyIncome: (amount: number) => Promise<void>;
+  incomeOverrides: Record<string, number>;
+  // Définit (ou efface si amount est null) un revenu spécifique pour un mois donné.
+  setIncomeForMonth: (year: number, month: number, amount: number | null) => Promise<void>;
+  // Retourne le revenu effectif pour un mois donné : l'override s'il existe, sinon le défaut.
+  getIncomeForMonth: (year: number, month: number) => number;
   monthlyTotal: number;
   yearlyTotal: number;
+  // Dépenses ponctuelles
+  expenses: Expense[];
+  addExpense: (e: Omit<Expense, "id" | "createdAt">) => Promise<void>;
+  updateExpense: (id: string, e: Partial<Omit<Expense, "id" | "createdAt">>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
+  replaceAllExpenses: (next: Expense[]) => Promise<void>;
+  expensesMonthlyTotal: (year: number, month: number) => number;
+  expensesYearlyTotal: (year: number) => number;
 };
 
 const Ctx = createContext<SubsState | undefined>(undefined);
@@ -46,15 +71,23 @@ function uid() {
   return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function uidExpense() {
+  return `e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const uidKey = user?.user_id;
 
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
   const [baseCurrency, setBaseCurrencyState] = useState<string>("EUR");
   const [monthlyIncome, setMonthlyIncomeState] = useState<number>(0);
+  // Revenus spécifiques à certains mois, qui remplacent le revenu par défaut.
+  // Clé au format "YYYY-MM" (ex: "2026-06").
+  const [incomeOverrides, setIncomeOverridesState] = useState<Record<string, number>>({});
 
   // ✅ Charge TOUTES les données au démarrage, y compris les revenus
   useEffect(() => {
@@ -62,23 +95,29 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     (async () => {
       if (!uidKey) {
         setSubscriptions([]);
+        setExpenses([]);
         setCustomCategories([]);
         setMonthlyIncomeState(0);
+        setIncomeOverridesState({});
         setLoading(false);
         return;
       }
       setLoading(true);
       const subs = await storage.getItem<Subscription[]>(userScopedKey(uidKey, "subs"), []);
+      const exps = await storage.getItem<Expense[]>(userScopedKey(uidKey, "expenses"), []);
       const cats = await storage.getItem<Category[]>(userScopedKey(uidKey, "cats"), []);
       const cur = await storage.getItem<string>(userScopedKey(uidKey, "currency"), "");
       // ✅ Charge les revenus depuis le storage local
       const income = await storage.getItem<number>(userScopedKey(uidKey, "income"), 0);
+      const overrides = await storage.getItem<Record<string, number>>(userScopedKey(uidKey, "incomeOverrides"), {});
 
       if (canceled) return;
       setSubscriptions(subs || []);
+      setExpenses(exps || []);
       setCustomCategories(cats || []);
       // ✅ Restaure les revenus
       setMonthlyIncomeState(income || 0);
+      setIncomeOverridesState(overrides || {});
 
       if (cur) {
         setBaseCurrencyState(cur);
@@ -94,6 +133,11 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const persistSubs = useCallback(async (next: Subscription[]) => {
     setSubscriptions(next);
     if (uidKey) await storage.setItem(userScopedKey(uidKey, "subs"), next);
+  }, [uidKey]);
+
+  const persistExpenses = useCallback(async (next: Expense[]) => {
+    setExpenses(next);
+    if (uidKey) await storage.setItem(userScopedKey(uidKey, "expenses"), next);
   }, [uidKey]);
 
   const persistCats = useCallback(async (next: Category[]) => {
@@ -113,6 +157,27 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     if (uidKey) await storage.setItem(userScopedKey(uidKey, "income"), safe);
   }, [uidKey]);
 
+  function incomeKey(year: number, month: number) {
+    return `${year}-${String(month + 1).padStart(2, "0")}`;
+  }
+
+  const setIncomeForMonth = useCallback(async (year: number, month: number, amount: number | null) => {
+    const key = incomeKey(year, month);
+    const next = { ...incomeOverrides };
+    if (amount === null) {
+      delete next[key];
+    } else {
+      next[key] = Math.max(0, Number(amount) || 0);
+    }
+    setIncomeOverridesState(next);
+    if (uidKey) await storage.setItem(userScopedKey(uidKey, "incomeOverrides"), next);
+  }, [uidKey, incomeOverrides]);
+
+  const getIncomeForMonth = useCallback((year: number, month: number) => {
+    const key = incomeKey(year, month);
+    return incomeOverrides[key] ?? monthlyIncome;
+  }, [incomeOverrides, monthlyIncome]);
+
   const addSubscription = useCallback(async (s: Omit<Subscription, "id" | "createdAt">) => {
     const newSub: Subscription = { ...s, id: uid(), createdAt: new Date().toISOString() };
     await persistSubs([newSub, ...subscriptions]);
@@ -125,6 +190,23 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const deleteSubscription = useCallback(async (id: string) => {
     await persistSubs(subscriptions.filter((x) => x.id !== id));
   }, [persistSubs, subscriptions]);
+
+  const addExpense = useCallback(async (e: Omit<Expense, "id" | "createdAt">) => {
+    const newExpense: Expense = { ...e, id: uidExpense(), createdAt: new Date().toISOString() };
+    await persistExpenses([newExpense, ...expenses]);
+  }, [persistExpenses, expenses]);
+
+  const updateExpense = useCallback(async (id: string, e: Partial<Omit<Expense, "id" | "createdAt">>) => {
+    await persistExpenses(expenses.map((x) => (x.id === id ? { ...x, ...e } : x)));
+  }, [persistExpenses, expenses]);
+
+  const deleteExpense = useCallback(async (id: string) => {
+    await persistExpenses(expenses.filter((x) => x.id !== id));
+  }, [persistExpenses, expenses]);
+
+  const replaceAllExpenses = useCallback(async (next: Expense[]) => {
+    await persistExpenses(next);
+  }, [persistExpenses]);
 
   const addCustomCategory = useCallback(async (c: Omit<Category, "id"> & { id?: string }) => {
     const cat: Category = { id: c.id || `c_${Date.now().toString(36)}`, label: c.label, icon: c.icon, color: c.color };
@@ -155,6 +237,28 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     return { monthlyTotal: m, yearlyTotal: y };
   }, [subscriptions, baseCurrency]);
 
+  // Total des dépenses ponctuelles pour un mois donné (year: ex 2026, month: 0-11)
+  const expensesMonthlyTotal = useCallback((year: number, month: number) => {
+    let total = 0;
+    for (const e of expenses) {
+      if (e.currency !== baseCurrency) continue;
+      const d = new Date(e.date);
+      if (d.getFullYear() === year && d.getMonth() === month) total += e.price;
+    }
+    return total;
+  }, [expenses, baseCurrency]);
+
+  // Total des dépenses ponctuelles pour une année donnée
+  const expensesYearlyTotal = useCallback((year: number) => {
+    let total = 0;
+    for (const e of expenses) {
+      if (e.currency !== baseCurrency) continue;
+      const d = new Date(e.date);
+      if (d.getFullYear() === year) total += e.price;
+    }
+    return total;
+  }, [expenses, baseCurrency]);
+
   return (
     <Ctx.Provider
       value={{
@@ -171,8 +275,18 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         replaceAllCustomCategories,
         monthlyIncome,
         setMonthlyIncome,
+        incomeOverrides,
+        setIncomeForMonth,
+        getIncomeForMonth,
         monthlyTotal,
         yearlyTotal,
+        expenses,
+        addExpense,
+        updateExpense,
+        deleteExpense,
+        replaceAllExpenses,
+        expensesMonthlyTotal,
+        expensesYearlyTotal,
       }}
     >
       {children}

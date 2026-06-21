@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
@@ -14,6 +14,7 @@ import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { findCategory, DEFAULT_CATEGORIES, getCategoryLabel } from "@/src/data/categories";
 import { findCurrency, formatAmount } from "@/src/data/currencies";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
+import { monthShortName, monthYearLabel } from "@/src/utils/dateUtils";
 import { confirmAction } from "@/src/utils/confirm";
 import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
 import { useTranslation } from "react-i18next";
@@ -29,15 +30,37 @@ export default function Home() {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, customCategories, baseCurrency, deleteSubscription, monthlyIncome } = useSubscriptions();
+  const { subscriptions, expenses, customCategories, baseCurrency, deleteSubscription, deleteExpense, monthlyIncome, getIncomeForMonth } = useSubscriptions();
   const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
+  // Mode d'affichage : récurrent (abonnements), ponctuel (dépenses), ou cumulé (les deux additionnés).
+  const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined">("recurring");
   const [incomeModalOpen, setIncomeModalOpen] = useState(false);
 
   const allCats = useMemo(() => [...DEFAULT_CATEGORIES, ...customCategories], [customCategories]);
   const totalsCurrency = findCurrency(baseCurrency);
+
+  const now = new Date();
+  // Mois/année sélectionnés pour le calcul des dépenses ponctuelles — navigables
+  // depuis la heroCard, par défaut sur le mois en cours.
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const curYear = selectedYear;
+  const curMonth = selectedMonth;
+
+  const goToPrevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear((y) => y - 1); }
+    else setSelectedMonth((m) => m - 1);
+  };
+  const goToNextMonth = () => {
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear((y) => y + 1); }
+    else setSelectedMonth((m) => m + 1);
+  };
+  const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(now.getFullYear());
 
   // Convert all subscriptions to base currency via FX rates
   const totals = useMemo(() => {
@@ -50,15 +73,42 @@ export default function Home() {
     return { monthly: m, yearly: m * 12 };
   }, [subscriptions, baseCurrency, convert]);
 
-  const monthlyTotal = totals.monthly;
-  const yearlyTotal = totals.yearly;
+  // Totaux des dépenses ponctuelles : mois en cours / année en cours, convertis en devise de base.
+  const expenseTotals = useMemo(() => {
+    let m = 0;
+    let y = 0;
+    for (const e of expenses) {
+      const conv = convert(e.price, e.currency, baseCurrency);
+      const d = new Date(e.date);
+      if (d.getFullYear() === curYear) {
+        y += conv;
+        if (d.getMonth() === curMonth) m += conv;
+      }
+    }
+    return { monthly: m, yearly: y };
+  }, [expenses, baseCurrency, convert, curYear, curMonth]);
+
+  const recurringMonthlyTotal = totals.monthly;
+  const recurringYearlyTotal = totals.yearly;
+  const oneoffMonthlyTotal = expenseTotals.monthly;
+  const oneoffYearlyTotal = expenseTotals.yearly;
+
+  // Totaux affichés selon le mode sélectionné (récurrent / ponctuel / cumulé)
+  const monthlyTotal = dataMode === "recurring" ? recurringMonthlyTotal : dataMode === "oneoff" ? oneoffMonthlyTotal : recurringMonthlyTotal + oneoffMonthlyTotal;
+  const yearlyTotal = dataMode === "recurring" ? recurringYearlyTotal : dataMode === "oneoff" ? oneoffYearlyTotal : recurringYearlyTotal + oneoffYearlyTotal;
+
+  // Revenu effectif pour le mois actuellement sélectionné (override s'il existe, sinon le défaut).
+  const effectiveIncome = useMemo(
+    () => getIncomeForMonth(selectedYear, selectedMonth),
+    [getIncomeForMonth, selectedYear, selectedMonth]
+  );
 
   // Remaining budget (income - subscriptions cost), scaled to current toggle view.
   const displayedRemaining = useMemo(() => {
-    if (view === "monthly") return monthlyIncome - monthlyTotal;
-    return monthlyIncome * 12 - yearlyTotal;
-  }, [view, monthlyIncome, monthlyTotal, yearlyTotal]);
-  const isOverBudget = monthlyIncome > 0 && displayedRemaining < 0;
+    if (view === "monthly") return effectiveIncome - monthlyTotal;
+    return effectiveIncome * 12 - yearlyTotal;
+  }, [view, effectiveIncome, monthlyTotal, yearlyTotal]);
+  const isOverBudget = effectiveIncome > 0 && displayedRemaining < 0;
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
   const isPro = !!user?.pro?.is_pro;
@@ -406,6 +456,68 @@ export default function Home() {
     }
   };
 
+  // Affichage d'une dépense ponctuelle (item: Expense). Distinct de renderItem
+  // car Expense n'a pas de "cycle" — on affiche simplement le montant et la date.
+  // Liste affichée dans la FlatList, filtrée selon le mode et le mois/année sélectionnés :
+  // - Abonnements récurrents : visibles à partir de leur mois de création (createdAt) inclus.
+  // - Dépenses ponctuelles : uniquement celles dont la date tombe dans le mois/année sélectionné.
+  const displayedItems = useMemo(() => {
+    const visibleSubs = subscriptions.filter((s) => {
+      const created = new Date(s.createdAt);
+      const createdYM = created.getFullYear() * 12 + created.getMonth();
+      const selectedYM = selectedYear * 12 + selectedMonth;
+      return createdYM <= selectedYM;
+    }).map((s) => ({ ...s, __kind: "sub" as const }));
+
+    const visibleExps = expenses.filter((e) => {
+      const d = new Date(e.date);
+      return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+    }).map((e) => ({ ...e, __kind: "exp" as const }));
+
+    if (dataMode === "recurring") return visibleSubs;
+    if (dataMode === "oneoff") return visibleExps;
+    return [...visibleSubs, ...visibleExps];
+  }, [subscriptions, expenses, dataMode, selectedYear, selectedMonth]);
+
+  const renderExpenseItem = ({ item }: any) => {
+    const cat = findCategory(item.categoryId, customCategories);
+    const catLabel = getCategoryLabel(cat, t);
+    const displayBase = convert(item.price, item.currency, baseCurrency);
+    return (
+      <TouchableOpacity
+        testID={`expense-item-${item.name}`}
+        onPress={() => router.push({ pathname: "/(app)/subscription", params: { id: item.id } })}
+        onLongPress={() => {
+          confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
+            { text: t("common.cancel"), style: "cancel" },
+            { text: t("common.delete"), style: "destructive", onPress: () => deleteExpense(item.id) },
+          ]);
+        }}
+        style={styles.subItem}
+      >
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 14 }}>
+          <View style={[styles.subIcon, { backgroundColor: cat.color + "22" }]}>
+            <CatIcon name={cat.icon} color={cat.color} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+              <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
+              <Icons.Calendar color="#FBBF24" size={12} strokeWidth={2.5} />
+            </View>
+            <Text style={styles.subCat} numberOfLines={1}>{catLabel}</Text>
+          </View>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={styles.subPrice}>{formatAmount(item.price, item.currency)}</Text>
+            <Text style={styles.subCycle}>{item.date}</Text>
+            {item.currency !== baseCurrency ? (
+              <Text style={styles.subFx}>≈ {formatAmount(displayBase, baseCurrency)}</Text>
+            ) : null}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderItem = ({ item }: any) => {
     const cat = findCategory(item.categoryId, customCategories);
     const catLabel = getCategoryLabel(cat, t);
@@ -437,7 +549,10 @@ export default function Home() {
             <CatIcon name={cat.icon} color={cat.color} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+              <Text style={styles.subName} numberOfLines={1}>{item.name}</Text>
+              <Icons.RefreshCw color="#FBBF24" size={12} strokeWidth={2.5} />
+            </View>
             <Text style={styles.subCat} numberOfLines={1}>{catLabel}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
@@ -485,9 +600,9 @@ export default function Home() {
       </View>
 
       <FlatList
-        data={subscriptions}
-        keyExtractor={(s) => s.id}
-        renderItem={renderItem}
+        data={displayedItems}
+        keyExtractor={(item: any) => item.id}
+        renderItem={(props: any) => props.item.__kind === "exp" ? renderExpenseItem(props) : renderItem(props)}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20 }}
         ListHeaderComponent={
           <View>
@@ -512,33 +627,83 @@ export default function Home() {
               </View>
             ) : null}
             <View style={styles.heroCard}>
-              <View style={styles.heroToggle}>
-                <TouchableOpacity
-                  testID="toggle-monthly"
-                  onPress={() => setView("monthly")}
-                  style={[styles.toggleBtn, view === "monthly" && styles.toggleBtnActive]}
-                >
-                  <Text style={[styles.toggleText, view === "monthly" && styles.toggleTextActive]}>{t("common.monthly")}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  testID="toggle-yearly"
-                  onPress={() => setView("yearly")}
-                  style={[styles.toggleBtn, view === "yearly" && styles.toggleBtnActive]}
-                >
-                  <Text style={[styles.toggleText, view === "yearly" && styles.toggleTextActive]}>{t("common.yearly")}</Text>
-                </TouchableOpacity>
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroToggle}>
+                  <TouchableOpacity
+                    testID="toggle-monthly"
+                    onPress={() => setView("monthly")}
+                    style={[styles.toggleBtn, view === "monthly" && styles.toggleBtnActive]}
+                  >
+                    <Text style={[styles.toggleText, view === "monthly" && styles.toggleTextActive]}>{t("common.monthly")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID="toggle-yearly"
+                    onPress={() => setView("yearly")}
+                    style={[styles.toggleBtn, view === "yearly" && styles.toggleBtnActive]}
+                  >
+                    <Text style={[styles.toggleText, view === "yearly" && styles.toggleTextActive]}>{t("common.yearly")}</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.monthNav}>
+                  <TouchableOpacity testID="month-prev" onPress={goToPrevMonth} style={styles.monthNavArrow}>
+                    <Icons.ChevronLeft color="rgba(255,255,255,0.5)" size={14} strokeWidth={3} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID="month-nav-label"
+                    onPress={() => { setPickerYear(selectedYear); setMonthPickerOpen(true); }}
+                    style={styles.monthNavPill}
+                    activeOpacity={0.7}
+                  >
+                    <Icons.Calendar color="#fff" size={13} strokeWidth={2.5} />
+                    <Text style={styles.monthNavLabel}>
+                      {monthYearLabel(selectedYear, selectedMonth, i18n.language)}
+                    </Text>
+                    <Icons.ChevronDown color="rgba(255,255,255,0.6)" size={13} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                  <TouchableOpacity testID="month-next" onPress={goToNextMonth} style={styles.monthNavArrow}>
+                    <Icons.ChevronRight color="rgba(255,255,255,0.5)" size={14} strokeWidth={3} />
+                  </TouchableOpacity>
+                </View>
               </View>
               <Text style={styles.heroLabel}>{view === "monthly" ? t("home.totalMonthly") : t("home.totalYearly")}</Text>
               <Text testID="total-cost-display" style={styles.heroAmount}>
                 {formatAmount(totalAmount, baseCurrency)}
               </Text>
               <Text style={styles.heroHint}>
-                {t("home.subsCount", { count: subscriptions.length, currency: totalsCurrency.code })}
+                {dataMode === "recurring"
+                  ? t("home.subsCount", { count: subscriptions.length, currency: totalsCurrency.code })
+                  : dataMode === "oneoff"
+                  ? t("home.expensesCount", { count: expenses.length, currency: totalsCurrency.code })
+                  : t("home.combinedCount", { subCount: subscriptions.length, expCount: expenses.length, currency: totalsCurrency.code })}
               </Text>
             </View>
 
+            <View style={styles.dataModeRow}>
+              <TouchableOpacity
+                testID="datamode-recurring"
+                onPress={() => setDataMode("recurring")}
+                style={[styles.dataModeBtn, dataMode === "recurring" && styles.dataModeBtnActive]}
+              >
+                <Text style={[styles.dataModeText, dataMode === "recurring" && styles.dataModeTextActive]}>{t("home.recurringMode")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="datamode-oneoff"
+                onPress={() => setDataMode("oneoff")}
+                style={[styles.dataModeBtn, dataMode === "oneoff" && styles.dataModeBtnActive]}
+              >
+                <Text style={[styles.dataModeText, dataMode === "oneoff" && styles.dataModeTextActive]}>{t("home.oneoffMode")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="datamode-combined"
+                onPress={() => setDataMode("combined")}
+                style={[styles.dataModeBtn, dataMode === "combined" && styles.dataModeBtnActive]}
+              >
+                <Text style={[styles.dataModeText, dataMode === "combined" && styles.dataModeTextActive]}>{t("home.combinedMode")}</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Income + Remaining budget — compact row */}
-            {monthlyIncome > 0 ? (
+            {effectiveIncome > 0 ? (
               <View style={styles.budgetRow}>
                 <TouchableOpacity
                   testID="income-card"
@@ -551,7 +716,7 @@ export default function Home() {
                     <Text style={styles.miniCardLabel} numberOfLines={1}>{t("home.income")}</Text>
                   </View>
                   <Text style={styles.miniCardAmount} numberOfLines={1}>
-                    {formatAmount(view === "monthly" ? monthlyIncome : monthlyIncome * 12, baseCurrency)}
+                    {formatAmount(view === "monthly" ? effectiveIncome : effectiveIncome * 12, baseCurrency)}
                   </Text>
                 </TouchableOpacity>
 
@@ -639,7 +804,80 @@ export default function Home() {
       </TouchableOpacity>
 
       {/* Income editor — shared with Settings */}
-      <IncomeEditorModal visible={incomeModalOpen} onClose={() => setIncomeModalOpen(false)} />
+      <IncomeEditorModal
+        visible={incomeModalOpen}
+        onClose={() => setIncomeModalOpen(false)}
+        monthOverride={{
+          year: selectedYear,
+          month: selectedMonth,
+          label: monthYearLabel(selectedYear, selectedMonth, i18n.language),
+        }}
+      />
+
+      {/* Month/year picker popup */}
+      <Modal
+        visible={monthPickerOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setMonthPickerOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setMonthPickerOpen(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.pickerHandle} />
+            <View style={styles.pickerYearRow}>
+              <TouchableOpacity testID="picker-year-prev" onPress={() => setPickerYear((y) => y - 1)} style={styles.pickerYearBtn}>
+                <Icons.ChevronLeft color={theme.text} size={20} strokeWidth={2.5} />
+              </TouchableOpacity>
+              <Text testID="picker-year-label" style={styles.pickerYearLabel}>{pickerYear}</Text>
+              <TouchableOpacity testID="picker-year-next" onPress={() => setPickerYear((y) => y + 1)} style={styles.pickerYearBtn}>
+                <Icons.ChevronRight color={theme.text} size={20} strokeWidth={2.5} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.pickerMonthGrid}>
+              {Array.from({ length: 12 }, (_, i) => i).map((m) => {
+                const isSelected = pickerYear === selectedYear && m === selectedMonth;
+                const isThisMonth = pickerYear === now.getFullYear() && m === now.getMonth();
+                const label = monthShortName(m, i18n.language);
+                return (
+                  <TouchableOpacity
+                    key={m}
+                    testID={`picker-month-${m}`}
+                    onPress={() => {
+                      setSelectedYear(pickerYear);
+                      setSelectedMonth(m);
+                      setMonthPickerOpen(false);
+                    }}
+                    style={[
+                      styles.pickerMonthCell,
+                      isSelected && styles.pickerMonthCellActive,
+                      !isSelected && isThisMonth && styles.pickerMonthCellToday,
+                    ]}
+                  >
+                    <Text style={[styles.pickerMonthText, isSelected && styles.pickerMonthTextActive]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <TouchableOpacity
+              testID="picker-today-button"
+              onPress={() => {
+                setSelectedYear(now.getFullYear());
+                setSelectedMonth(now.getMonth());
+                setMonthPickerOpen(false);
+              }}
+              style={styles.pickerTodayBtn}
+            >
+              <Text style={styles.pickerTodayText}>{t("home.todayShortcut")}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -675,13 +913,37 @@ function makeStyles(theme: any) { return StyleSheet.create({
   heroCard: {
     backgroundColor: theme.cardBg, borderRadius: 24, padding: 20, marginTop: 8, marginBottom: 20, overflow: "hidden",
   },
+  heroTopRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12,
+  },
   heroToggle: {
-    flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999, padding: 4, alignSelf: "flex-start", marginBottom: 12,
+    flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999, padding: 4, alignSelf: "flex-start",
+  },
+  monthNav: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+  },
+  monthNavArrow: {
+    width: 22, height: 22, alignItems: "center", justifyContent: "center",
+  },
+  monthNavPill: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 999,
+    paddingVertical: 6, paddingHorizontal: 12,
+  },
+  monthNavLabel: {
+    color: "#fff", fontSize: 12, fontWeight: "700", textAlign: "center", textTransform: "capitalize",
   },
   toggleBtn: { paddingVertical: 5, paddingHorizontal: 14, borderRadius: 999 },
   toggleBtnActive: { backgroundColor: "#fff" },
   toggleText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
   toggleTextActive: { color: "#111827" },
+  dataModeRow: {
+    flexDirection: "row", backgroundColor: theme.cardBg, borderRadius: 999, padding: 4, marginBottom: 20,
+  },
+  dataModeBtn: { flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: "center" },
+  dataModeBtnActive: { backgroundColor: "#fff" },
+  dataModeText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
+  dataModeTextActive: { color: "#111827" },
   heroLabel: { color: "#9CA3AF", fontSize: 11, letterSpacing: 2, fontWeight: "700" },
   heroAmount: { color: theme.accent, fontSize: 38, fontWeight: "900", letterSpacing: -1.5, marginTop: 4 },
   heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 6 },
@@ -763,5 +1025,55 @@ function makeStyles(theme: any) { return StyleSheet.create({
   },
   addIncomeTitle: { fontSize: 13, fontWeight: "700", color: theme.text },
   addIncomeSub: { fontSize: 11, color: theme.textMuted, marginTop: 1 },
+
+  // Month/year picker popup
+  pickerOverlay: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end",
+  },
+  pickerSheet: {
+    backgroundColor: theme.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    paddingHorizontal: 20, paddingTop: 10, paddingBottom: 32,
+  },
+  pickerHandle: {
+    width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border,
+    alignSelf: "center", marginBottom: 18,
+  },
+  pickerYearRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 28, marginBottom: 20,
+  },
+  pickerYearBtn: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: theme.surfaceAlt,
+    alignItems: "center", justifyContent: "center",
+  },
+  pickerYearLabel: {
+    fontSize: 19, fontWeight: "800", color: theme.text, minWidth: 70, textAlign: "center",
+  },
+  pickerMonthGrid: {
+    flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center",
+  },
+  pickerMonthCell: {
+    width: "29%", paddingVertical: 16, borderRadius: 16,
+    backgroundColor: theme.surfaceAlt, alignItems: "center", justifyContent: "center",
+    borderWidth: 1.5, borderColor: "transparent",
+  },
+  pickerMonthCellActive: {
+    backgroundColor: theme.cardBg,
+  },
+  pickerMonthCellToday: {
+    borderColor: theme.accent,
+  },
+  pickerMonthText: {
+    fontSize: 14, fontWeight: "700", color: theme.text, textTransform: "capitalize",
+  },
+  pickerMonthTextActive: {
+    color: "#fff",
+  },
+  pickerTodayBtn: {
+    marginTop: 22, alignSelf: "center", paddingVertical: 10, paddingHorizontal: 22,
+    borderRadius: 999, backgroundColor: theme.accentSoft,
+  },
+  pickerTodayText: {
+    fontSize: 13, fontWeight: "700", color: theme.accent,
+  },
 });
 }

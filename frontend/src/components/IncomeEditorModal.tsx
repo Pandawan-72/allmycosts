@@ -22,30 +22,49 @@ import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 export function IncomeEditorModal({
   visible,
   onClose,
+  // Si fournis, le modal édite le revenu d'UN MOIS PRÉCIS (override) au lieu
+  // du revenu par défaut global. monthYear sert uniquement à l'affichage.
+  monthOverride,
 }: {
   visible: boolean;
   onClose: () => void;
+  monthOverride?: { year: number; month: number; label: string };
 }) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const { t } = useTranslation();
-  const { baseCurrency, monthlyIncome, setMonthlyIncome } = useSubscriptions();
+  const { baseCurrency, monthlyIncome, setMonthlyIncome, getIncomeForMonth, setIncomeForMonth, incomeOverrides } = useSubscriptions();
   const [draft, setDraft] = useState<string>("");
+
+  const isMonthMode = !!monthOverride;
+  const currentValue = isMonthMode ? getIncomeForMonth(monthOverride!.year, monthOverride!.month) : monthlyIncome;
+  const monthKey = isMonthMode ? `${monthOverride!.year}-${String(monthOverride!.month + 1).padStart(2, "0")}` : null;
+  const hasMonthOverride = isMonthMode && monthKey !== null && incomeOverrides[monthKey] !== undefined;
 
   // Reset draft each time the modal opens so it reflects the latest stored value.
   useEffect(() => {
-    if (visible) setDraft(monthlyIncome > 0 ? String(monthlyIncome) : "");
-  }, [visible, monthlyIncome]);
+    if (visible) setDraft(currentValue > 0 ? String(currentValue) : "");
+  }, [visible, currentValue]);
 
   const save = async () => {
     const cleaned = draft.replace(",", ".").replace(/[^\d.]/g, "");
     const value = parseFloat(cleaned);
-    await setMonthlyIncome(isNaN(value) || value < 0 ? 0 : value);
+    const safeValue = isNaN(value) || value < 0 ? 0 : value;
+    if (isMonthMode) {
+      await setIncomeForMonth(monthOverride!.year, monthOverride!.month, safeValue);
+    } else {
+      await setMonthlyIncome(safeValue);
+    }
     onClose();
   };
 
   const clear = async () => {
-    await setMonthlyIncome(0);
+    if (isMonthMode) {
+      // Efface l'override : le mois revient au revenu par défaut.
+      await setIncomeForMonth(monthOverride!.year, monthOverride!.month, null);
+    } else {
+      await setMonthlyIncome(0);
+    }
     onClose();
   };
 
@@ -62,9 +81,11 @@ export function IncomeEditorModal({
               <Icons.Wallet color={theme.accent} size={20} strokeWidth={2} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{t("home.incomeTitle")}</Text>
+              <Text style={styles.title}>
+                {isMonthMode ? t("home.incomeTitleMonth", { month: monthOverride!.label }) : t("home.incomeTitle")}
+              </Text>
               <Text style={styles.subtitle} numberOfLines={2}>
-                {t("home.incomeSubtitle")}
+                {isMonthMode ? t("home.incomeSubtitleMonth") : t("home.incomeSubtitle")}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} testID="income-modal-close">
@@ -104,14 +125,14 @@ export function IncomeEditorModal({
           </View>
 
           <View style={styles.btnRow}>
-            {monthlyIncome > 0 ? (
+            {(isMonthMode ? hasMonthOverride : monthlyIncome > 0) ? (
               <TouchableOpacity
                 testID="income-clear-btn"
                 onPress={clear}
                 style={[styles.btn, styles.btnGhost]}
               >
                 <Text style={[styles.btnText, { color: theme.danger }]}>
-                  {t("home.removeIncome")}
+                  {isMonthMode ? t("home.resetToDefaultIncome") : t("home.removeIncome")}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -197,6 +218,6 @@ function makeStyles(theme: any) { return StyleSheet.create({
   },
   btnPrimary: { backgroundColor: theme.cardBg },
   btnGhost: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
-  btnText: { fontSize: 15, fontWeight: "800" },
+  btnText: { fontSize: 15, fontWeight: "800", textAlign: "center" },
 });
 }

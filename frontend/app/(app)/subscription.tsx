@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { confirmAction } from "@/src/utils/confirm";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
+import { todayISO, isValidISODate } from "@/src/utils/dateUtils";
 import { DEFAULT_CATEGORIES, Category, getCategoryLabel } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
 
@@ -24,18 +25,29 @@ export default function SubscriptionForm() {
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
-  const { subscriptions, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addCustomCategory } =
+  const { subscriptions, expenses, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addExpense, updateExpense, deleteExpense, addCustomCategory } =
     useSubscriptions();
 
-  const existing = useMemo(() => subscriptions.find((s) => s.id === params.id), [params.id, subscriptions]);
+  // L'écran gère les deux types : on cherche dans les deux listes.
+  // Si on édite, le type (récurrent/ponctuel) est déduit de la liste où l'élément a été trouvé.
+  const existingSub = useMemo(() => subscriptions.find((s) => s.id === params.id), [params.id, subscriptions]);
+  const existingExp = useMemo(() => expenses.find((e) => e.id === params.id), [params.id, expenses]);
+  const existing = existingSub || existingExp;
   const isEdit = !!existing;
+  const isEditingExpense = !!existingExp;
+
+  // Type de dépense : récurrent (abonnement) ou ponctuel (dépense unique).
+  // En édition, déduit automatiquement de la liste où l'élément a été trouvé.
+  const [expenseType, setExpenseType] = useState<"recurring" | "oneoff">(isEditingExpense ? "oneoff" : "recurring");
 
   const [name, setName] = useState(existing?.name || "");
   const [priceStr, setPriceStr] = useState(existing ? String(existing.price) : "");
   const [currency, setCurrency] = useState(existing?.currency || baseCurrency);
-  const [cycle, setCycle] = useState<"monthly" | "yearly">(existing?.cycle || "monthly");
+  const [cycle, setCycle] = useState<"monthly" | "yearly">((existingSub?.cycle) || "monthly");
   const [categoryId, setCategoryId] = useState(existing?.categoryId || "video");
-  const [dueDate, setDueDate] = useState<string>(existing?.dueDate || "");
+  const [dueDate, setDueDate] = useState<string>(existingSub?.dueDate || "");
+  // Date de la dépense ponctuelle (obligatoire pour ce type), par défaut aujourd'hui.
+  const [expenseDate, setExpenseDate] = useState<string>(existingExp?.date || todayISO());
   const [err, setErr] = useState<string | null>(null);
 
   const [showCurrency, setShowCurrency] = useState(false);
@@ -51,14 +63,27 @@ export default function SubscriptionForm() {
     if (!name.trim()) return setErr(t("sub.nameRequired"));
     const price = parseFloat(priceStr.replace(",", "."));
     if (isNaN(price) || price < 0) return setErr(t("sub.priceInvalid"));
-    const cleanDate = dueDate.trim();
-    const dateOk = !cleanDate || /^\d{4}-\d{2}-\d{2}$/.test(cleanDate);
-    if (!dateOk) return setErr(t("sub.dateInvalid"));
-    const payload = { name: name.trim(), price, currency, cycle, categoryId, dueDate: cleanDate || null };
-    if (isEdit && existing) {
-      await updateSubscription(existing.id, payload);
+
+    if (expenseType === "oneoff") {
+      // Dépense ponctuelle : la date est obligatoire.
+      if (!isValidISODate(expenseDate)) return setErr(t("sub.dateInvalid"));
+      const payload = { name: name.trim(), price, currency, categoryId, date: expenseDate };
+      if (isEdit && existing) {
+        await updateExpense(existing.id, payload);
+      } else {
+        await addExpense(payload);
+      }
     } else {
-      await addSubscription(payload);
+      // Abonnement récurrent : la date d'échéance reste optionnelle.
+      const cleanDate = dueDate.trim();
+      const dateOk = !cleanDate || isValidISODate(cleanDate);
+      if (!dateOk) return setErr(t("sub.dateInvalid"));
+      const payload = { name: name.trim(), price, currency, cycle, categoryId, dueDate: cleanDate || null };
+      if (isEdit && existing) {
+        await updateSubscription(existing.id, payload);
+      } else {
+        await addSubscription(payload);
+      }
     }
     router.back();
   };
@@ -71,7 +96,11 @@ export default function SubscriptionForm() {
         text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
-          await deleteSubscription(existing.id);
+          if (isEditingExpense) {
+            await deleteExpense(existing.id);
+          } else {
+            await deleteSubscription(existing.id);
+          }
           router.back();
         },
       },
@@ -104,7 +133,33 @@ export default function SubscriptionForm() {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
-          <Text style={styles.label}>{t("sub.name")}</Text>
+          {!isEdit ? (
+            <>
+              <Text style={styles.label}>{t("sub.expenseType")}</Text>
+              <View style={styles.cycleRow}>
+                <TouchableOpacity
+                  testID="expense-type-recurring"
+                  onPress={() => setExpenseType("recurring")}
+                  style={[styles.cycleBtn, expenseType === "recurring" && styles.cycleBtnActive]}
+                >
+                  <Text style={[styles.cycleText, expenseType === "recurring" && styles.cycleTextActive]}>
+                    {t("sub.recurring")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  testID="expense-type-oneoff"
+                  onPress={() => setExpenseType("oneoff")}
+                  style={[styles.cycleBtn, expenseType === "oneoff" && styles.cycleBtnActive]}
+                >
+                  <Text style={[styles.cycleText, expenseType === "oneoff" && styles.cycleTextActive]}>
+                    {t("sub.oneoff")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : null}
+
+          <Text style={[styles.label, { marginTop: isEdit ? 0 : 18 }]}>{t("sub.name")}</Text>
           <TextInput
             testID="sub-name-input"
             value={name}
@@ -131,32 +186,49 @@ export default function SubscriptionForm() {
             </TouchableOpacity>
           </View>
 
-          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.cycle")}</Text>
-          <View style={styles.cycleRow}>
-            {(["monthly", "yearly"] as const).map((c) => (
-              <TouchableOpacity
-                key={c}
-                testID={`cycle-${c}`}
-                onPress={() => setCycle(c)}
-                style={[styles.cycleBtn, cycle === c && styles.cycleBtnActive]}
-              >
-                <Text style={[styles.cycleText, cycle === c && styles.cycleTextActive]}>
-                  {c === "monthly" ? t("common.monthly") : t("common.yearly")}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {expenseType === "recurring" ? (
+            <>
+              <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.cycle")}</Text>
+              <View style={styles.cycleRow}>
+                {(["monthly", "yearly"] as const).map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    testID={`cycle-${c}`}
+                    onPress={() => setCycle(c)}
+                    style={[styles.cycleBtn, cycle === c && styles.cycleBtnActive]}
+                  >
+                    <Text style={[styles.cycleText, cycle === c && styles.cycleTextActive]}>
+                      {c === "monthly" ? t("common.monthly") : t("common.yearly")}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.dateOptional")}</Text>
-          <TextInput
-            testID="sub-duedate-input"
-            value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={theme.textSubtle}
-            style={styles.input}
-            autoCapitalize="none"
-          />
+              <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.dateOptional")}</Text>
+              <TextInput
+                testID="sub-duedate-input"
+                value={dueDate}
+                onChangeText={setDueDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.textSubtle}
+                style={styles.input}
+                autoCapitalize="none"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.expenseDate")}</Text>
+              <TextInput
+                testID="expense-date-input"
+                value={expenseDate}
+                onChangeText={setExpenseDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.textSubtle}
+                style={styles.input}
+                autoCapitalize="none"
+              />
+            </>
+          )}
 
           <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.category")}</Text>
           <View style={styles.catGrid}>

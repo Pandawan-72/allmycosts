@@ -8,7 +8,8 @@ import * as Application from "expo-application";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
-import { CURRENCIES, findCurrency } from "@/src/data/currencies";
+import { CURRENCIES, findCurrency, formatAmount } from "@/src/data/currencies";
+import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
@@ -27,6 +28,7 @@ export default function Settings() {
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
+  const [showIncomeEditor, setShowIncomeEditor] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -169,6 +171,17 @@ export default function Settings() {
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{t("settings.baseCurrency")}</Text>
             <Text style={styles.rowSub}>{findCurrency(baseCurrency).name} ({baseCurrency})</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
+        <TouchableOpacity testID="default-income-row" onPress={() => setShowIncomeEditor(true)} style={[styles.row, { marginTop: 10 }]}>
+          <View style={styles.rowIcon}><Icons.Wallet color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.defaultIncome")}</Text>
+            <Text style={styles.rowSub}>
+              {monthlyIncome > 0 ? formatAmount(monthlyIncome, baseCurrency) : t("settings.defaultIncomeNotSet")}
+            </Text>
           </View>
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
@@ -330,6 +343,8 @@ export default function Settings() {
           />
         </SafeAreaView>
       </Modal>
+
+      <IncomeEditorModal visible={showIncomeEditor} onClose={() => setShowIncomeEditor(false)} />
     </SafeAreaView>
   );
 }

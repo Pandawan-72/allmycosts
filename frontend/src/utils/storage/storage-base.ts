@@ -2,7 +2,17 @@
 // Concrete implementations live in index.ts (native) and index.web.ts (web).
 
 export type StorageItemKey = string;
-export type StorageItemValue = string | number | boolean | null;
+// Toute valeur JSON-sérialisable : primitives, tableaux et objets imbriqués.
+// (storage.setItem fait toujours un JSON.stringify en interne, donc ce type
+// doit refléter ce que JSON peut réellement encoder, pas seulement les
+// primitives — sinon Subscription[]/Category[]/etc. ne compilent pas.)
+export type StorageItemValue =
+  | string
+  | number
+  | boolean
+  | null
+  | StorageItemValue[]
+  | { [key: string]: StorageItemValue };
 
 // Helper for subclasses to enforce that they don't declare methods beyond
 // StorageBase. Use as: type _ = AssertNoExtras<Exclude<keyof Storage, keyof StorageBase>>;
