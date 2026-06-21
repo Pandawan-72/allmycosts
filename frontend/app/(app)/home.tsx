@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform, Modal } from "react-native";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform, Modal, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
@@ -39,6 +39,19 @@ export default function Home() {
   // Mode d'affichage : récurrent (abonnements), ponctuel (dépenses), ou cumulé (les deux additionnés).
   const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined">("recurring");
   const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+
+  const [showFabMenu, setShowFabMenu] = useState(false);
+  const fabMenuAnim = useRef(new Animated.Value(0)).current;
+
+  const openFabMenu = () => {
+    setShowFabMenu(true);
+    Animated.spring(fabMenuAnim, { toValue: 1, useNativeDriver: true, friction: 7 }).start();
+  };
+  const closeFabMenu = () => {
+    Animated.timing(fabMenuAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      setShowFabMenu(false);
+    });
+  };
 
   const allCats = useMemo(() => [...DEFAULT_CATEGORIES, ...customCategories], [customCategories]);
   const totalsCurrency = findCurrency(baseCurrency);
@@ -595,18 +608,134 @@ export default function Home() {
         }
       />
 
+      {showFabMenu ? (
+        <TouchableOpacity
+          testID="fab-menu-overlay"
+          style={StyleSheet.absoluteFillObject}
+          activeOpacity={1}
+          onPress={closeFabMenu}
+        >
+          <Animated.View
+            style={[
+              styles.fabBackdrop,
+              { opacity: fabMenuAnim },
+            ]}
+          />
+        </TouchableOpacity>
+      ) : null}
+
+      {showFabMenu ? (
+        <View style={styles.fabMenuWrap} pointerEvents="box-none">
+          <Animated.View
+            style={[
+              styles.fabMenuItem,
+              {
+                opacity: fabMenuAnim,
+                transform: [
+                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
+                ],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              testID="fab-scan-receipt"
+              onPress={() => {
+                closeFabMenu();
+                const isPro = !!user?.pro?.is_pro;
+                const isTrialing = user?.pro?.plan === "trialing";
+                if (!isPro && !isTrialing) {
+                  router.push("/(app)/paywall");
+                } else {
+                  router.push("/(app)/receipt-scan");
+                }
+              }}
+              style={styles.fabMenuRow}
+            >
+              <Text style={styles.fabMenuLabel}>{t("home.fabScanReceipt")}</Text>
+              <View style={[styles.fabMenuIcon, { backgroundColor: "#F59E0B" }]}>
+                <Icons.ScanLine color="#fff" size={20} strokeWidth={2.5} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.fabMenuItem,
+              {
+                opacity: fabMenuAnim,
+                transform: [
+                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
+                ],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              testID="fab-add-oneoff"
+              onPress={() => {
+                closeFabMenu();
+                router.push({ pathname: "/(app)/subscription", params: { prefillType: "oneoff" } });
+              }}
+              style={styles.fabMenuRow}
+            >
+              <Text style={styles.fabMenuLabel}>{t("home.fabAddOneoff")}</Text>
+              <View style={[styles.fabMenuIcon, { backgroundColor: "#3B82F6" }]}>
+                <Icons.Calendar color="#fff" size={20} strokeWidth={2.5} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.fabMenuItem,
+              {
+                opacity: fabMenuAnim,
+                transform: [
+                  { translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                  { scale: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
+                ],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              testID="fab-add-recurring"
+              onPress={() => {
+                closeFabMenu();
+                if (showPaywallGate && subscriptions.length >= FREE_SUB_LIMIT) {
+                  router.push("/(app)/paywall");
+                } else {
+                  router.push("/(app)/subscription");
+                }
+              }}
+              style={styles.fabMenuRow}
+            >
+              <Text style={styles.fabMenuLabel}>{t("home.fabAddRecurring")}</Text>
+              <View style={[styles.fabMenuIcon, { backgroundColor: theme.cardBg }]}>
+                <Icons.RefreshCw color="#fff" size={20} strokeWidth={2.5} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      ) : null}
+
       <TouchableOpacity
         testID="add-subscription-button"
         onPress={() => {
-          if (showPaywallGate && subscriptions.length >= FREE_SUB_LIMIT) {
-            router.push("/(app)/paywall");
-          } else {
-            router.push("/(app)/subscription");
-          }
+          if (showFabMenu) closeFabMenu();
+          else openFabMenu();
         }}
         style={styles.fab}
       >
-        <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
+        <Animated.View
+          style={{
+            transform: [{
+              rotate: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "45deg"] }),
+            }],
+          }}
+        >
+          <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
+        </Animated.View>
       </TouchableOpacity>
 
       {/* Income editor — shared with Settings */}
@@ -765,6 +894,28 @@ function makeStyles(theme: any) { return StyleSheet.create({
   subPrice: { fontSize: 16, fontWeight: "800", color: theme.text },
   subCycle: { fontSize: 11, color: theme.textSubtle, marginTop: 2 },
   subFx: { fontSize: 11, color: theme.textMuted, marginTop: 2, fontStyle: "italic" },
+  fabBackdrop: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  fabMenuWrap: {
+    position: "absolute", right: 20, bottom: 96, alignItems: "flex-end", gap: 12,
+  },
+  fabMenuItem: {
+    alignItems: "flex-end",
+  },
+  fabMenuRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+  },
+  fabMenuLabel: {
+    backgroundColor: theme.surface, color: theme.text, fontSize: 13, fontWeight: "700",
+    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999,
+    borderWidth: 1, borderColor: theme.border,
+    shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3,
+  },
+  fabMenuIcon: {
+    width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center",
+    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 5,
+  },
   fab: {
     position: "absolute", right: 20, bottom: 24, width: 60, height: 60, borderRadius: 30,
     backgroundColor: theme.cardBg, alignItems: "center", justifyContent: "center",

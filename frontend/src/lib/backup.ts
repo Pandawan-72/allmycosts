@@ -15,9 +15,11 @@ export type BackupData = {
   version: number;
   exportedAt: string;
   subscriptions: any[];
+  expenses: any[];
   customCategories: any[];
   baseCurrency: string;
   monthlyIncome: number;
+  incomeOverrides: Record<string, number>;
 };
 
 // Encoding robuste (supporte accents, emoji, caractères spéciaux)
@@ -43,16 +45,39 @@ function decodeData(str: string): any {
 
 export async function exportBackup(data: {
   subscriptions: any[];
+  expenses: any[];
   customCategories: any[];
   baseCurrency: string;
   monthlyIncome: number;
+  incomeOverrides: Record<string, number>;
 }): Promise<void> {
   try {
+    // Les photos de tickets sont stockées en fichiers locaux (chemin invalide
+    // après réinstallation ou changement d'appareil) — on les encode donc en
+    // base64 directement dans le backup pour qu'elles survivent au transfert.
+    const expensesWithEmbeddedPhotos = await Promise.all(
+      (data.expenses || []).map(async (exp: any) => {
+        if (!exp.receiptImageUri) return exp;
+        try {
+          const base64 = await FileSystem.readAsStringAsync(exp.receiptImageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          // On remplace le chemin local par les données encodées elles-mêmes ;
+          // receiptImageUri redeviendra un vrai chemin local après import.
+          return { ...exp, receiptImageBase64: base64, receiptImageUri: undefined };
+        } catch {
+          // Photo introuvable (déjà supprimée, etc.) — on exporte la dépense sans elle.
+          return { ...exp, receiptImageUri: undefined };
+        }
+      })
+    );
+
     const backup: BackupData = {
       magic: BACKUP_MAGIC,
       version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
       ...data,
+      expenses: expensesWithEmbeddedPhotos,
     };
 
     const encoded = encodeData(backup);

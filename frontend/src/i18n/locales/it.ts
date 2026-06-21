@@ -54,6 +54,7 @@ const COMMON = {
     pdfError: "Impossibile generare il PDF.",
     income: "Reddito mensile", editIncome: "Modifica reddito",
     pdfEmptyTitle: "Nessun dato", pdfEmptyMessage: "Aggiungi prima abbonamenti o spese per esportare un PDF.",
+    fabScanReceipt: "Scansiona scontrino", fabAddOneoff: "Aggiungi spesa una tantum", fabAddRecurring: "Aggiungi pagamento ricorrente",
     incomeTitle: "Il tuo reddito mensile", incomeSubtitle: "Per calcolare il budget rimanente",
     incomeTitleMonth: "Reddito per {{month}}", incomeSubtitleMonth: "Sostituisce il reddito predefinito solo per questo mese", resetToDefaultIncome: "Ripristina il reddito predefinito",
     incomePlaceholder: "0,00", noIncomeYet: "Imposta il reddito per vedere il budget",
@@ -72,6 +73,10 @@ const COMMON = {
     icon: "Icona", color: "Colore", create: "Crea",
     nameRequired: "Nome obbligatorio.", priceInvalid: "Prezzo non valido.",
     expenseType: "Tipo di spesa", recurring: "Ricorrente", oneoff: "Una tantum", expenseDate: "Data della spesa",
+    receiptPhoto: "Foto dello scontrino", addReceiptPhoto: "Aggiungi foto dello scontrino",
+    addReceiptPhotoProOnly: "Foto dello scontrino (Pro)", shareReceiptPhoto: "Condividi",
+    removeReceiptPhoto: "Rimuovi foto", removeReceiptPhotoConfirm: "Vuoi davvero rimuovere questa foto dello scontrino?",
+    sharingUnavailable: "La condivisione non è disponibile su questo dispositivo.",
     deleteConfirm: "Eliminare \"{{name}}\"?",
   },
   settings: {
@@ -179,6 +184,18 @@ const COMMON = {
     last12MonthsLabel: "TOTALE ULTIMI 12 MESI",
     footerGenerated: "Generato il",
     footerCurrency: "Valuta",
+  },
+  receiptScan: {
+    title: "Scansiona scontrino",
+    heroTitle: "Scansiona il tuo scontrino",
+    heroSubtitle: "Scatta una foto e la spesa verrà precompilata automaticamente.",
+    takePhoto: "Scatta una foto",
+    chooseFromGallery: "Scegli dalla galleria",
+    processing: "Analisi dello scontrino in corso…",
+    noTextFound: "Nessun testo rilevato in questa immagine. Riprova con una foto più nitida.",
+    ocrError: "Si è verificato un errore durante l'analisi. Riprova.",
+    permissionDeniedTitle: "Autorizzazione negata",
+    permissionDenied: "Devi concedere l'accesso per usare questa funzione.",
   },
 };
 export default COMMON;

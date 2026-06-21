@@ -28,6 +28,10 @@ export type Expense = {
   categoryId: string;
   date: string; // ISO date (YYYY-MM-DD) — date à laquelle la dépense a eu lieu
   createdAt: string;
+  // Chemin local (FileSystem.documentDirectory) vers une photo du ticket de
+  // caisse associée, copiée de façon permanente lors de la création (scan
+  // OCR ou ajout manuel). Optionnel — fonctionnalité Pro.
+  receiptImageUri?: string;
 };
 
 type SubsState = {

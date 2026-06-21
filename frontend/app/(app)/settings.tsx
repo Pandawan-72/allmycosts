@@ -15,6 +15,7 @@ import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
 import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
 import { exportBackup, importBackup } from "@/src/lib/backup";
+import { saveReceiptImageFromBase64 } from "@/src/utils/receiptStorage";
 
 const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
 const APP_BUILD = Application.nativeBuildVersion || "—";
@@ -24,7 +25,7 @@ export default function Settings() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency, subscriptions, customCategories, monthlyIncome, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllCustomCategories } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
@@ -60,9 +61,11 @@ export default function Settings() {
     try {
       await exportBackup({
         subscriptions,
+        expenses,
         customCategories,
         baseCurrency,
         monthlyIncome,
+        incomeOverrides,
       });
     } finally {
       setExporting(false);
@@ -91,16 +94,44 @@ export default function Settings() {
               const backup = await importBackup();
               if (!backup) return;
 
-              // Restaurer la devise et les revenus
+              // Restaurer la devise et le revenu par défaut
               await setCurrency(backup.baseCurrency);
               await setMonthlyIncome(backup.monthlyIncome || 0);
 
-              // Remplace l'intégralité des catégories personnalisées et des
-              // abonnements en une seule opération atomique (conserve les
-              // id/dates d'origine, évite les pertes et les doublons liés
-              // aux anciennes boucles addSubscription/addCustomCategory).
+              // Restaure les revenus spécifiques par mois (overrides), s'il y en a.
+              const overrides = backup.incomeOverrides || {};
+              for (const key of Object.keys(overrides)) {
+                const [yearStr, monthStr] = key.split("-");
+                const year = parseInt(yearStr, 10);
+                const month = parseInt(monthStr, 10) - 1;
+                if (!isNaN(year) && !isNaN(month)) {
+                  await setIncomeForMonth(year, month, overrides[key]);
+                }
+              }
+
+              // Reconstruit les photos de tickets sur disque depuis le base64
+              // embarqué dans le backup, et restaure le bon chemin local.
+              const restoredExpenses = await Promise.all(
+                (backup.expenses || []).map(async (exp: any) => {
+                  if (!exp.receiptImageBase64) return exp;
+                  try {
+                    const newUri = await saveReceiptImageFromBase64(exp.receiptImageBase64);
+                    const { receiptImageBase64, ...rest } = exp;
+                    return { ...rest, receiptImageUri: newUri };
+                  } catch {
+                    const { receiptImageBase64, ...rest } = exp;
+                    return rest;
+                  }
+                })
+              );
+
+              // Remplace l'intégralité des catégories personnalisées, des
+              // abonnements, et des dépenses en une seule opération atomique
+              // par type (conserve les id/dates d'origine, évite les pertes
+              // et les doublons liés aux anciennes boucles add*).
               await replaceAllCustomCategories(backup.customCategories || []);
               await replaceAllSubscriptions(backup.subscriptions || []);
+              await replaceAllExpenses(restoredExpenses);
 
               Alert.alert(t("settings.backup.importSuccessTitle"), t("settings.backup.importSuccess"));
             } catch (e: any) {

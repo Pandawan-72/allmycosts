@@ -1,14 +1,18 @@
 import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, KeyboardAvoidingView, Platform, Modal } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, KeyboardAvoidingView, Platform, Modal, Image, Alert } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as Sharing from "expo-sharing";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/src/contexts/ThemeContext";
+import { useAuth } from "@/src/contexts/AuthContext";
 import { confirmAction } from "@/src/utils/confirm";
 import { useSubscriptions } from "@/src/contexts/SubscriptionsContext";
 import { todayISO, isValidISODate } from "@/src/utils/dateUtils";
+import { saveReceiptImage, deleteReceiptImage } from "@/src/utils/receiptStorage";
 import { DEFAULT_CATEGORIES, Category, getCategoryLabel } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
 
@@ -24,7 +28,19 @@ export default function SubscriptionForm() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const { user } = useAuth();
+  const isPro = !!user?.pro?.is_pro;
+  const isTrialing = user?.pro?.plan === "trialing";
+  const canUseReceiptPhoto = isPro || isTrialing;
+  const params = useLocalSearchParams<{
+    id?: string;
+    prefillName?: string;
+    prefillAmount?: string;
+    prefillDate?: string;
+    prefillType?: string;
+    fromScan?: string;
+    receiptImageUri?: string;
+  }>();
   const { subscriptions, expenses, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addExpense, updateExpense, deleteExpense, addCustomCategory } =
     useSubscriptions();
 
@@ -38,16 +54,27 @@ export default function SubscriptionForm() {
 
   // Type de dépense : récurrent (abonnement) ou ponctuel (dépense unique).
   // En édition, déduit automatiquement de la liste où l'élément a été trouvé.
-  const [expenseType, setExpenseType] = useState<"recurring" | "oneoff">(isEditingExpense ? "oneoff" : "recurring");
+  const [expenseType, setExpenseType] = useState<"recurring" | "oneoff">(
+    isEditingExpense ? "oneoff" : params.prefillType === "oneoff" ? "oneoff" : "recurring"
+  );
 
-  const [name, setName] = useState(existing?.name || "");
-  const [priceStr, setPriceStr] = useState(existing ? String(existing.price) : "");
+  const [name, setName] = useState(existing?.name || params.prefillName || "");
+  const [priceStr, setPriceStr] = useState(existing ? String(existing.price) : (params.prefillAmount || ""));
   const [currency, setCurrency] = useState(existing?.currency || baseCurrency);
   const [cycle, setCycle] = useState<"monthly" | "yearly">((existingSub?.cycle) || "monthly");
-  const [categoryId, setCategoryId] = useState(existing?.categoryId || "video");
+  const [categoryId, setCategoryId] = useState(
+    existing?.categoryId || (params.fromScan === "true" ? "shopping" : params.prefillType === "oneoff" ? "other" : "video")
+  );
   const [dueDate, setDueDate] = useState<string>(existingSub?.dueDate || "");
   // Date de la dépense ponctuelle (obligatoire pour ce type), par défaut aujourd'hui.
-  const [expenseDate, setExpenseDate] = useState<string>(existingExp?.date || todayISO());
+  const [expenseDate, setExpenseDate] = useState<string>(
+    existingExp?.date || (isValidISODate(params.prefillDate || "") ? params.prefillDate! : todayISO())
+  );
+  // Photo du ticket de caisse associée à la dépense ponctuelle (optionnelle, Pro).
+  const [receiptImageUri, setReceiptImageUri] = useState<string | null>(
+    existingExp?.receiptImageUri || params.receiptImageUri || null
+  );
+  const [receiptViewerOpen, setReceiptViewerOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const [showCurrency, setShowCurrency] = useState(false);
@@ -58,6 +85,58 @@ export default function SubscriptionForm() {
 
   const allCats: Category[] = useMemo(() => [...DEFAULT_CATEGORIES, ...customCategories], [customCategories]);
 
+  const pickReceiptPhoto = async (source: "camera" | "gallery") => {
+    if (!canUseReceiptPhoto) {
+      router.push("/(app)/paywall");
+      return;
+    }
+    const permission = source === "camera"
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = source === "camera"
+      ? await ImagePicker.launchCameraAsync({ quality: 1 })
+      : await ImagePicker.launchImageLibraryAsync({ quality: 1 });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    try {
+      const permanentUri = await saveReceiptImage(result.assets[0].uri);
+      // Remplace l'ancienne photo si elle existait, en nettoyant le fichier précédent.
+      if (receiptImageUri) await deleteReceiptImage(receiptImageUri);
+      setReceiptImageUri(permanentUri);
+    } catch {
+      // Échec de copie : on garde l'état précédent, pas de blocage de l'utilisateur.
+    }
+  };
+
+  const removeReceiptPhoto = () => {
+    if (!receiptImageUri) return;
+    confirmAction(t("sub.removeReceiptPhoto"), t("sub.removeReceiptPhotoConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          await deleteReceiptImage(receiptImageUri);
+          setReceiptImageUri(null);
+        },
+      },
+    ]);
+  };
+
+  const shareReceiptPhoto = async () => {
+    if (!receiptImageUri) return;
+    const available = await Sharing.isAvailableAsync();
+    if (!available) {
+      if (Platform.OS === "web") window.alert(t("sub.sharingUnavailable"));
+      else Alert.alert(t("sub.sharingUnavailable"));
+      return;
+    }
+    await Sharing.shareAsync(receiptImageUri, { mimeType: "image/jpeg" });
+  };
+
   const onSubmit = async () => {
     setErr(null);
     if (!name.trim()) return setErr(t("sub.nameRequired"));
@@ -67,7 +146,10 @@ export default function SubscriptionForm() {
     if (expenseType === "oneoff") {
       // Dépense ponctuelle : la date est obligatoire.
       if (!isValidISODate(expenseDate)) return setErr(t("sub.dateInvalid"));
-      const payload = { name: name.trim(), price, currency, categoryId, date: expenseDate };
+      const payload = {
+        name: name.trim(), price, currency, categoryId, date: expenseDate,
+        receiptImageUri: receiptImageUri || undefined,
+      };
       if (isEdit && existing) {
         await updateExpense(existing.id, payload);
       } else {
@@ -97,6 +179,11 @@ export default function SubscriptionForm() {
         style: "destructive",
         onPress: async () => {
           if (isEditingExpense) {
+            // Nettoie le fichier photo associé avant de supprimer la dépense,
+            // pour éviter d'accumuler des fichiers orphelins sur l'appareil.
+            if (existingExp?.receiptImageUri) {
+              await deleteReceiptImage(existingExp.receiptImageUri);
+            }
             await deleteExpense(existing.id);
           } else {
             await deleteSubscription(existing.id);
@@ -227,6 +314,32 @@ export default function SubscriptionForm() {
                 style={styles.input}
                 autoCapitalize="none"
               />
+
+              <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.receiptPhoto")}</Text>
+              {receiptImageUri ? (
+                <View style={styles.receiptPreviewRow}>
+                  <TouchableOpacity testID="receipt-photo-view" onPress={() => setReceiptViewerOpen(true)}>
+                    <Image source={{ uri: receiptImageUri }} style={styles.receiptThumbnail} resizeMode="cover" />
+                  </TouchableOpacity>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <TouchableOpacity testID="receipt-photo-share" onPress={shareReceiptPhoto} style={styles.receiptActionBtn}>
+                      <Icons.Share2 color={theme.text} size={15} strokeWidth={2} />
+                      <Text style={styles.receiptActionText}>{t("sub.shareReceiptPhoto")}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity testID="receipt-photo-remove" onPress={removeReceiptPhoto} style={styles.receiptActionBtn}>
+                      <Icons.Trash2 color={theme.danger} size={15} strokeWidth={2} />
+                      <Text style={[styles.receiptActionText, { color: theme.danger }]}>{t("sub.removeReceiptPhoto")}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <TouchableOpacity testID="receipt-photo-add" onPress={() => pickReceiptPhoto("camera")} style={styles.addReceiptBtn}>
+                  {!canUseReceiptPhoto ? <Icons.Lock color={theme.textMuted} size={16} /> : <Icons.Camera color={theme.accent} size={18} strokeWidth={2} />}
+                  <Text style={styles.addReceiptText}>
+                    {canUseReceiptPhoto ? t("sub.addReceiptPhoto") : t("sub.addReceiptPhotoProOnly")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
 
@@ -342,6 +455,26 @@ export default function SubscriptionForm() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Receipt photo full-screen viewer */}
+      <Modal visible={receiptViewerOpen} transparent animationType="fade" onRequestClose={() => setReceiptViewerOpen(false)}>
+        <View style={styles.viewerBackdrop}>
+          <TouchableOpacity
+            testID="receipt-viewer-close"
+            onPress={() => setReceiptViewerOpen(false)}
+            style={styles.viewerCloseBtn}
+          >
+            <Icons.X color="#fff" size={24} strokeWidth={2.5} />
+          </TouchableOpacity>
+          {receiptImageUri ? (
+            <Image source={{ uri: receiptImageUri }} style={styles.viewerImage} resizeMode="contain" />
+          ) : null}
+          <TouchableOpacity testID="receipt-viewer-share" onPress={shareReceiptPhoto} style={styles.viewerShareBtn}>
+            <Icons.Share2 color="#fff" size={18} strokeWidth={2} />
+            <Text style={styles.viewerShareText}>{t("sub.shareReceiptPhoto")}</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -393,5 +526,34 @@ function makeStyles(theme: any) { return StyleSheet.create({
   iconChoice: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" },
   colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   colorDot: { width: 36, height: 36, borderRadius: 18 },
+
+  addReceiptBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    borderWidth: 1, borderColor: theme.border, borderStyle: "dashed", borderRadius: 14,
+    paddingVertical: 16, backgroundColor: theme.surface,
+  },
+  addReceiptText: { color: theme.text, fontWeight: "700", fontSize: 14 },
+  receiptPreviewRow: { flexDirection: "row", gap: 12, alignItems: "center" },
+  receiptThumbnail: { width: 72, height: 72, borderRadius: 12, borderWidth: 1, borderColor: theme.border },
+  receiptActionBtn: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingVertical: 9, paddingHorizontal: 12, borderRadius: 10,
+    backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border,
+  },
+  receiptActionText: { color: theme.text, fontWeight: "600", fontSize: 13 },
+
+  viewerBackdrop: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.92)", alignItems: "center", justifyContent: "center",
+  },
+  viewerCloseBtn: {
+    position: "absolute", top: 50, right: 20, width: 40, height: 40, borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center", zIndex: 10,
+  },
+  viewerImage: { width: "92%", height: "75%" },
+  viewerShareBtn: {
+    position: "absolute", bottom: 50, flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 999, paddingVertical: 12, paddingHorizontal: 22,
+  },
+  viewerShareText: { color: "#fff", fontWeight: "700", fontSize: 14 },
 });
 }
