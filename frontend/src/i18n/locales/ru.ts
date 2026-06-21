@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Сначала добавьте регулярные платежи, чтобы экспортировать PDF.",
     pdfError: "Не удалось создать PDF.",
     income: "Ежемесячный доход", editIncome: "Изменить доход",
+    pdfEmptyTitle: "Нет данных", pdfEmptyMessage: "Сначала добавьте подписки или расходы, чтобы экспортировать PDF.",
     incomeTitle: "Ваш ежемесячный доход", incomeSubtitle: "Чтобы рассчитать оставшийся бюджет",
     incomeTitleMonth: "Доход за {{month}}", incomeSubtitleMonth: "Заменяет доход по умолчанию только для этого месяца", resetToDefaultIncome: "Вернуть доход по умолчанию",
     incomePlaceholder: "0,00", noIncomeYet: "Укажите доход, чтобы увидеть бюджет",
@@ -150,11 +151,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Статистика", subtitle: "Ваши регулярные платежи по категориям.",
+    thisMonth: "В этом месяце", vsPrevMonth: "По сравнению с прошлым месяцем", annualForecast: "Годовой прогноз", subtitleOneoff: "Ваши разовые расходы по категориям.", subtitleCombined: "Все ваши расходы по категориям.",
     helper: "Все суммы пересчитаны в вашу основную валюту.",
     breakdown: "Разбивка", categoriesCount: "категорий",
     top3: "Топ-3 расходов", evolution12: "Динамика за 12 месяцев",
     lockedTitle: "Нужен Pro", lockedDesc: "Получите Pro, чтобы открыть подробную статистику.",
     tipTitle: "Полезно знать", tipText: "Вы тратите {{amount}} в год на регулярные платежи ({{currency}}).",
+    tipTextOneoff: "В этом году вы потратили {{amount}} на разовые покупки ({{currency}}).", tipTextCombined: "Вы тратите {{amount}} в год, объединяя подписки и разовые покупки ({{currency}}).",
   },
   categories: {
     video: "Видео и стриминг", music: "Музыка", banking: "Банк и финансы",
@@ -163,6 +166,21 @@ const COMMON = {
     cloud: "Облачное хранилище", news: "Пресса и новости", education: "Образование",
     telecom: "Связь и интернет", shopping: "Шопинг и доставка",
     insurance: "Страхование", services: "Прочие сервисы", other: "Другое",
+  },
+  pdf: {
+    recurringTitle: "Регулярные подписки",
+    oneoffTitle: "Разовые расходы",
+    combinedTitle: "Общий итог",
+    entryColumnSub: "Подписка",
+    entryColumnExp: "Расход",
+    entryColumnCombined: "Позиция",
+    monthlyCol: "В месяц",
+    yearlyCol: "В год",
+    monthlyTotalLabel: "ИТОГО В МЕСЯЦ",
+    yearlyTotalLabel: "ИТОГО В ГОД",
+    last12MonthsLabel: "ИТОГО ЗА 12 МЕСЯЦЕВ",
+    footerGenerated: "Создано",
+    footerCurrency: "Валюта",
   },
 };
 export default COMMON;

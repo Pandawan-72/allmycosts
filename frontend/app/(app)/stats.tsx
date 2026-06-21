@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -35,21 +35,45 @@ export default function Stats() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, customCategories, baseCurrency } = useSubscriptions();
+  const { subscriptions, expenses, customCategories, baseCurrency } = useSubscriptions();
   const { convert } = useFxRatesEUR();
+
+  // Mode d'affichage des statistiques : récurrent (abonnements), ponctuel
+  // (dépenses), ou cumulé (les deux combinés dans les mêmes totaux/graphiques).
+  const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined">("recurring");
 
   const isPro = !!user?.pro?.is_pro;
   const cur = findCurrency(baseCurrency);
+
+  // ─── Normalisation : convertit subscriptions et expenses vers un montant
+  // mensuel commun en devise de base, pour pouvoir les agréger ensemble. ───
+  type NormalizedEntry = { id: string; name: string; categoryId: string; monthlyAmount: number; createdAt: string };
+
+  const normalizedSubs: NormalizedEntry[] = useMemo(() => subscriptions.map((s) => {
+    const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+    return { id: s.id, name: s.name, categoryId: s.categoryId, monthlyAmount: convert(monthly, s.currency, baseCurrency), createdAt: s.createdAt };
+  }), [subscriptions, baseCurrency, convert]);
+
+  // Pour les dépenses ponctuelles, on utilise le montant réel (pas de notion
+  // "mensuelle" récurrente) — chaque dépense compte pour son propre mois.
+  const normalizedExpenses: NormalizedEntry[] = useMemo(() => expenses.map((e) => ({
+    id: e.id, name: e.name, categoryId: e.categoryId, monthlyAmount: convert(e.price, e.currency, baseCurrency), createdAt: e.date,
+  })), [expenses, baseCurrency, convert]);
+
+  // Liste active selon le mode sélectionné — alimente donut/top3/graphique.
+  const activeEntries: NormalizedEntry[] = useMemo(() => {
+    if (dataMode === "recurring") return normalizedSubs;
+    if (dataMode === "oneoff") return normalizedExpenses;
+    return [...normalizedSubs, ...normalizedExpenses];
+  }, [dataMode, normalizedSubs, normalizedExpenses]);
 
   // ─── Agrégation par catégorie ───────────────────────────────────────────
   const { groups, total } = useMemo(() => {
     const map = new Map<string, number>();
     let totalSum = 0;
-    for (const s of subscriptions) {
-      const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-      const baseMonthly = convert(monthly, s.currency, baseCurrency);
-      map.set(s.categoryId, (map.get(s.categoryId) || 0) + baseMonthly);
-      totalSum += baseMonthly;
+    for (const e of activeEntries) {
+      map.set(e.categoryId, (map.get(e.categoryId) || 0) + e.monthlyAmount);
+      totalSum += e.monthlyAmount;
     }
     const arr = Array.from(map.entries())
       .map(([id, amount]) => {
@@ -58,40 +82,52 @@ export default function Stats() {
       })
       .sort((a, b) => b.amount - a.amount);
     return { groups: arr, total: totalSum };
-  }, [subscriptions, customCategories, baseCurrency, convert, t]);
+  }, [activeEntries, customCategories, t]);
 
   // ─── Top 3 dépenses les plus chères ────────────────────────────────────
   const top3 = useMemo(() => {
-    return [...subscriptions]
-      .map((s) => {
-        const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-        const baseMonthly = convert(monthly, s.currency, baseCurrency);
-        return { ...s, baseMonthly };
-      })
+    return [...activeEntries]
+      .map((e) => ({ ...e, baseMonthly: e.monthlyAmount }))
       .sort((a, b) => b.baseMonthly - a.baseMonthly)
       .slice(0, 3);
-  }, [subscriptions, baseCurrency, convert]);
+  }, [activeEntries]);
 
-  // ─── Simulation évolution 12 mois (basée sur abonnements actuels) ──────
+  // ─── Évolution sur 12 mois, calculée différemment selon le mode :
+  // - Récurrent : abonnements actifs ce mois-là (créés avant la fin du mois),
+  //   montant mensuel constant tant que l'abonnement existe (simulation).
+  // - Ponctuel : somme réelle des dépenses datées dans ce mois précis.
+  // - Cumulé : les deux additionnés. ─────────────────────────────────────
   const monthlyData = useMemo(() => {
     const months = getLast12Months();
-    // On simule : le total actuel est constant sur les 12 mois
-    // (les abonnements créés après un mois ne sont pas comptés avant)
     const now = new Date();
     return months.map((label, i) => {
       const monthDate = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-      // N'inclure que les abonnements créés avant ou pendant ce mois
-      let monthTotal = 0;
-      for (const s of subscriptions) {
-        const createdAt = new Date(s.createdAt);
-        if (createdAt <= new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)) {
-          const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-          monthTotal += convert(monthly, s.currency, baseCurrency);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+      let recurringTotal = 0;
+      if (dataMode === "recurring" || dataMode === "combined") {
+        for (const s of subscriptions) {
+          const createdAt = new Date(s.createdAt);
+          if (createdAt <= monthEnd) {
+            const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+            recurringTotal += convert(monthly, s.currency, baseCurrency);
+          }
         }
       }
-      return { label, value: monthTotal };
+
+      let oneoffTotal = 0;
+      if (dataMode === "oneoff" || dataMode === "combined") {
+        for (const e of expenses) {
+          const d = new Date(e.date);
+          if (d.getFullYear() === monthDate.getFullYear() && d.getMonth() === monthDate.getMonth()) {
+            oneoffTotal += convert(e.price, e.currency, baseCurrency);
+          }
+        }
+      }
+
+      return { label, value: recurringTotal + oneoffTotal };
     });
-  }, [subscriptions, baseCurrency, convert]);
+  }, [subscriptions, expenses, baseCurrency, convert, dataMode]);
 
   // ─── Comparaison mois précédent ─────────────────────────────────────────
   const { currentMonth, prevMonth, diff, diffPct } = useMemo(() => {
@@ -162,8 +198,34 @@ export default function Stats() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <Text style={styles.h1}>{t("stats.subtitle")}</Text>
+        <Text style={styles.h1}>
+          {dataMode === "recurring" ? t("stats.subtitle") : dataMode === "oneoff" ? t("stats.subtitleOneoff") : t("stats.subtitleCombined")}
+        </Text>
         <Text style={styles.sub}>{t("stats.helper")}</Text>
+
+        <View style={styles.dataModeRow}>
+          <TouchableOpacity
+            testID="stats-datamode-recurring"
+            onPress={() => setDataMode("recurring")}
+            style={[styles.dataModeBtn, dataMode === "recurring" && styles.dataModeBtnActive]}
+          >
+            <Text style={[styles.dataModeText, dataMode === "recurring" && styles.dataModeTextActive]}>{t("home.recurringMode")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stats-datamode-oneoff"
+            onPress={() => setDataMode("oneoff")}
+            style={[styles.dataModeBtn, dataMode === "oneoff" && styles.dataModeBtnActive]}
+          >
+            <Text style={[styles.dataModeText, dataMode === "oneoff" && styles.dataModeTextActive]}>{t("home.oneoffMode")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stats-datamode-combined"
+            onPress={() => setDataMode("combined")}
+            style={[styles.dataModeBtn, dataMode === "combined" && styles.dataModeBtnActive]}
+          >
+            <Text style={[styles.dataModeText, dataMode === "combined" && styles.dataModeTextActive]}>{t("home.combinedMode")}</Text>
+          </TouchableOpacity>
+        </View>
 
         {groups.length === 0 ? (
           <Text style={styles.empty}>{t("home.empty")}</Text>
@@ -307,7 +369,11 @@ export default function Stats() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.tipTitle}>{t("stats.tipTitle")}</Text>
                 <Text style={styles.tipText}>
-                  {t("stats.tipText", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })}
+                  {dataMode === "recurring"
+                    ? t("stats.tipText", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })
+                    : dataMode === "oneoff"
+                    ? t("stats.tipTextOneoff", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })
+                    : t("stats.tipTextCombined", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })}
                 </Text>
               </View>
             </View>
@@ -330,6 +396,14 @@ function makeStyles(theme: any) { return StyleSheet.create({
   h1: { fontSize: 28, fontWeight: "900", color: theme.text, letterSpacing: -0.8 },
   sub: { fontSize: 14, color: theme.textMuted, marginTop: 6, marginBottom: 20 },
   empty: { color: theme.textMuted, textAlign: "center", paddingVertical: 40 },
+
+  dataModeRow: {
+    flexDirection: "row", backgroundColor: theme.cardBg, borderRadius: 999, padding: 4, marginBottom: 24,
+  },
+  dataModeBtn: { flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: "center" },
+  dataModeBtnActive: { backgroundColor: "#fff" },
+  dataModeText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
+  dataModeTextActive: { color: "#111827" },
 
   // Comparaison
   compRow: { flexDirection: "row", gap: 10, marginBottom: 24 },

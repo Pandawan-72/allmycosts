@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Add recurring payments first to export a PDF.",
     pdfError: "Could not generate PDF.",
     income: "Monthly income", editIncome: "Edit income",
+    pdfEmptyTitle: "No data", pdfEmptyMessage: "Add subscriptions or expenses first to export a PDF.",
     incomeTitle: "Your monthly income", incomeSubtitle: "Helps compute your remaining budget",
     incomeTitleMonth: "Income for {{month}}", incomeSubtitleMonth: "Replaces the default income for this month only", resetToDefaultIncome: "Reset to default income",
     incomePlaceholder: "0.00", noIncomeYet: "Set your income to see your budget",
@@ -150,11 +151,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Stats", subtitle: "Your recurring payments by category.",
+    thisMonth: "This month", vsPrevMonth: "Vs last month", annualForecast: "Annual forecast", subtitleOneoff: "Your one-off expenses by category.", subtitleCombined: "All your expenses by category.",
     helper: "All amounts converted to your base currency.",
     breakdown: "Breakdown", categoriesCount: "categorie(s)",
     top3: "Top 3 expenses", evolution12: "12-month trend",
     lockedTitle: "Pro required", lockedDesc: "Go Pro to unlock detailed stats.",
     tipTitle: "Good to know", tipText: "You spend {{amount}} per year on recurring payments ({{currency}}).",
+    tipTextOneoff: "You've spent {{amount}} on one-off purchases this year ({{currency}}).", tipTextCombined: "You spend {{amount}} a year combining subscriptions and one-off purchases ({{currency}}).",
   },
   categories: {
     video: "Video & Streaming", music: "Music", banking: "Banking & Finance",
@@ -163,6 +166,21 @@ const COMMON = {
     cloud: "Cloud Storage", news: "News & Press", education: "Education",
     telecom: "Telecom & Internet", shopping: "Shopping & Delivery",
     insurance: "Insurance", services: "Other services", other: "Other",
+  },
+  pdf: {
+    recurringTitle: "Recurring subscriptions",
+    oneoffTitle: "One-off expenses",
+    combinedTitle: "Combined total",
+    entryColumnSub: "Subscription",
+    entryColumnExp: "Expense",
+    entryColumnCombined: "Item",
+    monthlyCol: "Monthly",
+    yearlyCol: "Yearly",
+    monthlyTotalLabel: "MONTHLY TOTAL",
+    yearlyTotalLabel: "YEARLY TOTAL",
+    last12MonthsLabel: "LAST 12 MONTHS TOTAL",
+    footerGenerated: "Generated on",
+    footerCurrency: "Currency",
   },
 };
 export default COMMON;

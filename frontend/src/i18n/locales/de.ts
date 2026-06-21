@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Füge zuerst wiederkehrende Zahlungen hinzu, um ein PDF zu exportieren.",
     pdfError: "PDF konnte nicht erstellt werden.",
     income: "Monatliches Einkommen", editIncome: "Einkommen bearbeiten",
+    pdfEmptyTitle: "Keine Daten", pdfEmptyMessage: "Fügen Sie zuerst Abos oder Ausgaben hinzu, um ein PDF zu exportieren.",
     incomeTitle: "Dein monatliches Einkommen", incomeSubtitle: "Hilft, dein verbleibendes Budget zu berechnen",
     incomeTitleMonth: "Einkommen für {{month}}", incomeSubtitleMonth: "Ersetzt das Standardeinkommen nur für diesen Monat", resetToDefaultIncome: "Auf Standardeinkommen zurücksetzen",
     incomePlaceholder: "0,00", noIncomeYet: "Lege dein Einkommen fest, um dein Budget zu sehen",
@@ -150,11 +151,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistik", subtitle: "Deine wiederkehrenden Zahlungen nach Kategorie.",
+    thisMonth: "Diesen Monat", vsPrevMonth: "Vs. letzten Monat", annualForecast: "Jahresprognose", subtitleOneoff: "Ihre einmaligen Ausgaben nach Kategorie.", subtitleCombined: "Alle Ihre Ausgaben nach Kategorie.",
     helper: "Alle Beträge in deine Hauptwährung umgerechnet.",
     breakdown: "Aufteilung", categoriesCount: "Kategorie(n)",
     top3: "Top 3 Ausgaben", evolution12: "Entwicklung über 12 Monate",
     lockedTitle: "Pro erforderlich", lockedDesc: "Werde Pro, um die detaillierte Statistik zu sehen.",
     tipTitle: "Gut zu wissen", tipText: "Du gibst {{amount}} pro Jahr für wiederkehrende Zahlungen aus ({{currency}}).",
+    tipTextOneoff: "Sie haben dieses Jahr {{amount}} für einmalige Käufe ausgegeben ({{currency}}).", tipTextCombined: "Sie geben {{amount}} pro Jahr aus, wenn man Abos und einmalige Käufe zusammenzählt ({{currency}}).",
   },
   categories: {
     video: "Video & Streaming", music: "Musik", banking: "Bank & Finanzen",
@@ -163,6 +166,21 @@ const COMMON = {
     cloud: "Cloud-Speicher", news: "News & Presse", education: "Bildung",
     telecom: "Telefon & Internet", shopping: "Shopping & Lieferung",
     insurance: "Versicherung", services: "Sonstige Dienste", other: "Sonstiges",
+  },
+  pdf: {
+    recurringTitle: "Wiederkehrende Abos",
+    oneoffTitle: "Einmalige Ausgaben",
+    combinedTitle: "Gesamtsumme",
+    entryColumnSub: "Abo",
+    entryColumnExp: "Ausgabe",
+    entryColumnCombined: "Eintrag",
+    monthlyCol: "Monatlich",
+    yearlyCol: "Jährlich",
+    monthlyTotalLabel: "MONATLICH GESAMT",
+    yearlyTotalLabel: "JÄHRLICH GESAMT",
+    last12MonthsLabel: "GESAMT LETZTE 12 MONATE",
+    footerGenerated: "Erstellt am",
+    footerCurrency: "Währung",
   },
 };
 export default COMMON;

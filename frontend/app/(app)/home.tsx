@@ -17,6 +17,7 @@ import { useFxRatesEUR } from "@/src/hooks/useFxRates";
 import { monthShortName, monthYearLabel } from "@/src/utils/dateUtils";
 import { confirmAction } from "@/src/utils/confirm";
 import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
+import { buildPdfHtml } from "@/src/lib/pdfExport";
 import { useTranslation } from "react-i18next";
 
 const FREE_SUB_LIMIT = 5;
@@ -168,240 +169,45 @@ export default function Home() {
       router.push("/(app)/paywall");
       return;
     }
-    if (subscriptions.length === 0) {
-      if (Platform.OS === "web") window.alert("Ajoutez d'abord des abonnements pour exporter un PDF.");
-      else Alert.alert("Aucun abonnement", "Ajoutez d'abord des abonnements pour exporter un PDF.");
+    if (subscriptions.length === 0 && expenses.length === 0) {
+      if (Platform.OS === "web") window.alert(t("home.pdfEmptyMessage"));
+      else Alert.alert(t("home.pdfEmptyTitle"), t("home.pdfEmptyMessage"));
       return;
     }
 
-    // ----- Aggregate per category (in base currency) -----
-    const catMap = new Map<string, number>();
-    let monthlyBase = 0;
-    for (const s of subscriptions) {
-      const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-      const base = convert(monthly, s.currency, baseCurrency);
-      monthlyBase += base;
-      catMap.set(s.categoryId, (catMap.get(s.categoryId) || 0) + base);
-    }
-    const yearlyBase = monthlyBase * 12;
-    const segments = Array.from(catMap.entries())
-      .map(([id, amount]) => {
-        const cat = findCategory(id, customCategories);
-        return { id, label: getCategoryLabel(cat, t), color: cat.color, amount };
-      })
-      .sort((a, b) => b.amount - a.amount);
-
-    // ----- SVG donut -----
-    const SIZE = 200;
-    const STROKE = 26;
-    const R = (SIZE - STROKE) / 2;
-    const CX = SIZE / 2;
-    const CY = SIZE / 2;
-    const CIRC = 2 * Math.PI * R;
-    let acc = 0;
-    const donutArcs = segments.map((s) => {
-      const len = monthlyBase > 0 ? (s.amount / monthlyBase) * CIRC : 0;
-      const offset = -acc;
-      acc += len;
-      return `<circle cx="${CX}" cy="${CY}" r="${R}" stroke="${s.color}" stroke-width="${STROKE}" fill="none" stroke-dasharray="${len.toFixed(2)} ${(CIRC - len).toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" />`;
-    }).join("");
-
-    // ----- Subscription rows (sorted by monthly cost desc, all in base currency) -----
-    const subsSorted = [...subscriptions].sort((a, b) => {
-      const aM = (a.cycle === "monthly" ? a.price : a.price / 12);
-      const bM = (b.cycle === "monthly" ? b.price : b.price / 12);
-      return convert(bM, b.currency, baseCurrency) - convert(aM, a.currency, baseCurrency);
-    });
-
-    const rows = subsSorted.map((s) => {
-      const cat = findCategory(s.categoryId, customCategories);
-      const catLabel = getCategoryLabel(cat, t);
-      const monthlyOwn = s.cycle === "monthly" ? s.price : s.price / 12;
-      const monthlyB = convert(monthlyOwn, s.currency, baseCurrency);
-      const yearlyB = monthlyB * 12;
-      return `<tr>
-        <td>
-          <div class="sub-name">${escapeHtml(s.name)}</div>
-          <div class="sub-meta"><span class="dot" style="background:${cat.color}"></span>${escapeHtml(catLabel)}</div>
-        </td>
-        <td class="num">${formatAmount(monthlyB, baseCurrency)}</td>
-        <td class="num">${formatAmount(yearlyB, baseCurrency)}</td>
-      </tr>`;
-    }).join("");
-
-    const legend = segments.map((s) => {
-      const pct = monthlyBase > 0 ? (s.amount / monthlyBase * 100) : 0;
-      return `<div class="legend-row">
-        <div class="legend-left">
-          <span class="dot" style="background:${s.color}"></span>
-          <span class="legend-label">${escapeHtml(s.label)}</span>
-        </div>
-        <div class="legend-right">
-          <div class="legend-amount">${formatAmount(s.amount, baseCurrency)}</div>
-          <div class="legend-pct">${pct.toFixed(0)}%</div>
-        </div>
-      </div>`;
-    }).join("");
-
-    // ----- Monthly chart (12 months SVG for PDF) -----
-    const now2 = new Date();
-    const monthlyChartData = Array.from({ length: 12 }, (_, i) => {
-      const monthDate = new Date(now2.getFullYear(), now2.getMonth() - (11 - i), 1);
-      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-      let monthTotal = 0;
-      for (const s of subscriptions) {
-        const createdAt = new Date(s.createdAt);
-        if (createdAt <= monthEnd) {
-          const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
-          monthTotal += convert(monthly, s.currency, baseCurrency);
-        }
-      }
-      return { label: monthDate.toLocaleString("fr-FR", { month: "short" }), value: monthTotal };
-    });
-    const chartMax2 = Math.max(...monthlyChartData.map((d) => d.value), 0.01);
-    const CW = 480, CH = 100, BW = 28, BG = (CW - 12 * BW) / 13;
-    const chartBars = monthlyChartData.map((d, i) => {
-      const bh = Math.max((d.value / chartMax2) * CH, 2);
-      const bx = BG + i * (BW + BG);
-      const by = CH - bh;
-      const isLast = i === 11;
-      const fill = isLast ? "#10B981" : "#E5E7EB";
-      const valLabel = isLast ? `<text x="${(bx + BW / 2).toFixed(1)}" y="${(by - 5).toFixed(1)}" font-size="8" fill="#10B981" text-anchor="middle" font-family="sans-serif" font-weight="bold">${formatAmount(d.value, baseCurrency)}</text>` : "";
-      return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${BW}" height="${bh.toFixed(1)}" rx="4" fill="${fill}"/><text x="${(bx + BW / 2).toFixed(1)}" y="${(CH + 14).toFixed(1)}" font-size="8" fill="#9CA3AF" text-anchor="middle" font-family="sans-serif">${d.label}</text>${valLabel}`;
-    }).join("");
-    const chartSvg = `<svg width="${CW}" height="${CH + 20}" viewBox="0 0 ${CW} ${CH + 20}" xmlns="http://www.w3.org/2000/svg">${chartBars}</svg>`;
-
-    const generatedOn = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+    const generatedOn = new Date().toLocaleDateString(i18n.language, { day: "2-digit", month: "long", year: "numeric" });
     const logoB64 = await getBrandLogoBase64();
-    const logoBlock = logoB64
-      ? `<div class="brand-row">
-           <img class="brand-icon" src="data:image/png;base64,${logoB64}" alt="" />
-           <div>
-             <h1 class="brand-name">All My Costs</h1>
-             <p class="brand-sub">${escapeHtml(user?.name || "")}</p>
-           </div>
-         </div>`
-      : `<div class="brand-row">
-           <div>
-             <h1 class="brand-name">All My Costs</h1>
-             <p class="brand-sub">${escapeHtml(user?.name || "")}</p>
-           </div>
-         </div>`;
 
-    const html = `<!doctype html><html><head><meta charset="utf-8" />
-      <style>
-        @page { margin: 28px 32px; }
-        * { box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-          color: #111827; margin: 0; padding: 0;
-          -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
-        .header { padding-bottom: 18px; border-bottom: 1px solid #E5E7EB; }
-        .brand-row { display: flex; align-items: center; gap: 16px; }
-        .brand-icon { width: 56px; height: 56px; border-radius: 12px; display: block; flex-shrink: 0; }
-        .brand-name { font-size: 24px; font-weight: 900; letter-spacing: -0.6px; margin: 0; }
-        .brand-sub { font-size: 12px; color: #6B7280; margin: 4px 0 0 0; }
-
-        .totals { display: flex; gap: 14px; margin: 24px 0 28px 0; }
-        .total-card {
-          flex: 1; background: #F9FAFB; border: 1px solid #E5E7EB;
-          border-radius: 14px; padding: 18px 20px;
-        }
-        .total-card .label { font-size: 10px; letter-spacing: 1.8px; color: #6B7280; font-weight: 700; }
-        .total-card .value { font-size: 28px; font-weight: 900; color: #111827; letter-spacing: -1px; margin-top: 6px; }
-        .total-card.dark { background: #111827; border-color: #111827; }
-        .total-card.dark .label { color: #9CA3AF; }
-        .total-card.dark .value { color: #10B981; }
-
-        h2 {
-          font-size: 11px; letter-spacing: 1.8px; color: #6B7280; font-weight: 700; text-transform: uppercase;
-          margin: 8px 0 14px 0; padding-bottom: 8px; border-bottom: 1px solid #E5E7EB;
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        thead th {
-          text-align: left; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
-          color: #9CA3AF; font-weight: 700; padding: 6px 10px;
-        }
-        thead th.num, tbody td.num { text-align: right; }
-        tbody td { padding: 12px 10px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; font-size: 13px; }
-        tbody tr:last-child td { border-bottom: none; }
-        .sub-name { font-weight: 700; color: #111827; font-size: 14px; }
-        .sub-meta { font-size: 11px; color: #6B7280; margin-top: 2px; }
-        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-        td.num { font-weight: 700; color: #111827; white-space: nowrap; }
-
-        .stats { margin-top: 30px; display: flex; gap: 28px; align-items: center; }
-        .donut-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
-        .donut-center { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-                        display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .donut-center .label { font-size: 9px; letter-spacing: 1.5px; color: #6B7280; font-weight: 700; }
-        .donut-center .value { font-size: 16px; font-weight: 900; color: #111827; letter-spacing: -0.5px; margin-top: 4px; }
-        .legend { flex: 1; }
-        .legend-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F3F4F6; }
-        .legend-row:last-child { border-bottom: none; }
-        .legend-label { font-size: 13px; color: #111827; font-weight: 600; }
-        .legend-right { text-align: right; }
-        .legend-amount { font-size: 13px; font-weight: 700; color: #111827; }
-        .legend-pct { font-size: 11px; color: #6B7280; margin-top: 2px; }
-
-        .chart-wrap { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px 8px 4px 8px; margin-bottom: 8px; }
-        .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E5E7EB;
-                  color: #9CA3AF; font-size: 10px; display: flex; justify-content: space-between; }
-      </style></head><body>
-
-      <div class="header">
-        ${logoBlock}
-      </div>
-
-      <div class="totals">
-        <div class="total-card">
-          <div class="label">TOTAL MENSUEL</div>
-          <div class="value">${formatAmount(monthlyBase, baseCurrency)}</div>
-        </div>
-        <div class="total-card dark">
-          <div class="label">TOTAL ANNUEL</div>
-          <div class="value">${formatAmount(yearlyBase, baseCurrency)}</div>
-        </div>
-      </div>
-
-      <h2>Détail des abonnements</h2>
-      <table>
-        <thead><tr>
-          <th>Abonnement</th>
-          <th class="num">Mensuel</th>
-          <th class="num">Annuel</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-
-      <h2>Répartition par catégorie</h2>
-      <div class="stats">
-        <div class="donut-wrap">
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            <g transform="rotate(-90 ${CX} ${CY})">
-              <circle cx="${CX}" cy="${CY}" r="${R}" stroke="#F3F4F6" stroke-width="${STROKE}" fill="none" />
-              ${donutArcs}
-            </g>
-          </svg>
-          <div class="donut-center">
-            <div class="label">MENSUEL</div>
-            <div class="value">${formatAmount(monthlyBase, baseCurrency)}</div>
-          </div>
-        </div>
-        <div class="legend">${legend}</div>
-      </div>
-
-      <h2>Évolution 12 mois</h2>
-      <div class="chart-wrap">${chartSvg}</div>
-
-      <div class="footer">
-        <span>Généré le ${generatedOn}</span>
-        <span>Devise : ${baseCurrency}</span>
-      </div>
-
-      </body></html>`;
+    const html = buildPdfHtml({
+      subscriptions,
+      expenses,
+      customCategories,
+      baseCurrency,
+      convert,
+      t: (key: string) => t(key),
+      monthLabel: (year, month) => monthShortName(month, i18n.language) + " " + String(year).slice(2),
+      userName: user?.name || "",
+      logoB64,
+      generatedOn,
+      i18nText: {
+        appName: "All My Costs",
+        recurringTitle: t("pdf.recurringTitle"),
+        oneoffTitle: t("pdf.oneoffTitle"),
+        combinedTitle: t("pdf.combinedTitle"),
+        entryColumnSub: t("pdf.entryColumnSub"),
+        entryColumnExp: t("pdf.entryColumnExp"),
+        entryColumnCombined: t("pdf.entryColumnCombined"),
+        monthlyCol: t("pdf.monthlyCol"),
+        yearlyCol: t("pdf.yearlyCol"),
+        breakdownTitle: t("stats.breakdown"),
+        evolutionTitle: t("stats.evolution12"),
+        monthlyTotalLabel: t("pdf.monthlyTotalLabel"),
+        yearlyTotalLabel: t("pdf.yearlyTotalLabel"),
+        last12MonthsLabel: t("pdf.last12MonthsLabel"),
+        footerGenerated: t("pdf.footerGenerated"),
+        footerCurrency: t("pdf.footerCurrency"),
+      },
+    });
 
     // On web, expo-print's printToFileAsync prints the *current page* via window.print()
     // — not our custom HTML. We bypass it entirely by rendering our HTML inside a

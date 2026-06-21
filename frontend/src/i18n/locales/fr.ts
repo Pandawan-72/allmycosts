@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Ajoutez d'abord des paiements récurrents pour exporter un PDF.",
     pdfError: "Impossible de générer le PDF.",
     income: "Revenus mensuels", editIncome: "Modifier les revenus",
+    pdfEmptyTitle: "Aucune donnée", pdfEmptyMessage: "Ajoutez d'abord des abonnements ou des dépenses pour exporter un PDF.",
     incomeTitle: "Vos revenus mensuels", incomeSubtitle: "Pour calculer votre budget restant",
     incomeTitleMonth: "Revenu pour {{month}}", incomeSubtitleMonth: "Remplace le revenu par défaut pour ce mois uniquement", resetToDefaultIncome: "Revenir au revenu par défaut",
     incomePlaceholder: "0,00", noIncomeYet: "Définissez vos revenus pour voir votre budget",
@@ -150,11 +151,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistiques", subtitle: "Vos paiements récurrents par catégorie.",
+    thisMonth: "Ce mois-ci", vsPrevMonth: "Vs mois dernier", annualForecast: "Estimation annuelle", subtitleOneoff: "Vos dépenses ponctuelles par catégorie.", subtitleCombined: "L'ensemble de vos dépenses par catégorie.",
     helper: "Tous les montants sont convertis vers votre devise principale.",
     breakdown: "Répartition", categoriesCount: "catégorie(s)",
     top3: "Top 3 des dépenses", evolution12: "Évolution sur 12 mois",
     lockedTitle: "Pro requis", lockedDesc: "Passez Pro pour débloquer les statistiques détaillées.",
     tipTitle: "Bon à savoir", tipText: "Vous dépensez {{amount}} par an en paiements récurrents ({{currency}}).",
+    tipTextOneoff: "Vous avez dépensé {{amount}} en achats ponctuels cette année ({{currency}}).", tipTextCombined: "Vous dépensez {{amount}} par an en cumulant abonnements et achats ponctuels ({{currency}}).",
   },
   categories: {
     video: "Vidéo & Streaming", music: "Musique", banking: "Banque & Finance",
@@ -163,6 +166,21 @@ const COMMON = {
     cloud: "Stockage Cloud", news: "Presse & News", education: "Éducation",
     telecom: "Téléphonie & Internet", shopping: "Shopping & Livraison",
     insurance: "Assurance", services: "Services divers", other: "Autre",
+  },
+  pdf: {
+    recurringTitle: "Abonnements récurrents",
+    oneoffTitle: "Dépenses ponctuelles",
+    combinedTitle: "Total cumulé",
+    entryColumnSub: "Abonnement",
+    entryColumnExp: "Dépense",
+    entryColumnCombined: "Élément",
+    monthlyCol: "Mensuel",
+    yearlyCol: "Annuel",
+    monthlyTotalLabel: "TOTAL MENSUEL",
+    yearlyTotalLabel: "TOTAL ANNUEL",
+    last12MonthsLabel: "TOTAL 12 DERNIERS MOIS",
+    footerGenerated: "Généré le",
+    footerCurrency: "Devise",
   },
 };
 export default COMMON;

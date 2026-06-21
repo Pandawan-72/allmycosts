@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Aggiungi pagamenti ricorrenti per esportare un PDF.",
     pdfError: "Impossibile generare il PDF.",
     income: "Reddito mensile", editIncome: "Modifica reddito",
+    pdfEmptyTitle: "Nessun dato", pdfEmptyMessage: "Aggiungi prima abbonamenti o spese per esportare un PDF.",
     incomeTitle: "Il tuo reddito mensile", incomeSubtitle: "Per calcolare il budget rimanente",
     incomeTitleMonth: "Reddito per {{month}}", incomeSubtitleMonth: "Sostituisce il reddito predefinito solo per questo mese", resetToDefaultIncome: "Ripristina il reddito predefinito",
     incomePlaceholder: "0,00", noIncomeYet: "Imposta il reddito per vedere il budget",
@@ -148,11 +149,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistiche", subtitle: "I tuoi pagamenti ricorrenti per categoria.",
+    thisMonth: "Questo mese", vsPrevMonth: "Vs mese scorso", annualForecast: "Previsione annuale", subtitleOneoff: "Le tue spese una tantum per categoria.", subtitleCombined: "Tutte le tue spese per categoria.",
     helper: "Importi convertiti nella tua valuta principale.",
     breakdown: "Ripartizione", categoriesCount: "categoria/e",
     top3: "Top 3 spese", evolution12: "Andamento su 12 mesi",
     lockedTitle: "Serve Pro", lockedDesc: "Passa a Pro per le statistiche dettagliate.",
     tipTitle: "Da sapere", tipText: "Spendi {{amount}} all'anno in pagamenti ricorrenti ({{currency}}).",
+    tipTextOneoff: "Hai speso {{amount}} in acquisti una tantum quest'anno ({{currency}}).", tipTextCombined: "Spendi {{amount}} all'anno sommando abbonamenti e acquisti una tantum ({{currency}}).",
   },
   categories: {
     video: "Video & Streaming", music: "Musica", banking: "Banca & Finanza",
@@ -161,6 +164,21 @@ const COMMON = {
     cloud: "Cloud Storage", news: "Stampa & News", education: "Istruzione",
     telecom: "Telefonia & Internet", shopping: "Shopping & Consegne",
     insurance: "Assicurazione", services: "Altri servizi", other: "Altro",
+  },
+  pdf: {
+    recurringTitle: "Abbonamenti ricorrenti",
+    oneoffTitle: "Spese una tantum",
+    combinedTitle: "Totale combinato",
+    entryColumnSub: "Abbonamento",
+    entryColumnExp: "Spesa",
+    entryColumnCombined: "Voce",
+    monthlyCol: "Mensile",
+    yearlyCol: "Annuale",
+    monthlyTotalLabel: "TOTALE MENSILE",
+    yearlyTotalLabel: "TOTALE ANNUALE",
+    last12MonthsLabel: "TOTALE ULTIMI 12 MESI",
+    footerGenerated: "Generato il",
+    footerCurrency: "Valuta",
   },
 };
 export default COMMON;

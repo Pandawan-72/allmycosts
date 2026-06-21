@@ -51,6 +51,7 @@ const COMMON = {
     addFirst: "Voeg eerst terugkerende betalingen toe om een PDF te exporteren.",
     pdfError: "Kon PDF niet genereren.",
     income: "Maandinkomen", editIncome: "Inkomen bewerken",
+    pdfEmptyTitle: "Geen gegevens", pdfEmptyMessage: "Voeg eerst abonnementen of uitgaven toe om een PDF te exporteren.",
     incomeTitle: "Je maandinkomen", incomeSubtitle: "Voor het berekenen van je resterende budget",
     incomeTitleMonth: "Inkomen voor {{month}}", incomeSubtitleMonth: "Vervangt het standaardinkomen alleen voor deze maand", resetToDefaultIncome: "Terugzetten naar standaardinkomen",
     incomePlaceholder: "0,00", noIncomeYet: "Stel je inkomen in om je budget te zien",
@@ -148,11 +149,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistieken", subtitle: "Je terugkerende betalingen per categorie.",
+    thisMonth: "Deze maand", vsPrevMonth: "Vs vorige maand", annualForecast: "Jaarprognose", subtitleOneoff: "Uw eenmalige uitgaven per categorie.", subtitleCombined: "Al uw uitgaven per categorie.",
     helper: "Alle bedragen in je hoofdvaluta.",
     breakdown: "Verdeling", categoriesCount: "categorie(ën)",
     top3: "Top 3 uitgaven", evolution12: "Verloop over 12 maanden",
     lockedTitle: "Pro nodig", lockedDesc: "Ga Pro voor gedetailleerde statistieken.",
     tipTitle: "Goed om te weten", tipText: "Je geeft per jaar {{amount}} uit aan terugkerende betalingen ({{currency}}).",
+    tipTextOneoff: "U heeft dit jaar {{amount}} uitgegeven aan eenmalige aankopen ({{currency}}).", tipTextCombined: "U geeft {{amount}} per jaar uit aan abonnementen en eenmalige aankopen samen ({{currency}}).",
   },
   categories: {
     video: "Video & Streaming", music: "Muziek", banking: "Bank & Financiën",
@@ -161,6 +164,21 @@ const COMMON = {
     cloud: "Cloud-opslag", news: "Nieuws & Pers", education: "Onderwijs",
     telecom: "Telefonie & Internet", shopping: "Shopping & Bezorging",
     insurance: "Verzekering", services: "Overige diensten", other: "Overig",
+  },
+  pdf: {
+    recurringTitle: "Terugkerende abonnementen",
+    oneoffTitle: "Eenmalige uitgaven",
+    combinedTitle: "Totaal gecombineerd",
+    entryColumnSub: "Abonnement",
+    entryColumnExp: "Uitgave",
+    entryColumnCombined: "Item",
+    monthlyCol: "Maandelijks",
+    yearlyCol: "Jaarlijks",
+    monthlyTotalLabel: "TOTAAL PER MAAND",
+    yearlyTotalLabel: "TOTAAL PER JAAR",
+    last12MonthsLabel: "TOTAAL LAATSTE 12 MAANDEN",
+    footerGenerated: "Gegenereerd op",
+    footerCurrency: "Valuta",
   },
 };
 export default COMMON;

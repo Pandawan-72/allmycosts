@@ -53,6 +53,7 @@ const COMMON = {
     addFirst: "Adicione pagamentos recorrentes para exportar um PDF.",
     pdfError: "Não foi possível gerar o PDF.",
     income: "Renda mensal", editIncome: "Editar renda",
+    pdfEmptyTitle: "Sem dados", pdfEmptyMessage: "Adicione primeiro subscrições ou despesas para exportar um PDF.",
     incomeTitle: "Sua renda mensal", incomeSubtitle: "Para calcular o orçamento restante",
     incomeTitleMonth: "Rendimento para {{month}}", incomeSubtitleMonth: "Substitui o rendimento padrão apenas para este mês", resetToDefaultIncome: "Repor rendimento padrão",
     incomePlaceholder: "0,00", noIncomeYet: "Defina sua renda para ver o orçamento",
@@ -150,11 +151,13 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Estatísticas", subtitle: "Seus pagamentos recorrentes por categoria.",
+    thisMonth: "Este mês", vsPrevMonth: "Vs mês anterior", annualForecast: "Previsão anual", subtitleOneoff: "As suas despesas pontuais por categoria.", subtitleCombined: "Todas as suas despesas por categoria.",
     helper: "Valores convertidos para sua moeda principal.",
     breakdown: "Distribuição", categoriesCount: "categoria(s)",
     top3: "Top 3 despesas", evolution12: "Evolução em 12 meses",
     lockedTitle: "Pro necessário", lockedDesc: "Vire Pro para desbloquear as estatísticas.",
     tipTitle: "Bom saber", tipText: "Você gasta {{amount}} por ano em pagamentos recorrentes ({{currency}}).",
+    tipTextOneoff: "Gastou {{amount}} em compras pontuais este ano ({{currency}}).", tipTextCombined: "Gasta {{amount}} por ano somando subscrições e compras pontuais ({{currency}}).",
   },
   categories: {
     video: "Vídeo & Streaming", music: "Música", banking: "Banco & Finanças",
@@ -163,6 +166,21 @@ const COMMON = {
     cloud: "Armazenamento Cloud", news: "Imprensa & Notícias", education: "Educação",
     telecom: "Telefonia & Internet", shopping: "Compras & Entregas",
     insurance: "Seguros", services: "Outros serviços", other: "Outro",
+  },
+  pdf: {
+    recurringTitle: "Subscrições recorrentes",
+    oneoffTitle: "Despesas pontuais",
+    combinedTitle: "Total combinado",
+    entryColumnSub: "Subscrição",
+    entryColumnExp: "Despesa",
+    entryColumnCombined: "Item",
+    monthlyCol: "Mensal",
+    yearlyCol: "Anual",
+    monthlyTotalLabel: "TOTAL MENSAL",
+    yearlyTotalLabel: "TOTAL ANUAL",
+    last12MonthsLabel: "TOTAL DOS ÚLTIMOS 12 MESES",
+    footerGenerated: "Gerado em",
+    footerCurrency: "Moeda",
   },
 };
 export default COMMON;
