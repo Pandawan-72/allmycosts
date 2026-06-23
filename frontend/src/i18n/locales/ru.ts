@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Отправить ссылку",
     resetSuccess: "Письмо отправлено! Проверьте почту (включая папки «Спам» и «Промоакции»).",
     resetError: "Не удалось отправить письмо. Проверьте адрес.",
-    welcome: "Добро пожаловать.", welcomeName: "Добро пожаловать, {{name}} 👋", greeting: "Привет, {{name}} 👋",
+    welcome: "Добро пожаловать.", welcomeName: "Добро пожаловать, {{name}}", greeting: "Привет, {{name}}",
     createAccount: "Создать аккаунт.",
     subtitlePro: "Возьмите расходы под контроль.",
     email: "Email", password: "Пароль", name: "Имя",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Сегодня",
     yourSubs: "Ваши регулярные платежи",
     empty: "Пока нет регулярных платежей. Нажмите +, чтобы добавить.",
+    emptyOneoff: "Нет разовых расходов. Нажмите +, чтобы добавить.", emptyCombined: "Пока ничего. Нажмите +, чтобы добавить расход.",
     trialBanner: "Пробный период — осталось {{hours}}ч",
     trialEnded: "Пробный период закончился", upgrade: "Перейти на Pro",
     nextPayment: "Следующий платёж", noSubs: "Нет регулярных платежей",
@@ -82,6 +83,7 @@ const COMMON = {
     saveError: "Ошибка при сохранении",
     pickCurrency: "Выберите валюту", dateOptional: "Дата следующего платежа (необязательно)",
     deleteConfirm: "Удалить «{{name}}»?",
+    deleteCat: "Удалить категорию", deleteCatConfirm: "Удалить категорию {{name}}?",
   },
   settings: {
     title: "Настройки", preferences: "Параметры", darkMode: "Тёмный режим", account: "Аккаунт",
@@ -159,7 +161,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Статистика", subtitle: "Ваши регулярные платежи по категориям.",
-    thisMonth: "В этом месяце", vsPrevMonth: "По сравнению с прошлым месяцем", annualForecast: "Годовой прогноз", subtitleOneoff: "Ваши разовые расходы по категориям.", subtitleCombined: "Все ваши расходы по категориям.",
+    thisMonth: "В этом месяце", vsPrevMonth: "По сравнению с прошлым месяцем", annualForecast: "Годовой прогноз", annualForecastReal: "Итого за 12 месяцев", subtitleOneoff: "Ваши разовые расходы по категориям.", subtitleCombined: "Все ваши расходы по категориям.", perMonth: "/ мес.",
     helper: "Все суммы пересчитаны в вашу основную валюту.",
     breakdown: "Разбивка", categoriesCount: "категорий",
     top3: "Топ-3 расходов", evolution12: "Динамика за 12 месяцев",

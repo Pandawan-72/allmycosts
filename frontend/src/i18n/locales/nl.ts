@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Link verzenden",
     resetSuccess: "E-mail verzonden! Controleer je inbox (ook de map Spam/Promoties).",
     resetError: "E-mail kon niet worden verzonden. Controleer het adres.",
-    welcome: "Welkom.", welcomeName: "Welkom, {{name}} 👋", greeting: "Hallo {{name}} 👋",
+    welcome: "Welkom.", welcomeName: "Welkom, {{name}}", greeting: "Hallo {{name}}",
     createAccount: "Account aanmaken.",
     subtitlePro: "Beheer al je terugkerende uitgaven.",
     email: "E-mail", password: "Wachtwoord", name: "Naam",
@@ -45,6 +45,7 @@ const COMMON = {
     todayShortcut: "Vandaag",
     yourSubs: "Je terugkerende betalingen",
     empty: "Nog geen terugkerende betalingen. Tik op + om er een toe te voegen.",
+    emptyOneoff: "Nog geen eenmalige uitgaven. Tik op + om er een toe te voegen.", emptyCombined: "Nog niets. Tik op + om een uitgave toe te voegen.",
     trialBanner: "Gratis proefperiode — {{hours}}u over",
     trialEnded: "Gratis proefperiode beëindigd", upgrade: "Pro worden",
     nextPayment: "Volgende betaling", noSubs: "Geen terugkerende betalingen",
@@ -80,6 +81,7 @@ const COMMON = {
     saveError: "Fout bij opslaan",
     pickCurrency: "Kies een valuta", dateOptional: "Volgende betaaldatum (optioneel)",
     deleteConfirm: "\"{{name}}\" verwijderen?",
+    deleteCat: "Categorie verwijderen", deleteCatConfirm: "Categorie {{name}} verwijderen?",
   },
   settings: {
     title: "Instellingen", preferences: "Voorkeuren", darkMode: "Donkere modus", account: "Account",
@@ -157,7 +159,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistieken", subtitle: "Je terugkerende betalingen per categorie.",
-    thisMonth: "Deze maand", vsPrevMonth: "Vs vorige maand", annualForecast: "Jaarprognose", subtitleOneoff: "Uw eenmalige uitgaven per categorie.", subtitleCombined: "Al uw uitgaven per categorie.",
+    thisMonth: "Deze maand", vsPrevMonth: "Vs vorige maand", annualForecast: "Jaarprognose", annualForecastReal: "Totaal laatste 12 maanden", subtitleOneoff: "Uw eenmalige uitgaven per categorie.", subtitleCombined: "Al uw uitgaven per categorie.", perMonth: "/ maand",
     helper: "Alle bedragen in je hoofdvaluta.",
     breakdown: "Verdeling", categoriesCount: "categorie(ën)",
     top3: "Top 3 uitgaven", evolution12: "Verloop over 12 maanden",

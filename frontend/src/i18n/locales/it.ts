@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Invia link",
     resetSuccess: "E-mail inviata! Controlla la posta in arrivo (anche le cartelle Spam/Promozioni).",
     resetError: "Impossibile inviare l'e-mail. Controlla l'indirizzo inserito.",
-    welcome: "Benvenuto.", welcomeName: "Benvenuto, {{name}} 👋", greeting: "Ciao {{name}} 👋",
+    welcome: "Benvenuto.", welcomeName: "Benvenuto, {{name}}", greeting: "Ciao {{name}}",
     createAccount: "Crea un account.",
     subtitlePro: "Gestisci tutte le tue spese ricorrenti.",
     email: "Email", password: "Password", name: "Nome",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Oggi",
     yourSubs: "I tuoi pagamenti ricorrenti",
     empty: "Ancora nessun pagamento ricorrente. Tocca + per aggiungerne uno.",
+    emptyOneoff: "Nessuna spesa una tantum per ora. Tocca il pulsante + per aggiungerne una.", emptyCombined: "Niente ancora. Tocca il pulsante + per aggiungere una spesa.",
     trialBanner: "Prova gratuita — {{hours}}h rimanenti",
     trialEnded: "Prova gratuita terminata", upgrade: "Diventa Pro",
     nextPayment: "Prossimo pagamento", noSubs: "Nessun pagamento ricorrente",
@@ -79,6 +80,7 @@ const COMMON = {
     removeReceiptPhoto: "Rimuovi foto", removeReceiptPhotoConfirm: "Vuoi davvero rimuovere questa foto dello scontrino?",
     sharingUnavailable: "La condivisione non è disponibile su questo dispositivo.",
     deleteConfirm: "Eliminare \"{{name}}\"?",
+    deleteCat: "Elimina categoria", deleteCatConfirm: "Eliminare la categoria {{name}}?",
   },
   settings: {
     title: "Impostazioni", preferences: "Preferenze", darkMode: "Modalità scura", account: "Account",
@@ -156,7 +158,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistiche", subtitle: "I tuoi pagamenti ricorrenti per categoria.",
-    thisMonth: "Questo mese", vsPrevMonth: "Vs mese scorso", annualForecast: "Previsione annuale", subtitleOneoff: "Le tue spese una tantum per categoria.", subtitleCombined: "Tutte le tue spese per categoria.",
+    thisMonth: "Questo mese", vsPrevMonth: "Vs mese scorso", annualForecast: "Previsione annuale", annualForecastReal: "Totale ultimi 12 mesi", subtitleOneoff: "Le tue spese una tantum per categoria.", subtitleCombined: "Tutte le tue spese per categoria.", perMonth: "/ mese",
     helper: "Importi convertiti nella tua valuta principale.",
     breakdown: "Ripartizione", categoriesCount: "categoria/e",
     top3: "Top 3 spese", evolution12: "Andamento su 12 mesi",

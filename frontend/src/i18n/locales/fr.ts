@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Envoyer le lien",
     resetSuccess: "E-mail envoyé ! Vérifiez votre boîte de réception (et les dossiers Spam / Promotions).",
     resetError: "Impossible d'envoyer l'e-mail. Vérifiez l'adresse saisie.",
-    welcome: "Bienvenue.", welcomeName: "Bienvenue, {{name}} 👋", greeting: "Bonjour, {{name}} 👋",
+    welcome: "Bienvenue.", welcomeName: "Bienvenue, {{name}}", greeting: "Bonjour, {{name}}",
     createAccount: "Créer un compte.",
     subtitlePro: "Maîtrisez vos dépenses récurrentes.",
     email: "E-mail", password: "Mot de passe", name: "Nom",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Aujourd'hui",
     yourSubs: "Vos paiements récurrents",
     empty: "Aucun paiement récurrent pour l'instant. Touchez le bouton + pour en ajouter un.",
+    emptyOneoff: "Aucune dépense ponctuelle pour l'instant. Touchez le bouton + pour en ajouter une.", emptyCombined: "Aucun cumul pour l'instant. Touchez le bouton + pour ajouter une dépense.",
     trialBanner: "Essai gratuit — {{hours}}h restantes",
     trialEnded: "Essai gratuit terminé", upgrade: "Passer Pro",
     nextPayment: "Prochain paiement", noSubs: "Aucun paiement récurrent",
@@ -82,6 +83,7 @@ const COMMON = {
     saveError: "Erreur lors de l'enregistrement",
     pickCurrency: "Choisir une devise", dateOptional: "Date de prochain paiement (optionnel)",
     deleteConfirm: "Supprimer \"{{name}}\" ?",
+    deleteCat: "Supprimer la catégorie", deleteCatConfirm: "Supprimer la catégorie {{name}} ?",
   },
   settings: {
     title: "Paramètres", preferences: "Préférences", darkMode: "Mode sombre", account: "Compte",
@@ -159,7 +161,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistiques", subtitle: "Vos paiements récurrents par catégorie.",
-    thisMonth: "Ce mois-ci", vsPrevMonth: "Vs mois dernier", annualForecast: "Estimation annuelle", subtitleOneoff: "Vos dépenses ponctuelles par catégorie.", subtitleCombined: "L'ensemble de vos dépenses par catégorie.",
+    thisMonth: "Ce mois-ci", vsPrevMonth: "Vs mois dernier", annualForecast: "Estimation annuelle", annualForecastReal: "Total 12 derniers mois", subtitleOneoff: "Vos dépenses ponctuelles par catégorie.", subtitleCombined: "L'ensemble de vos dépenses par catégorie.", perMonth: "/ mois",
     helper: "Tous les montants sont convertis vers votre devise principale.",
     breakdown: "Répartition", categoriesCount: "catégorie(s)",
     top3: "Top 3 des dépenses", evolution12: "Évolution sur 12 mois",

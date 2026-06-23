@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Enviar enlace",
     resetSuccess: "¡Correo enviado! Revisa tu bandeja de entrada (incluidas las carpetas de Spam/Promociones).",
     resetError: "No se pudo enviar el correo. Comprueba la dirección.",
-    welcome: "Bienvenido.", welcomeName: "Bienvenido, {{name}} 👋", greeting: "Hola {{name}} 👋",
+    welcome: "Bienvenido.", welcomeName: "Bienvenido, {{name}}", greeting: "Hola {{name}}",
     createAccount: "Crear una cuenta.",
     subtitlePro: "Toma el control de tus gastos recurrentes.",
     email: "Correo", password: "Contraseña", name: "Nombre",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Hoy",
     yourSubs: "Tus pagos recurrentes",
     empty: "Aún no hay pagos recurrentes. Toca el botón + para añadir uno.",
+    emptyOneoff: "Sin gastos puntuales por ahora. Toca el botón + para añadir uno.", emptyCombined: "Nada por ahora. Toca el botón + para añadir un gasto.",
     trialBanner: "Prueba gratis — {{hours}}h restantes",
     trialEnded: "Prueba gratis finalizada", upgrade: "Pasa a Pro",
     nextPayment: "Próximo pago", noSubs: "Sin pagos recurrentes",
@@ -82,6 +83,7 @@ const COMMON = {
     saveError: "Error al guardar",
     pickCurrency: "Elegir una moneda", dateOptional: "Fecha del próximo pago (opcional)",
     deleteConfirm: "¿Eliminar \"{{name}}\"?",
+    deleteCat: "Eliminar categoría", deleteCatConfirm: "¿Eliminar la categoría {{name}}?",
   },
   settings: {
     title: "Ajustes", preferences: "Preferencias", darkMode: "Modo oscuro", account: "Cuenta",
@@ -159,7 +161,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Estadísticas", subtitle: "Tus pagos recurrentes por categoría.",
-    thisMonth: "Este mes", vsPrevMonth: "Vs. mes anterior", annualForecast: "Previsión anual", subtitleOneoff: "Tus gastos puntuales por categoría.", subtitleCombined: "Todos tus gastos por categoría.",
+    thisMonth: "Este mes", vsPrevMonth: "Vs. mes anterior", annualForecast: "Previsión anual", annualForecastReal: "Total últimos 12 meses", subtitleOneoff: "Tus gastos puntuales por categoría.", subtitleCombined: "Todos tus gastos por categoría.", perMonth: "/ mes",
     helper: "Importes convertidos a tu moneda principal.",
     breakdown: "Desglose", categoriesCount: "categoría(s)",
     top3: "Top 3 de gastos", evolution12: "Evolución en 12 meses",

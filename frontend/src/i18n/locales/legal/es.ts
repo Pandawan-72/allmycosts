@@ -27,9 +27,9 @@ const LEGAL_ES = {
     intro: "Estos Términos rigen el uso de la aplicación All My Costs.",
     sections: [
       { title: "1. Aceptación", body: "Al usar la Aplicación, aceptas estos Términos." },
-      { title: "2. Versión gratuita y Pro", body: "Gratuito: hasta 6 gastos en total (recurrentes y puntuales combinados), total mensual/anual, divisa base. Pro (5,99 € pago único): gastos ilimitados, estadísticas, exportación PDF, categorías ilimitadas, escaneo de tickets por IA, almacenamiento y uso compartido de fotos de tickets." },
+      { title: "2. Versión gratuita y Pro", body: "Gratuito: hasta 6 gastos en total (recurrentes y puntuales combinados), total mensual/anual, divisa base. Pro (3,99 € pago único): gastos ilimitados, estadísticas, exportación PDF, categorías ilimitadas, escaneo de tickets por IA, almacenamiento y uso compartido de fotos de tickets." },
       { title: "3. Prueba gratuita de 15 días", body: "Al iniciar sesión por primera vez, cada usuario obtiene una prueba gratuita de 15 días con acceso Pro completo." },
-      { title: "4. Compra única Pro", body: "El acceso Pro está disponible mediante un pago único de 5,99 € en Google Play. Sin suscripción ni cargos recurrentes." },
+      { title: "4. Compra única Pro", body: "El acceso Pro está disponible mediante un pago único de 3,99 € en Google Play. Sin suscripción ni cargos recurrentes." },
       { title: "5. Restaurar compras", body: "Usa el botón Restaurar compras en ajustes con la misma cuenta de Google Play." },
       { title: "6. Reembolsos", body: "Los reembolsos son gestionados por Google Play según su política." },
       { title: "7. Uso aceptable", body: "No eludir limitaciones, hacer ingeniería inversa ni usar la Aplicación ilegalmente." },

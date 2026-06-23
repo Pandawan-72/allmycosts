@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Send link",
     resetSuccess: "Email sent! Check your inbox (including Spam/Promotions folders).",
     resetError: "Couldn't send the email. Please check the address.",
-    welcome: "Welcome.", welcomeName: "Welcome, {{name}} 👋", greeting: "Hi {{name}} 👋",
+    welcome: "Welcome.", welcomeName: "Welcome, {{name}}", greeting: "Hi {{name}}",
     createAccount: "Create an account.",
     subtitlePro: "Take control of your recurring expenses.",
     email: "Email", password: "Password", name: "Name",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Today",
     yourSubs: "Your recurring payments",
     empty: "No recurring payments yet. Tap the + button to add one.",
+    emptyOneoff: "No one-off expenses yet. Tap the + button to add one.", emptyCombined: "Nothing yet. Tap the + button to add an expense.",
     trialBanner: "Free trial — {{hours}}h remaining",
     trialEnded: "Free trial ended", upgrade: "Go Pro",
     nextPayment: "Next payment", noSubs: "No recurring payments",
@@ -82,6 +83,7 @@ const COMMON = {
     saveError: "Error while saving",
     pickCurrency: "Pick a currency", dateOptional: "Next payment date (optional)",
     deleteConfirm: "Delete \"{{name}}\"?",
+    deleteCat: "Delete category", deleteCatConfirm: "Delete category {{name}}?",
   },
   settings: {
     title: "Settings", preferences: "Preferences", darkMode: "Dark mode", account: "Account",
@@ -159,7 +161,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Stats", subtitle: "Your recurring payments by category.",
-    thisMonth: "This month", vsPrevMonth: "Vs last month", annualForecast: "Annual forecast", subtitleOneoff: "Your one-off expenses by category.", subtitleCombined: "All your expenses by category.",
+    thisMonth: "This month", vsPrevMonth: "Vs last month", annualForecast: "Annual forecast", annualForecastReal: "Last 12 months total", subtitleOneoff: "Your one-off expenses by category.", subtitleCombined: "All your expenses by category.", perMonth: "/ month",
     helper: "All amounts converted to your base currency.",
     breakdown: "Breakdown", categoriesCount: "categorie(s)",
     top3: "Top 3 expenses", evolution12: "12-month trend",

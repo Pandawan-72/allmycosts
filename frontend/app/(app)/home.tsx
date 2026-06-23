@@ -15,6 +15,7 @@ import { findCategory, DEFAULT_CATEGORIES, getCategoryLabel } from "@/src/data/c
 import { findCurrency, formatAmount } from "@/src/data/currencies";
 import { useFxRatesEUR } from "@/src/hooks/useFxRates";
 import { monthShortName, monthYearLabel } from "@/src/utils/dateUtils";
+import { deleteReceiptImage } from "@/src/utils/receiptStorage";
 import { confirmAction } from "@/src/utils/confirm";
 import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
 import { buildPdfHtml } from "@/src/lib/pdfExport";
@@ -336,7 +337,12 @@ export default function Home() {
           if (locked) { router.push("/(app)/paywall"); return; }
           confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
             { text: t("common.cancel"), style: "cancel" },
-            { text: t("common.delete"), style: "destructive", onPress: () => deleteExpense(item.id) },
+            { text: t("common.delete"), style: "destructive", onPress: async () => {
+              if (item.receiptImageUri) {
+                try { await deleteReceiptImage(item.receiptImageUri); } catch {}
+              }
+              await deleteExpense(item.id);
+            } },
           ]);
         }}
         style={styles.subItem}
@@ -391,7 +397,7 @@ export default function Home() {
           if (locked) { router.push("/(app)/paywall"); return; }
           confirmAction(item.name, t("sub.deleteConfirm", { name: item.name }), [
             { text: t("common.cancel"), style: "cancel" },
-            { text: t("common.delete"), style: "destructive", onPress: () => deleteSubscription(item.id) },
+            { text: t("common.delete"), style: "destructive", onPress: async () => { await deleteSubscription(item.id); } },
           ]);
         }}
         style={styles.subItem}
@@ -433,12 +439,14 @@ export default function Home() {
         <View style={styles.headerBrandRow}>
           <BrandLockup height={40} />
         </View>
-        {firstName ? (
-          <Text testID="home-greeting" style={styles.greeting}>
-            {t("auth.welcomeName", { name: firstName })}
-          </Text>
-        ) : null}
         <View style={styles.headerActionsRow}>
+          {firstName ? (
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+              <Icons.Star color="#15803D" fill="#15803D" size={13} />
+              <Text testID="home-greeting" style={[styles.greeting, { marginHorizontal: 5 }]} numberOfLines={1}>{t("auth.welcomeName", { name: firstName })}</Text>
+              <Icons.Star color="#15803D" fill="#15803D" size={13} />
+            </View>
+          ) : <View style={{ flex: 1 }} />}
           <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
             <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
           </TouchableOpacity>
@@ -633,9 +641,12 @@ export default function Home() {
               </View>
             ) : null}
 
-            <Text style={styles.sectionTitle}>{t("home.yourSubs")}</Text>
-            {subscriptions.length === 0 ? (
+            {subscriptions.length === 0 && dataMode === "recurring" ? (
               <Text style={styles.empty}>{t("home.empty")}</Text>
+            ) : expenses.length === 0 && dataMode === "oneoff" ? (
+              <Text style={styles.empty}>{t("home.emptyOneoff")}</Text>
+            ) : subscriptions.length === 0 && expenses.length === 0 && dataMode === "combined" ? (
+              <Text style={styles.empty}>{t("home.emptyCombined")}</Text>
             ) : null}
           </View>
         }
@@ -818,14 +829,14 @@ function makeStyles(theme: any) { return StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
   },
   headerActionsRow: {
-    flexDirection: "row", justifyContent: "center", gap: 14, marginTop: 12,
+    flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8,
   },
   greeting: {
-    textAlign: "center",
-    fontSize: 16,
+    flexShrink: 1,
+    textAlign: "left",
+    fontSize: 15,
     fontWeight: "700",
     color: theme.text,
-    marginTop: 10,
     letterSpacing: -0.2,
   },
   brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },

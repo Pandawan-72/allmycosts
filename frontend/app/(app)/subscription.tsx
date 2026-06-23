@@ -16,7 +16,7 @@ import { saveReceiptImage, deleteReceiptImage } from "@/src/utils/receiptStorage
 import { DEFAULT_CATEGORIES, Category, getCategoryLabel } from "@/src/data/categories";
 import { CURRENCIES, findCurrency } from "@/src/data/currencies";
 
-const ICON_OPTIONS = ["Tag", "Sparkles", "Star", "Heart", "Coffee", "Plane", "Car", "Home", "Book", "Globe", "Briefcase", "ShoppingBag", "Newspaper"];
+const ICON_OPTIONS = ["Tag", "Sparkles", "Star", "Heart", "Coffee", "Plane", "Car", "Home", "Book", "Globe", "Briefcase", "ShoppingBag", "Newspaper", "Music"];
 
 function CatIcon({ name, color, size = 20 }: { name: string; color: string; size?: number }) {
   const Cmp = (Icons as any)[name] || (Icons as any).Tag;
@@ -41,7 +41,7 @@ export default function SubscriptionForm() {
     fromScan?: string;
     receiptImageUri?: string;
   }>();
-  const { subscriptions, expenses, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addExpense, updateExpense, deleteExpense, addCustomCategory } =
+  const { subscriptions, expenses, customCategories, baseCurrency, addSubscription, updateSubscription, deleteSubscription, addExpense, updateExpense, deleteExpense, addCustomCategory, deleteCustomCategory } =
     useSubscriptions();
 
   // L'écran gère les deux types : on cherche dans les deux listes.
@@ -207,16 +207,12 @@ export default function SubscriptionForm() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={styles.header}>
           <TouchableOpacity testID="close-form-button" onPress={() => router.back()} style={styles.headerBtn}>
-            <Icons.X color={theme.text} size={22} strokeWidth={2} />
+            <Icons.ChevronLeft color={theme.text} size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{isEdit ? t("sub.editSub") : t("sub.newSub")}</Text>
-          {isEdit ? (
-            <TouchableOpacity testID="delete-subscription-button" onPress={onDelete} style={styles.headerBtn}>
-              <Icons.Trash2 color={theme.danger} size={20} strokeWidth={2} />
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.headerBtn} />
-          )}
+          <TouchableOpacity testID="save-subscription-button-header" onPress={onSubmit} style={styles.headerBtn}>
+            <Icons.Check color={theme.accent} size={24} strokeWidth={3} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
@@ -352,6 +348,22 @@ export default function SubscriptionForm() {
                   key={cat.id}
                   testID={`category-pill-${cat.id}`}
                   onPress={() => setCategoryId(cat.id)}
+                  onLongPress={() => {
+                    // Seules les catégories personnalisées (préfixe "c_") peuvent être supprimées.
+                    if (!cat.id.startsWith("c_")) return;
+                    confirmAction(
+                      t("sub.deleteCat"),
+                      t("sub.deleteCatConfirm", { name: getCategoryLabel(cat, t) }),
+                      [
+                        { text: t("common.cancel"), style: "cancel" },
+                        { text: t("common.delete"), style: "destructive", onPress: async () => {
+                          if (categoryId === cat.id) setCategoryId("other");
+                          await deleteCustomCategory(cat.id);
+                        }},
+                      ]
+                    );
+                  }}
+                  delayLongPress={500}
                   style={[styles.catPill, active && { backgroundColor: theme.cardBg, borderColor: theme.cardBg }]}
                 >
                   <CatIcon name={cat.icon} color={active ? "#fff" : cat.color} size={14} />
@@ -371,9 +383,12 @@ export default function SubscriptionForm() {
 
           {err ? <Text testID="form-error" style={styles.error}>{err}</Text> : null}
 
-          <TouchableOpacity testID="save-subscription-button" onPress={onSubmit} style={styles.saveBtn}>
-            <Text style={styles.saveBtnText}>{isEdit ? t("common.save") : t("common.add")}</Text>
-          </TouchableOpacity>
+          {isEdit ? (
+            <TouchableOpacity testID="delete-subscription-button" onPress={onDelete} style={styles.deleteBtn}>
+              <Icons.Trash2 color={theme.danger} size={18} />
+              <Text style={styles.deleteBtnText}>{t("common.delete")}</Text>
+            </TouchableOpacity>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -440,7 +455,7 @@ export default function SubscriptionForm() {
             </View>
             <Text style={[styles.label, { marginTop: 18 }]}>{t("sub.color")}</Text>
             <View style={styles.colorRow}>
-              {["#10B981", "#3B82F6", "#8B5CF6", "#EC4899", "#F97316", "#EF4444", "#0EA5E9", "#F59E0B", "#14B8A6"].map((col) => (
+              {["#EF4444", "#F97316", "#F59E0B", "#EAB308", "#84CC16", "#10B981", "#14B8A6", "#0EA5E9", "#3B82F6", "#6366F1", "#8B5CF6", "#A855F7", "#EC4899", "#F43F5E", "#A16207", "#0D9488"].map((col) => (
                 <TouchableOpacity
                   key={col}
                   testID={`custom-color-${col}`}
@@ -449,8 +464,8 @@ export default function SubscriptionForm() {
                 />
               ))}
             </View>
-            <TouchableOpacity testID="create-custom-cat-button" onPress={createCustomCategory} style={styles.saveBtn}>
-              <Text style={styles.saveBtnText}>{t("sub.create")}</Text>
+            <TouchableOpacity testID="create-custom-cat-button" onPress={createCustomCategory} style={styles.createBtn}>
+              <Text style={styles.createBtnText}>{t("sub.create")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -502,15 +517,17 @@ function makeStyles(theme: any) { return StyleSheet.create({
   cycleBtnActive: { backgroundColor: theme.cardBg, borderColor: theme.cardBg },
   cycleText: { fontWeight: "700", color: theme.text },
   cycleTextActive: { color: "#fff" },
-  catGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  catGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" },
   catPill: {
     flexDirection: "row", alignItems: "center", gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
     borderWidth: 1, borderColor: theme.border, backgroundColor: theme.surface, flexShrink: 0,
   },
   catPillText: { color: theme.text, fontSize: 13, fontWeight: "600" },
-  saveBtn: { backgroundColor: theme.cardBg, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 28 },
-  saveBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  deleteBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, padding: 16, borderRadius: 14, borderWidth: 1, borderColor: theme.danger, marginTop: 20, marginBottom: 10 },
+  deleteBtnText: { color: theme.danger, fontWeight: "700", fontSize: 15 },
+  createBtn: { backgroundColor: theme.cardBg, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 20, marginBottom: 10 },
+  createBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
   error: { color: theme.danger, marginTop: 16, textAlign: "center" },
   modalSafe: { flex: 1, backgroundColor: theme.bg },
   modalHeader: {

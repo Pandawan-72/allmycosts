@@ -27,9 +27,9 @@ const LEGAL_NL = {
     intro: "Deze Voorwaarden regelen het gebruik van de app All My Costs.",
     sections: [
       { title: "1. Aanvaarding", body: "Door de App te gebruiken, aanvaardt u deze Voorwaarden." },
-      { title: "2. Gratis en Pro-versie", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (€ 5,99 eenmalige aankoop): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto’s." },
+      { title: "2. Gratis en Pro-versie", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (€ 3,99 eenmalige aankoop): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto’s." },
       { title: "3. 15 dagen gratis proefperiode", body: "Bij de eerste aanmelding krijgt elke gebruiker een gratis proefperiode van 15 dagen met volledige Pro-toegang." },
-      { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop van € 5,99 via Google Play. Geen abonnement, geen terugkerende kosten." },
+      { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop van € 3,99 via Google Play. Geen abonnement, geen terugkerende kosten." },
       { title: "5. Aankopen herstellen", body: "Gebruik de knop Aankopen herstellen in de instellingen met hetzelfde Google Play-account." },
       { title: "6. Terugbetalingen", body: "Terugbetalingen worden afgehandeld door Google Play volgens hun beleid." },
       { title: "7. Aanvaardbaar gebruik", body: "Niet omzeilen van beperkingen, reverse engineering of illegaal gebruik." },

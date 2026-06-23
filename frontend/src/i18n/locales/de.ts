@@ -15,7 +15,7 @@ const COMMON = {
     resetSend: "Link senden",
     resetSuccess: "E-Mail gesendet! Überprüfen Sie Ihr Postfach (auch die Ordner Spam/Werbung).",
     resetError: "E-Mail konnte nicht gesendet werden. Bitte überprüfen Sie die Adresse.",
-    welcome: "Willkommen.", welcomeName: "Willkommen, {{name}} 👋", greeting: "Hallo {{name}} 👋",
+    welcome: "Willkommen.", welcomeName: "Willkommen, {{name}}", greeting: "Hallo {{name}}",
     createAccount: "Konto erstellen.",
     subtitlePro: "Behalte deine wiederkehrenden Ausgaben im Griff.",
     email: "E-Mail", password: "Passwort", name: "Name",
@@ -47,6 +47,7 @@ const COMMON = {
     todayShortcut: "Heute",
     yourSubs: "Deine wiederkehrenden Zahlungen",
     empty: "Noch keine wiederkehrenden Zahlungen. Tippe auf +, um eine hinzuzufügen.",
+    emptyOneoff: "Noch keine einmaligen Ausgaben. Tippen Sie auf +, um eine hinzuzufügen.", emptyCombined: "Noch nichts. Tippen Sie auf +, um eine Ausgabe hinzuzufügen.",
     trialBanner: "Kostenlose Testphase — noch {{hours}}h",
     trialEnded: "Kostenlose Testphase beendet", upgrade: "Pro werden",
     nextPayment: "Nächste Zahlung", noSubs: "Keine wiederkehrenden Zahlungen",
@@ -82,6 +83,7 @@ const COMMON = {
     saveError: "Fehler beim Speichern",
     pickCurrency: "Währung wählen", dateOptional: "Nächstes Zahldatum (optional)",
     deleteConfirm: "\"{{name}}\" löschen?",
+    deleteCat: "Kategorie löschen", deleteCatConfirm: "Kategorie {{name}} löschen?",
   },
   settings: {
     title: "Einstellungen", preferences: "Präferenzen", darkMode: "Dunkelmodus", account: "Konto",
@@ -159,7 +161,7 @@ const COMMON = {
   langs: { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands", ru: "Русский" },
   stats: {
     title: "Statistik", subtitle: "Deine wiederkehrenden Zahlungen nach Kategorie.",
-    thisMonth: "Diesen Monat", vsPrevMonth: "Vs. letzten Monat", annualForecast: "Jahresprognose", subtitleOneoff: "Ihre einmaligen Ausgaben nach Kategorie.", subtitleCombined: "Alle Ihre Ausgaben nach Kategorie.",
+    thisMonth: "Diesen Monat", vsPrevMonth: "Vs. letzten Monat", annualForecast: "Jahresprognose", annualForecastReal: "Gesamt letzte 12 Monate", subtitleOneoff: "Ihre einmaligen Ausgaben nach Kategorie.", subtitleCombined: "Alle Ihre Ausgaben nach Kategorie.", perMonth: "/ Monat",
     helper: "Alle Beträge in deine Hauptwährung umgerechnet.",
     breakdown: "Aufteilung", categoriesCount: "Kategorie(n)",
     top3: "Top 3 Ausgaben", evolution12: "Entwicklung über 12 Monate",

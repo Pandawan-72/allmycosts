@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import Svg, { Circle, G, Rect, Text as SvgText } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 import * as Icons from "lucide-react-native";
@@ -41,6 +42,13 @@ export default function Stats() {
   // Mode d'affichage des statistiques : récurrent (abonnements), ponctuel
   // (dépenses), ou cumulé (les deux combinés dans les mêmes totaux/graphiques).
   const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined">("recurring");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Force un recalcul complet à chaque fois que l'écran reprend le focus,
+  // pour refléter les suppressions/ajouts effectués depuis l'accueil.
+  useFocusEffect(useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []));
 
   const isPro = !!user?.pro?.is_pro;
   const cur = findCurrency(baseCurrency);
@@ -52,13 +60,13 @@ export default function Stats() {
   const normalizedSubs: NormalizedEntry[] = useMemo(() => subscriptions.map((s) => {
     const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
     return { id: s.id, name: s.name, categoryId: s.categoryId, monthlyAmount: convert(monthly, s.currency, baseCurrency), createdAt: s.createdAt };
-  }), [subscriptions, baseCurrency, convert]);
+  }), [subscriptions, baseCurrency, convert, refreshKey]);
 
   // Pour les dépenses ponctuelles, on utilise le montant réel (pas de notion
   // "mensuelle" récurrente) — chaque dépense compte pour son propre mois.
   const normalizedExpenses: NormalizedEntry[] = useMemo(() => expenses.map((e) => ({
     id: e.id, name: e.name, categoryId: e.categoryId, monthlyAmount: convert(e.price, e.currency, baseCurrency), createdAt: e.date,
-  })), [expenses, baseCurrency, convert]);
+  })), [expenses, baseCurrency, convert, refreshKey]);
 
   // Liste active selon le mode sélectionné — alimente donut/top3/graphique.
   const activeEntries: NormalizedEntry[] = useMemo(() => {
@@ -139,7 +147,14 @@ export default function Stats() {
   }, [monthlyData]);
 
   // ─── Prévision annuelle ──────────────────────────────────────────────────
-  const annualForecast = useMemo(() => total * 12, [total]);
+  // Prévision annuelle : pour le récurrent, projection (total mensuel × 12)
+  // cohérente car les abonnements se répètent. Pour le ponctuel et le cumulé,
+  // on utilise la somme réelle des 12 derniers mois — une projection × 12
+  // sur des dépenses non récurrentes n'aurait aucun sens.
+  const annualForecast = useMemo(() => {
+    if (dataMode === "recurring") return total * 12;
+    return monthlyData.reduce((sum, m) => sum + m.value, 0);
+  }, [dataMode, total, monthlyData]);
 
   // ─── Donut ───────────────────────────────────────────────────────────────
   const top = groups.slice(0, 5);
@@ -324,7 +339,9 @@ export default function Stats() {
                 </View>
               </View>
               <View style={[styles.compCard, { flex: 1, alignItems: "flex-end" }]}>
-                <Text style={styles.compLabel}>{t("stats.annualForecast")}</Text>
+                <Text style={styles.compLabel}>
+                  {dataMode === "recurring" ? t("stats.annualForecast") : t("stats.annualForecastReal")}
+                </Text>
                 <Text style={styles.compAmount}>{formatAmount(annualForecast, baseCurrency)}</Text>
               </View>
             </View>
@@ -364,19 +381,17 @@ export default function Stats() {
             </View>
 
             {/* ─── Tip ─── */}
-            <View style={styles.tipCard}>
-              <Icons.Lightbulb color={theme.accent} size={18} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.tipTitle}>{t("stats.tipTitle")}</Text>
-                <Text style={styles.tipText}>
-                  {dataMode === "recurring"
-                    ? t("stats.tipText", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })
-                    : dataMode === "oneoff"
-                    ? t("stats.tipTextOneoff", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })
-                    : t("stats.tipTextCombined", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })}
-                </Text>
+            {dataMode === "recurring" ? (
+              <View style={styles.tipCard}>
+                <Icons.Lightbulb color={theme.accent} size={18} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.tipTitle}>{t("stats.tipTitle")}</Text>
+                  <Text style={styles.tipText}>
+                    {t("stats.tipText", { amount: formatAmount(total * 12, baseCurrency), currency: cur.code })}
+                  </Text>
+                </View>
               </View>
-            </View>
+            ) : null}
           </>
         )}
       </ScrollView>

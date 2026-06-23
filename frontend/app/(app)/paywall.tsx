@@ -18,7 +18,7 @@ import {
 } from "@/src/lib/revenuecat";
 
 // Business model : lifetime uniquement à 5,99€
-const LIFETIME_PRICE_EUR = 5.99;
+const LIFETIME_PRICE_EUR = 3.99;
 
 function format(amount: number) {
   return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;

@@ -27,9 +27,9 @@ const LEGAL_DE = {
     intro: "Diese Nutzungsbedingungen regeln die Nutzung der App All My Costs.",
     sections: [
       { title: "1. Zustimmung", body: "Mit der Nutzung der App stimmen Sie diesen Bedingungen zu." },
-      { title: "2. Kostenlose und Pro-Version", body: "Kostenlos: bis zu 6 Ausgaben insgesamt (wiederkehrend und einmalig zusammen), monatliche/jährliche Summe, Basiswährung. Pro (5,99 € Einmalkauf): unbegrenzte Ausgaben, Statistiken, PDF-Export, unbegrenzte Kategorien, KI-gestützter Belegscan, Speicherung und Teilen von Belegfotos." },
+      { title: "2. Kostenlose und Pro-Version", body: "Kostenlos: bis zu 6 Ausgaben insgesamt (wiederkehrend und einmalig zusammen), monatliche/jährliche Summe, Basiswährung. Pro (3,99 € Einmalkauf): unbegrenzte Ausgaben, Statistiken, PDF-Export, unbegrenzte Kategorien, KI-gestützter Belegscan, Speicherung und Teilen von Belegfotos." },
       { title: "3. 15 Tage kostenlose Testversion", body: "Bei der ersten Anmeldung erhält jeder Nutzer eine 15-tägige kostenlose Testversion mit vollem Pro-Zugang." },
-      { title: "4. Pro-Einmalkauf", body: "Pro-Zugang ist als Einmalkauf von 5,99 € über Google Play verfügbar. Kein Abonnement, keine Folgekosten." },
+      { title: "4. Pro-Einmalkauf", body: "Pro-Zugang ist als Einmalkauf von 3,99 € über Google Play verfügbar. Kein Abonnement, keine Folgekosten." },
       { title: "5. Käufe wiederherstellen", body: "Verwenden Sie die Schaltfläche Käufe wiederherstellen in den Einstellungen mit demselben Google Play-Konto." },
       { title: "6. Rückerstattungen", body: "Rückerstattungen werden von Google Play gemäß deren Richtlinien abgewickelt." },
       { title: "7. Zulässige Nutzung", body: "Keine Umgehung von Einschränkungen, kein Reverse Engineering, keine illegale Nutzung." },
