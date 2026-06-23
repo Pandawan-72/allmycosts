@@ -81,12 +81,22 @@ export default function Home() {
   const totals = useMemo(() => {
     let m = 0;
     for (const s of subscriptions) {
+      // Ne compte un abonnement récurrent que s'il existait déjà au mois
+      // sélectionné — évite de déduire du budget des mois antérieurs à
+      // la création de l'abonnement.
+      const created = new Date(s.createdAt);
+      const createdYear = created.getFullYear();
+      const createdMonth = created.getMonth();
+      if (
+        createdYear > selectedYear ||
+        (createdYear === selectedYear && createdMonth > selectedMonth)
+      ) continue;
       const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
       const conv = convert(monthly, s.currency, baseCurrency);
       m += conv;
     }
     return { monthly: m, yearly: m * 12 };
-  }, [subscriptions, baseCurrency, convert]);
+  }, [subscriptions, baseCurrency, convert, selectedYear, selectedMonth]);
 
   // Totaux des dépenses ponctuelles : mois en cours / année en cours, convertis en devise de base.
   const expenseTotals = useMemo(() => {
@@ -878,9 +888,9 @@ function makeStyles(theme: any) { return StyleSheet.create({
   dataModeBtnActive: { backgroundColor: "#fff" },
   dataModeText: { color: "#9CA3AF", fontSize: 12, fontWeight: "700" },
   dataModeTextActive: { color: "#111827" },
-  heroLabel: { color: "#9CA3AF", fontSize: 11, letterSpacing: 2, fontWeight: "700" },
-  heroAmount: { color: theme.accent, fontSize: 38, fontWeight: "900", letterSpacing: -1.5, marginTop: 4 },
-  heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 6 },
+  heroLabel: { color: "#9CA3AF", fontSize: 11, letterSpacing: 2, fontWeight: "700", textAlign: "center" },
+  heroAmount: { color: theme.accent, fontSize: 38, fontWeight: "900", letterSpacing: -1.5, marginTop: 4, textAlign: "center" },
+  heroHint: { color: "#9CA3AF", fontSize: 12, marginTop: 6, textAlign: "center" },
   sectionTitle: { fontSize: 13, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 },
   empty: { color: theme.textMuted, paddingVertical: 24, textAlign: "center" },
   subItem: {
