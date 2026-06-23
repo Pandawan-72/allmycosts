@@ -36,12 +36,12 @@ export default function Stats() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, expenses, customCategories, baseCurrency } = useSubscriptions();
+  const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth } = useSubscriptions();
   const { convert } = useFxRatesEUR();
 
   // Mode d'affichage des statistiques : récurrent (abonnements), ponctuel
   // (dépenses), ou cumulé (les deux combinés dans les mêmes totaux/graphiques).
-  const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined">("recurring");
+  const [dataMode, setDataMode] = useState<"recurring" | "oneoff" | "combined" | "savings">("recurring");
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Force un recalcul complet à chaque fois que l'écran reprend le focus,
@@ -136,6 +136,45 @@ export default function Stats() {
       return { label, value: recurringTotal + oneoffTotal };
     });
   }, [subscriptions, expenses, baseCurrency, convert, dataMode]);
+
+  // ─── Épargne mensuelle sur 12 mois ────────────────────────────────────────
+  // Pour chaque mois : revenu effectif - (récurrents actifs ce mois + ponctuels du mois)
+  const savingsData = useMemo(() => {
+    const months = getLast12Months();
+    const now = new Date();
+    return months.map((label, i) => {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      const y = monthDate.getFullYear();
+      const m = monthDate.getMonth();
+
+      const income = getIncomeForMonth(y, m);
+
+      let recurringTotal = 0;
+      for (const s of subscriptions) {
+        const createdAt = new Date(s.createdAt);
+        if (createdAt <= monthEnd) {
+          const monthly = s.cycle === "monthly" ? s.price : s.price / 12;
+          recurringTotal += convert(monthly, s.currency, baseCurrency);
+        }
+      }
+
+      let oneoffTotal = 0;
+      for (const e of expenses) {
+        const d = new Date(e.date);
+        if (d.getFullYear() === y && d.getMonth() === m) {
+          oneoffTotal += convert(e.price, e.currency, baseCurrency);
+        }
+      }
+
+      const saving = income > 0 ? income - recurringTotal - oneoffTotal : 0;
+      return { label, value: saving };
+    });
+  }, [subscriptions, expenses, baseCurrency, convert, getIncomeForMonth, refreshKey]);
+
+  const totalSavings = useMemo(() => savingsData.reduce((sum, m) => sum + m.value, 0), [savingsData]);
+  const avgMonthlySavings = useMemo(() => totalSavings / 12, [totalSavings]);
+  const maxSavings = useMemo(() => Math.max(...savingsData.map(d => Math.abs(d.value)), 0.01), [savingsData]);
 
   // ─── Comparaison mois précédent ─────────────────────────────────────────
   const { currentMonth, prevMonth, diff, diffPct } = useMemo(() => {
@@ -239,6 +278,13 @@ export default function Stats() {
             style={[styles.dataModeBtn, dataMode === "combined" && styles.dataModeBtnActive]}
           >
             <Text style={[styles.dataModeText, dataMode === "combined" && styles.dataModeTextActive]}>{t("home.combinedMode")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stats-datamode-savings"
+            onPress={() => setDataMode("savings")}
+            style={[styles.dataModeBtn, dataMode === "savings" && styles.dataModeBtnActive]}
+          >
+            <Text style={[styles.dataModeText, dataMode === "savings" && styles.dataModeTextActive]}>{t("stats.savingsMode")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -394,6 +440,74 @@ export default function Stats() {
             ) : null}
           </>
         )}
+
+        {/* ─── Onglet Épargne ─── */}
+        {dataMode === "savings" ? (
+          <>
+            <Text style={styles.section}>{t("stats.savingsTitle")}</Text>
+            <Text style={[styles.subtitle, { marginBottom: 16 }]}>{t("stats.savingsSub")}</Text>
+
+            {/* Totaux épargne */}
+            <View style={styles.compRow}>
+              <View style={styles.compCard}>
+                <Text style={styles.compLabel}>{t("stats.savingsTotal12")}</Text>
+                <Text style={[styles.compAmount, { color: totalSavings >= 0 ? "#15803D" : theme.danger }]}>
+                  {formatAmount(totalSavings, baseCurrency)}
+                </Text>
+              </View>
+              <View style={styles.compCard}>
+                <Text style={styles.compLabel}>{t("stats.savingsAvg")}</Text>
+                <Text style={[styles.compAmount, { color: avgMonthlySavings >= 0 ? "#15803D" : theme.danger }]}>
+                  {formatAmount(avgMonthlySavings, baseCurrency)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Graphique épargne 12 mois */}
+            <Text style={[styles.section, { marginTop: 20 }]}>{t("stats.savingsChart")}</Text>
+            <View style={styles.chartWrap}>
+              <Svg width="100%" height={160} viewBox={`0 0 ${savingsData.length * 28} 160`} preserveAspectRatio="none">
+                {savingsData.map((d, i) => {
+                  const barH = maxSavings > 0 ? Math.abs(d.value) / maxSavings * 100 : 0;
+                  const isPositive = d.value >= 0;
+                  const color = isPositive ? "#15803D" : theme.danger;
+                  const barY = isPositive ? 120 - barH : 120;
+                  return (
+                    <G key={i}>
+                      <Rect x={i * 28 + 4} y={barY} width={20} height={Math.max(barH, 2)} fill={color} rx={3} opacity={0.85} />
+                    </G>
+                  );
+                })}
+              </Svg>
+              <View style={styles.chartLabels}>
+                {savingsData.map((d, i) => (
+                  <Text key={i} style={styles.chartLabel}>{d.label}</Text>
+                ))}
+              </View>
+            </View>
+
+            {/* Détail mois par mois */}
+            <Text style={[styles.section, { marginTop: 20 }]}>{t("stats.savingsDetail")}</Text>
+            {savingsData.map((d, i) => (
+              <View key={i} style={styles.savingsRow}>
+                <Text style={styles.savingsMonth}>{d.label}</Text>
+                <Text style={[styles.savingsAmount, { color: d.value >= 0 ? "#15803D" : theme.danger }]}>
+                  {d.value >= 0 ? "+" : ""}{formatAmount(d.value, baseCurrency)}
+                </Text>
+              </View>
+            ))}
+
+            {/* Tip */}
+            <View style={[styles.tipCard, { marginTop: 20 }]}>
+              <Icons.PiggyBank color={theme.accent} size={18} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.tipTitle}>{t("stats.savingsTipTitle")}</Text>
+                <Text style={styles.tipText}>{t("stats.savingsTip")}</Text>
+              </View>
+            </View>
+          </>
+        ) : null}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -462,6 +576,13 @@ function makeStyles(theme: any) { return StyleSheet.create({
   rowPct: { fontSize: 11, color: theme.textMuted, marginTop: 4 },
 
   // Tip
+  subtitle: { fontSize: 13, color: theme.textMuted, marginBottom: 8 },
+  chartWrap: { marginTop: 8, marginBottom: 4 },
+  chartLabels: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 4 },
+  chartLabel: { fontSize: 9, color: theme.textMuted, flex: 1, textAlign: "center" },
+  savingsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.border },
+  savingsMonth: { fontSize: 14, color: theme.text, fontWeight: "500" },
+  savingsAmount: { fontSize: 14, fontWeight: "700" },
   tipCard: {
     flexDirection: "row", alignItems: "flex-start", gap: 12,
     padding: 16, backgroundColor: theme.accentSoft, borderRadius: 16, marginTop: 12,
