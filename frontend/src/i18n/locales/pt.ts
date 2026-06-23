@@ -162,6 +162,7 @@ const COMMON = {
   stats: {
     title: "Estatísticas", subtitle: "Seus pagamentos recorrentes por categoria.",
     thisMonth: "Este mês", vsPrevMonth: "Vs mês anterior", annualForecast: "Previsão anual", annualForecastReal: "Total dos últimos 12 meses", subtitleOneoff: "As suas despesas pontuais por categoria.", subtitleCombined: "Todas as suas despesas por categoria.", perMonth: "/ mês",
+    subtitleSavings: "A sua poupança nos últimos 12 meses.",
     savingsMode: "Poupança",
     savingsTitle: "Poupança mensal",
     savingsSub: "Orçamento restante cada mês após todas as despesas.",
@@ -171,6 +172,7 @@ const COMMON = {
     savingsDetail: "Detalhe mês a mês",
     savingsTipTitle: "Bom saber",
     savingsTip: "Um mês negativo significa que as despesas ultrapassaram o rendimento declarado nesse mês.",
+    savingsNoData: "Sem dados de poupança disponíveis para este período.",
     helper: "Valores convertidos para sua moeda principal.",
     breakdown: "Distribuição", categoriesCount: "categoria(s)",
     top3: "Top 3 despesas", evolution12: "Evolução em 12 meses",

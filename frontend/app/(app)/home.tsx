@@ -34,7 +34,7 @@ export default function Home() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, expenses, customCategories, baseCurrency, deleteSubscription, deleteExpense, monthlyIncome, getIncomeForMonth } = useSubscriptions();
+  const { subscriptions, expenses, customCategories, baseCurrency, deleteSubscription, deleteExpense, monthlyIncome, incomeOverrides, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
   // Mode d'affichage : récurrent (abonnements), ponctuel (dépenses), ou cumulé (les deux additionnés).
@@ -252,7 +252,15 @@ export default function Home() {
         last12MonthsLabel: t("pdf.last12MonthsLabel"),
         footerGenerated: t("pdf.footerGenerated"),
         footerCurrency: t("pdf.footerCurrency"),
+        savingsTitle: t("stats.savingsTitle"),
+        savingsTotal12: t("stats.savingsTotal12"),
+        savingsAvg: t("stats.savingsAvg"),
+        savingsDetail: t("stats.savingsDetail"),
+        savingsNoData: t("stats.savingsNoData"),
       },
+      installedAt,
+      monthlyIncome,
+      incomeOverrides,
     });
 
     // On web, expo-print's printToFileAsync prints the *current page* via window.print()
@@ -292,7 +300,6 @@ export default function Home() {
       const { uri } = await Print.printToFileAsync({
         html,
         base64: false,
-        useMarkupFormatter: true,
       });
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {

@@ -20,6 +20,7 @@ export type BackupData = {
   baseCurrency: string;
   monthlyIncome: number;
   incomeOverrides: Record<string, number>;
+  installedAt?: string;
 };
 
 // Encoding robuste (supporte accents, emoji, caractères spéciaux)
@@ -50,6 +51,7 @@ export async function exportBackup(data: {
   baseCurrency: string;
   monthlyIncome: number;
   incomeOverrides: Record<string, number>;
+  installedAt?: string;
 }): Promise<void> {
   try {
     // Les photos de tickets sont stockées en fichiers locaux (chemin invalide

@@ -25,7 +25,7 @@ export default function Settings() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth } = useSubscriptions();
+  const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
@@ -66,6 +66,7 @@ export default function Settings() {
         baseCurrency,
         monthlyIncome,
         incomeOverrides,
+        installedAt,
       });
     } finally {
       setExporting(false);
@@ -132,6 +133,10 @@ export default function Settings() {
               await replaceAllCustomCategories(backup.customCategories || []);
               await replaceAllSubscriptions(backup.subscriptions || []);
               await replaceAllExpenses(restoredExpenses);
+              // Restaure la date d'installation si présente dans le backup
+              if (backup.installedAt) {
+                await setInstalledAt(backup.installedAt);
+              }
 
               Alert.alert(t("settings.backup.importSuccessTitle"), t("settings.backup.importSuccess"));
             } catch (e: any) {

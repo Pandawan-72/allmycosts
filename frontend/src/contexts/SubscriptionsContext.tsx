@@ -46,6 +46,7 @@ type SubsState = {
   addCustomCategory: (c: Omit<Category, "id"> & { id?: string }) => Promise<Category>;
   deleteCustomCategory: (id: string) => Promise<void>;
   installedAt: string;
+  setInstalledAt: (date: string) => Promise<void>;
   replaceAllSubscriptions: (next: Subscription[]) => Promise<void>;
   replaceAllCustomCategories: (next: Category[]) => Promise<void>;
   monthlyIncome: number;
@@ -235,6 +236,12 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     await persistCats(customCategories.filter((c) => c.id !== id));
   }, [persistCats, customCategories]);
 
+  const setInstalledAtFn = useCallback(async (date: string) => {
+    if (!uidKey) return;
+    await storage.setItem(userScopedKey(uidKey, "installedAt"), date);
+    setInstalledAt(date);
+  }, [uidKey]);
+
   // Remplace l'intégralité des abonnements/catégories en une seule opération
   // atomique (utilisé pour la restauration de sauvegarde) — évite les
   // problèmes de "stale closure" d'une boucle d'appels addSubscription/addCustomCategory.
@@ -294,6 +301,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         addCustomCategory,
         deleteCustomCategory,
         installedAt,
+        setInstalledAt: setInstalledAtFn,
         replaceAllSubscriptions,
         replaceAllCustomCategories,
         monthlyIncome,

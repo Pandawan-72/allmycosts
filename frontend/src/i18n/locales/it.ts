@@ -159,6 +159,7 @@ const COMMON = {
   stats: {
     title: "Statistiche", subtitle: "I tuoi pagamenti ricorrenti per categoria.",
     thisMonth: "Questo mese", vsPrevMonth: "Vs mese scorso", annualForecast: "Previsione annuale", annualForecastReal: "Totale ultimi 12 mesi", subtitleOneoff: "Le tue spese una tantum per categoria.", subtitleCombined: "Tutte le tue spese per categoria.", perMonth: "/ mese",
+    subtitleSavings: "I tuoi risparmi negli ultimi 12 mesi.",
     savingsMode: "Risparmio",
     savingsTitle: "Risparmio mensile",
     savingsSub: "Budget rimanente ogni mese dopo tutte le spese.",
@@ -168,6 +169,7 @@ const COMMON = {
     savingsDetail: "Dettaglio mese per mese",
     savingsTipTitle: "Da sapere",
     savingsTip: "Un mese negativo significa che le spese hanno superato il reddito dichiarato quel mese.",
+    savingsNoData: "Nessun dato di risparmio disponibile per questo periodo.",
     helper: "Importi convertiti nella tua valuta principale.",
     breakdown: "Ripartizione", categoriesCount: "categoria/e",
     top3: "Top 3 spese", evolution12: "Andamento su 12 mesi",

@@ -160,6 +160,7 @@ const COMMON = {
   stats: {
     title: "Statistieken", subtitle: "Je terugkerende betalingen per categorie.",
     thisMonth: "Deze maand", vsPrevMonth: "Vs vorige maand", annualForecast: "Jaarprognose", annualForecastReal: "Totaal laatste 12 maanden", subtitleOneoff: "Uw eenmalige uitgaven per categorie.", subtitleCombined: "Al uw uitgaven per categorie.", perMonth: "/ maand",
+    subtitleSavings: "Uw besparingen over de laatste 12 maanden.",
     savingsMode: "Sparen",
     savingsTitle: "Maandelijkse besparingen",
     savingsSub: "Resterend budget elke maand na alle uitgaven.",
@@ -169,6 +170,7 @@ const COMMON = {
     savingsDetail: "Maand voor maand",
     savingsTipTitle: "Goed om te weten",
     savingsTip: "Een negatieve maand betekent dat uw uitgaven uw opgegeven inkomen die maand overschreden.",
+    savingsNoData: "Geen spaargegeven beschikbaar voor deze periode.",
     helper: "Alle bedragen in je hoofdvaluta.",
     breakdown: "Verdeling", categoriesCount: "categorie(ën)",
     top3: "Top 3 uitgaven", evolution12: "Verloop over 12 maanden",

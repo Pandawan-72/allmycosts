@@ -30,11 +30,22 @@ function getLast12Months(): string[] {
   return months;
 }
 
+function getLast12MonthsFull(locale: string): { label: string; year: number; month: number }[] {
+  const result = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString(locale, { month: "long", year: "numeric" });
+    result.push({ label, year: d.getFullYear(), month: d.getMonth() });
+  }
+  return result;
+}
+
 export default function Stats() {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
@@ -140,13 +151,10 @@ export default function Stats() {
   // ─── Épargne mensuelle sur 12 mois ────────────────────────────────────────
   // Pour chaque mois : revenu effectif - (récurrents actifs ce mois + ponctuels du mois)
   const savingsData = useMemo(() => {
-    const months = getLast12Months();
-    const now = new Date();
-    return months.map((label, i) => {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-      const y = monthDate.getFullYear();
-      const m = monthDate.getMonth();
+    const months = getLast12MonthsFull(i18n.language);
+    return months.map(({ label, year: y, month: m }) => {
+      const monthDate = new Date(y, m, 1);
+      const monthEnd = new Date(y, m + 1, 0);
 
       // Si le mois est antérieur à la date d'installation, épargne = 0
       const installDate = installedAt ? new Date(installedAt) : null;
@@ -183,7 +191,10 @@ export default function Stats() {
   }, [subscriptions, expenses, baseCurrency, convert, getIncomeForMonth, installedAt, refreshKey]);
 
   const totalSavings = useMemo(() => savingsData.reduce((sum, m) => sum + m.value, 0), [savingsData]);
-  const avgMonthlySavings = useMemo(() => totalSavings / 12, [totalSavings]);
+  const avgMonthlySavings = useMemo(() => {
+    const activemonths = savingsData.filter(m => m.value !== 0).length;
+    return activemonths > 0 ? totalSavings / activemonths : 0;
+  }, [totalSavings, savingsData]);
   const maxSavings = useMemo(() => Math.max(...savingsData.map(d => Math.abs(d.value)), 0.01), [savingsData]);
 
   // ─── Comparaison mois précédent ─────────────────────────────────────────
@@ -263,7 +274,7 @@ export default function Stats() {
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <Text style={styles.h1}>
-          {dataMode === "recurring" ? t("stats.subtitle") : dataMode === "oneoff" ? t("stats.subtitleOneoff") : t("stats.subtitleCombined")}
+          {dataMode === "recurring" ? t("stats.subtitle") : dataMode === "oneoff" ? t("stats.subtitleOneoff") : dataMode === "combined" ? t("stats.subtitleCombined") : t("stats.subtitleSavings")}
         </Text>
         <Text style={styles.sub}>{t("stats.helper")}</Text>
 
@@ -298,9 +309,9 @@ export default function Stats() {
           </TouchableOpacity>
         </View>
 
-        {groups.length === 0 ? (
+        {dataMode !== "savings" && groups.length === 0 ? (
           <Text style={styles.empty}>{t("home.empty")}</Text>
-        ) : (
+        ) : dataMode !== "savings" ? (
           <>
             {/* ─── Top 3 dépenses ─── */}
             <Text style={[styles.section, { marginTop: 4 }]}>{t("stats.top3")}</Text>
@@ -449,7 +460,7 @@ export default function Stats() {
               </View>
             ) : null}
           </>
-        )}
+        ) : null}
 
         {/* ─── Onglet Épargne ─── */}
         {dataMode === "savings" ? (
@@ -494,7 +505,7 @@ export default function Stats() {
 
             {/* Détail mois par mois */}
             <Text style={[styles.section, { marginTop: 20 }]}>{t("stats.savingsDetail")}</Text>
-            {savingsData.map((d, i) => (
+            {savingsData.filter(d => d.value !== 0).map((d, i) => (
               <View key={i} style={styles.savingsRow}>
                 <Text style={styles.savingsMonth}>{d.label}</Text>
                 <Text style={[styles.savingsAmount, { color: d.value >= 0 ? "#15803D" : theme.danger }]}>

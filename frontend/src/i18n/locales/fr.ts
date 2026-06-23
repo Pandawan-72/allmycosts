@@ -162,6 +162,7 @@ const COMMON = {
   stats: {
     title: "Statistiques", subtitle: "Vos paiements récurrents par catégorie.",
     thisMonth: "Ce mois-ci", vsPrevMonth: "Vs mois dernier", annualForecast: "Estimation annuelle", annualForecastReal: "Total 12 derniers mois", subtitleOneoff: "Vos dépenses ponctuelles par catégorie.", subtitleCombined: "L'ensemble de vos dépenses par catégorie.", perMonth: "/ mois",
+    subtitleSavings: "Votre épargne sur les 12 derniers mois.",
     savingsMode: "Épargne",
     savingsTitle: "Épargne mensuelle",
     savingsSub: "Budget restant chaque mois après toutes vos dépenses.",
@@ -171,6 +172,7 @@ const COMMON = {
     savingsDetail: "Détail mois par mois",
     savingsTipTitle: "Bon à savoir",
     savingsTip: "Un mois négatif signifie que vos dépenses ont dépassé votre revenu déclaré ce mois-là.",
+    savingsNoData: "Aucune donnée d'épargne disponible pour cette période.",
     helper: "Tous les montants sont convertis vers votre devise principale.",
     breakdown: "Répartition", categoriesCount: "catégorie(s)",
     top3: "Top 3 des dépenses", evolution12: "Évolution sur 12 mois",

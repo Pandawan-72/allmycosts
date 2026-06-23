@@ -162,6 +162,7 @@ const COMMON = {
   stats: {
     title: "Stats", subtitle: "Your recurring payments by category.",
     thisMonth: "This month", vsPrevMonth: "Vs last month", annualForecast: "Annual forecast", annualForecastReal: "Last 12 months total", subtitleOneoff: "Your one-off expenses by category.", subtitleCombined: "All your expenses by category.", perMonth: "/ month",
+    subtitleSavings: "Your savings over the last 12 months.",
     savingsMode: "Savings",
     savingsTitle: "Monthly savings",
     savingsSub: "Budget left each month after all your expenses.",
@@ -171,6 +172,7 @@ const COMMON = {
     savingsDetail: "Month by month breakdown",
     savingsTipTitle: "Good to know",
     savingsTip: "A negative month means your expenses exceeded your declared income that month.",
+    savingsNoData: "No savings data available for this period.",
     helper: "All amounts converted to your base currency.",
     breakdown: "Breakdown", categoriesCount: "categorie(s)",
     top3: "Top 3 expenses", evolution12: "12-month trend",
