@@ -45,6 +45,7 @@ type SubsState = {
   deleteSubscription: (id: string) => Promise<void>;
   addCustomCategory: (c: Omit<Category, "id"> & { id?: string }) => Promise<Category>;
   deleteCustomCategory: (id: string) => Promise<void>;
+  installedAt: string;
   replaceAllSubscriptions: (next: Subscription[]) => Promise<void>;
   replaceAllCustomCategories: (next: Category[]) => Promise<void>;
   monthlyIncome: number;
@@ -85,6 +86,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const uidKey = user?.user_id;
 
   const [loading, setLoading] = useState(true);
+  const [installedAt, setInstalledAt] = useState<string>("");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
@@ -129,6 +131,16 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
       } else {
         const region = Localization.getLocales?.()[0]?.regionCode || null;
         setBaseCurrencyState(currencyForRegion(region));
+      }
+      // Stocke la date d'installation au premier lancement — utilisée pour
+      // ne pas afficher d'épargne sur les mois antérieurs à l'installation.
+      const stored = await storage.getItem<string>(userScopedKey(uidKey, "installedAt"), "");
+      if (stored) {
+        setInstalledAt(stored);
+      } else {
+        const now = new Date().toISOString();
+        await storage.setItem(userScopedKey(uidKey, "installedAt"), now);
+        setInstalledAt(now);
       }
       setLoading(false);
     })();
@@ -281,6 +293,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         deleteSubscription,
         addCustomCategory,
         deleteCustomCategory,
+        installedAt,
         replaceAllSubscriptions,
         replaceAllCustomCategories,
         monthlyIncome,

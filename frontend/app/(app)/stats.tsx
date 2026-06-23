@@ -36,7 +36,7 @@ export default function Stats() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth } = useSubscriptions();
+  const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
 
   // Mode d'affichage des statistiques : récurrent (abonnements), ponctuel
@@ -148,6 +148,16 @@ export default function Stats() {
       const y = monthDate.getFullYear();
       const m = monthDate.getMonth();
 
+      // Si le mois est antérieur à la date d'installation, épargne = 0
+      const installDate = installedAt ? new Date(installedAt) : null;
+      if (installDate) {
+        const installYear = installDate.getFullYear();
+        const installMonth = installDate.getMonth();
+        if (y < installYear || (y === installYear && m < installMonth)) {
+          return { label, value: 0 };
+        }
+      }
+
       const income = getIncomeForMonth(y, m);
 
       let recurringTotal = 0;
@@ -170,7 +180,7 @@ export default function Stats() {
       const saving = income > 0 ? income - recurringTotal - oneoffTotal : 0;
       return { label, value: saving };
     });
-  }, [subscriptions, expenses, baseCurrency, convert, getIncomeForMonth, refreshKey]);
+  }, [subscriptions, expenses, baseCurrency, convert, getIncomeForMonth, installedAt, refreshKey]);
 
   const totalSavings = useMemo(() => savingsData.reduce((sum, m) => sum + m.value, 0), [savingsData]);
   const avgMonthlySavings = useMemo(() => totalSavings / 12, [totalSavings]);
@@ -444,10 +454,7 @@ export default function Stats() {
         {/* ─── Onglet Épargne ─── */}
         {dataMode === "savings" ? (
           <>
-            <Text style={styles.section}>{t("stats.savingsTitle")}</Text>
-            <Text style={[styles.subtitle, { marginBottom: 16 }]}>{t("stats.savingsSub")}</Text>
-
-            {/* Totaux épargne */}
+            {/* Totaux */}
             <View style={styles.compRow}>
               <View style={styles.compCard}>
                 <Text style={styles.compLabel}>{t("stats.savingsTotal12")}</Text>
@@ -463,9 +470,8 @@ export default function Stats() {
               </View>
             </View>
 
-            {/* Graphique épargne 12 mois */}
-            <Text style={[styles.section, { marginTop: 20 }]}>{t("stats.savingsChart")}</Text>
-            <View style={styles.chartWrap}>
+            {/* Graphique */}
+            <View style={[styles.chartWrap, { marginTop: 20 }]}>
               <Svg width="100%" height={160} viewBox={`0 0 ${savingsData.length * 28} 160`} preserveAspectRatio="none">
                 {savingsData.map((d, i) => {
                   const barH = maxSavings > 0 ? Math.abs(d.value) / maxSavings * 100 : 0;
@@ -496,15 +502,6 @@ export default function Stats() {
                 </Text>
               </View>
             ))}
-
-            {/* Tip */}
-            <View style={[styles.tipCard, { marginTop: 20 }]}>
-              <Icons.PiggyBank color={theme.accent} size={18} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.tipTitle}>{t("stats.savingsTipTitle")}</Text>
-                <Text style={styles.tipText}>{t("stats.savingsTip")}</Text>
-              </View>
-            </View>
           </>
         ) : null}
 
