@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Platform, Modal, Animated } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -30,6 +30,7 @@ function CatIcon({ name, color, size = 22 }: { name: string; color: string; size
 
 export default function Home() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -632,7 +633,7 @@ export default function Home() {
       ) : null}
 
       {showFabMenu ? (
-        <Animated.View style={[styles.fabMenu, {
+        <Animated.View style={[styles.fabMenu, { bottom: Math.max(insets.bottom + 84, 100) }, {
           opacity: fabMenuAnim,
           transform: [{ translateY: fabMenuAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }]
         }]}>
@@ -706,7 +707,7 @@ export default function Home() {
         </Animated.View>
       ) : null}
 
-      <TouchableOpacity testID="add-subscription-button" style={styles.fab} onPress={showFabMenu ? closeFabMenu : openFabMenu}>
+      <TouchableOpacity testID="add-subscription-button" style={[styles.fab, { bottom: Math.max(insets.bottom + 12, 24) }]} onPress={showFabMenu ? closeFabMenu : openFabMenu}>
         <Icons.Plus color="#fff" size={28} strokeWidth={2.5} />
       </TouchableOpacity>
 
