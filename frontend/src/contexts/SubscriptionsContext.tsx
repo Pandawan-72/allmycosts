@@ -3,7 +3,6 @@ import { storage } from "@/src/utils/storage";
 import * as Localization from "expo-localization";
 import { currencyForRegion } from "@/src/data/currencies";
 import { Category } from "@/src/data/categories";
-import { useAuth } from "@/src/contexts/AuthContext";
 
 export type BillingCycle = "monthly" | "yearly";
 
@@ -83,8 +82,8 @@ function uidExpense() {
 }
 
 export function SubscriptionsProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const uidKey = user?.user_id;
+  // Clé fixe locale — plus d'authentification Firebase
+  const uidKey = "local_user";
 
   const [loading, setLoading] = useState(true);
   const [installedAt, setInstalledAt] = useState<string>("");

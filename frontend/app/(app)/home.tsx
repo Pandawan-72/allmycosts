@@ -33,7 +33,7 @@ export default function Home() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { isPro } = useAuth();
   const { subscriptions, expenses, customCategories, baseCurrency, deleteSubscription, deleteExpense, monthlyIncome, incomeOverrides, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
@@ -142,15 +142,6 @@ export default function Home() {
   const isOverBudget = effectiveIncome > 0 && displayedRemaining < 0;
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
-  const isPro = !!user?.pro?.is_pro;
-  const isTrialing = user?.pro?.plan === "trialing";
-  const trialExpired = user?.pro?.plan === "expired" || (user?.pro?.plan === "free" && !!user?.pro?.has_used_trial);
-  const trialHoursLeft = (() => {
-    const te = user?.pro?.trial_end;
-    if (!te || !isTrialing) return 0;
-    return Math.max(0, Math.ceil((new Date(te).getTime() - Date.now()) / 3600000));
-  })();
-  const trialDaysLeft = Math.ceil(trialHoursLeft / 24);
   const showPaywallGate = !isPro;
 
   // Limite combinée gratuite : 6 éléments au total, abonnements récurrents et
@@ -174,19 +165,6 @@ export default function Home() {
     return { lockedSubIds: lockedSubs, lockedExpenseIds: lockedExps, totalEntriesCount: allEntries.length };
   }, [subscriptions, expenses, isPro]);
 
-  useEffect(() => {
-    if (isTrialing && trialDaysLeft <= 2 && trialDaysLeft > 0) {
-      Alert.alert(
-        t("paywall.trialEndingTitle"),
-        t("paywall.trialEndingBody"),
-        [
-          { text: t("common.later"), style: "cancel" },
-          { text: t("paywall.goProNow"), onPress: () => router.push("/(app)/paywall") },
-        ]
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   /**
    * ============================================================================
@@ -232,7 +210,7 @@ export default function Home() {
       convert,
       t: (key: string) => t(key),
       monthLabel: (year, month) => monthShortName(month, i18n.language) + " " + String(year).slice(2),
-      userName: user?.name || "",
+      userName: "",
       logoB64,
       generatedOn,
       i18nText: {
@@ -448,7 +426,7 @@ export default function Home() {
     );
   };
 
-  const firstName = (user?.name || "").trim().split(/\s+/)[0] || "";
+  const firstName = "";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -483,26 +461,6 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20 }}
         ListHeaderComponent={
           <View>
-            {isTrialing && trialDaysLeft > 0 ? (
-              <TouchableOpacity testID="trial-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, styles.proActivatedBanner]}>
-                <Icons.Sparkles color={theme.accent} size={16} />
-                <Text style={styles.trialBannerText}>{t("home.trialDaysLeft", { count: trialDaysLeft })}</Text>
-                <Icons.ChevronRight color={theme.accent} size={16} />
-              </TouchableOpacity>
-            ) : null}
-            {trialExpired ? (
-              <TouchableOpacity testID="upgrade-banner" onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: "#FEF2F2", borderColor: theme.danger }]}>
-                <Icons.AlertCircle color={theme.danger} size={16} />
-                <Text style={[styles.trialBannerText, { color: theme.danger }]}>{t("home.trialEnded")}</Text>
-                <Text style={{ color: theme.danger, fontWeight: "800" }}>{t("home.upgrade")}</Text>
-              </TouchableOpacity>
-            ) : null}
-            {isPro && !isTrialing && !trialExpired ? (
-              <View style={[styles.trialBanner, styles.proActivatedBanner]}>
-                <Icons.BadgeCheck color={theme.accent} size={16} />
-                <Text style={styles.proActivatedBannerText}>{t("home.proUnlocked")}</Text>
-              </View>
-            ) : null}
             <View style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <View style={styles.heroToggle}>
@@ -729,23 +687,21 @@ export default function Home() {
             style={styles.fabMenuItemRow}
             onPress={() => {
               closeFabMenu();
-              const isPro = !!user?.pro?.is_pro;
-              const isTrialing = user?.pro?.plan === "trialing";
-              if (!isPro && !isTrialing) {
+                if (!isPro) {
                 setTimeout(() => router.push("/(app)/paywall"), 200);
               } else {
                 setTimeout(() => router.push("/(app)/receipt-scan"), 200);
               }
             }}
           >
-            <View style={[styles.fabMenuIcon, { backgroundColor: (!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? "#FFFBEB" : theme.surfaceAlt }]}>
-              <Icons.ScanLine color={(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? "#F59E0B" : theme.textSubtle} size={20} />
+            <View style={[styles.fabMenuIcon, { backgroundColor: isPro ? "#FFFBEB" : theme.surfaceAlt }]}>
+              <Icons.ScanLine color={isPro ? "#F59E0B" : theme.textSubtle} size={20} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.fabMenuTitle, !(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") && { color: theme.textMuted }]}>{t("home.fabScanReceipt")}</Text>
-              <Text style={styles.fabMenuSub}>{(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? t("home.fabScanReceiptSub") : t("settings.backup.proRequired")}</Text>
+              <Text style={[styles.fabMenuTitle, !isPro && { color: theme.textMuted }]}>{t("home.fabScanReceipt")}</Text>
+              <Text style={styles.fabMenuSub}>{isPro ? t("home.fabScanReceiptSub") : t("settings.backup.proRequired")}</Text>
             </View>
-            {!(!!user?.pro?.is_pro || user?.pro?.plan === "trialing") ? <Icons.Lock color={theme.textSubtle} size={16} /> : null}
+            {!isPro ? <Icons.Lock color={theme.textSubtle} size={16} /> : null}
           </TouchableOpacity>
         </Animated.View>
       ) : null}

@@ -46,7 +46,7 @@ export default function Stats() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { isPro } = useAuth();
   const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
 
@@ -61,7 +61,6 @@ export default function Stats() {
     setRefreshKey((k) => k + 1);
   }, []));
 
-  const isPro = !!user?.pro?.is_pro;
   const cur = findCurrency(baseCurrency);
 
   // ─── Normalisation : convertit subscriptions et expenses vers un montant

@@ -24,8 +24,8 @@ export default function Settings() {
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { user, logout, refreshUser } = useAuth();
-  const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, addSubscription, addCustomCategory, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
+  const { isPro } = useAuth();
+  const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
   const [showCurrency, setShowCurrency] = useState(false);
@@ -35,8 +35,6 @@ export default function Settings() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const isPro = !!user?.pro?.is_pro;
-
   const onRestore = async () => {
     if (restoring) return;
     setRestoring(true);
@@ -44,74 +42,47 @@ export default function Settings() {
       if (isRevenueCatSupported()) {
         await restorePurchasesRC();
       }
-      await refreshUser();
     } finally {
       setRestoring(false);
     }
   };
 
-  // ✅ Export des données
   const onExport = async () => {
-    if (!isPro) {
-      router.push("/(app)/paywall");
-      return;
-    }
+    if (!isPro) { router.push("/(app)/paywall"); return; }
     if (exporting) return;
     setExporting(true);
     try {
-      await exportBackup({
-        subscriptions,
-        expenses,
-        customCategories,
-        baseCurrency,
-        monthlyIncome,
-        incomeOverrides,
-        installedAt,
-      });
+      await exportBackup({ subscriptions, expenses, customCategories, baseCurrency, monthlyIncome, incomeOverrides, installedAt });
     } finally {
       setExporting(false);
     }
   };
 
-  // ✅ Import des données
   const onImport = async () => {
-    if (!isPro) {
-      router.push("/(app)/paywall");
-      return;
-    }
+    if (!isPro) { router.push("/(app)/paywall"); return; }
     if (importing) return;
-
     Alert.alert(
       t("settings.backup.importTitle"),
       t("settings.backup.importConfirmMsg"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Continuer",
+          text: t("common.continue"),
           style: "destructive",
           onPress: async () => {
             setImporting(true);
             try {
               const backup = await importBackup();
               if (!backup) return;
-
-              // Restaurer la devise et le revenu par défaut
               await setCurrency(backup.baseCurrency);
               await setMonthlyIncome(backup.monthlyIncome || 0);
-
-              // Restaure les revenus spécifiques par mois (overrides), s'il y en a.
               const overrides = backup.incomeOverrides || {};
               for (const key of Object.keys(overrides)) {
                 const [yearStr, monthStr] = key.split("-");
                 const year = parseInt(yearStr, 10);
                 const month = parseInt(monthStr, 10) - 1;
-                if (!isNaN(year) && !isNaN(month)) {
-                  await setIncomeForMonth(year, month, overrides[key]);
-                }
+                if (!isNaN(year) && !isNaN(month)) await setIncomeForMonth(year, month, overrides[key]);
               }
-
-              // Reconstruit les photos de tickets sur disque depuis le base64
-              // embarqué dans le backup, et restaure le bon chemin local.
               const restoredExpenses = await Promise.all(
                 (backup.expenses || []).map(async (exp: any) => {
                   if (!exp.receiptImageBase64) return exp;
@@ -125,19 +96,10 @@ export default function Settings() {
                   }
                 })
               );
-
-              // Remplace l'intégralité des catégories personnalisées, des
-              // abonnements, et des dépenses en une seule opération atomique
-              // par type (conserve les id/dates d'origine, évite les pertes
-              // et les doublons liés aux anciennes boucles add*).
               await replaceAllCustomCategories(backup.customCategories || []);
               await replaceAllSubscriptions(backup.subscriptions || []);
               await replaceAllExpenses(restoredExpenses);
-              // Restaure la date d'installation si présente dans le backup
-              if (backup.installedAt) {
-                await setInstalledAt(backup.installedAt);
-              }
-
+              if (backup.installedAt) await setInstalledAt(backup.installedAt);
               Alert.alert(t("settings.backup.importSuccessTitle"), t("settings.backup.importSuccess"));
             } catch (e: any) {
               Alert.alert("Erreur", e?.message || "Impossible de restaurer la sauvegarde.");
@@ -150,24 +112,10 @@ export default function Settings() {
     );
   };
 
-  const proLabel = (() => {
-    const p = user?.pro?.plan;
-    if (p === "lifetime") return t("common.lifetime");
-    if (p === "active_monthly") return t("common.monthly");
-    if (p === "active_yearly") return t("common.yearly");
-    if (p === "trialing") return t("paywall.trialLabel");
-    return t("home.upgrade");
-  })();
-
-  const onLogout = async () => {
-    await logout();
-    router.replace("/(auth)/sign-in");
-  };
-
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <TouchableOpacity testID="back-button" onPress={() => router.back()} style={styles.headerBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Icons.ChevronLeft color={theme.text} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("settings.title")}</Text>
@@ -175,30 +123,6 @@ export default function Settings() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarTxt}>{(user?.name || "?").charAt(0).toUpperCase()}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.name}>{user?.name}</Text>
-            <Text style={styles.email}>{user?.email}</Text>
-          </View>
-        </View>
-
-        <View style={[styles.row, { marginBottom: 10 }]}>
-          <View style={[styles.rowIcon, { backgroundColor: isDark ? "#374151" : "#F3F4F6" }]}>
-            <Icons.Moon color={theme.text} size={18} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{t("settings.darkMode")}</Text>
-          </View>
-          <Switch
-            value={isDark}
-            onValueChange={toggleTheme}
-            trackColor={{ false: "#E5E7EB", true: theme.accent }}
-            thumbColor="#fff"
-          />
-        </View>
 
         <Text style={styles.section}>{t("settings.preferences")}</Text>
 
@@ -231,29 +155,33 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
+        <View style={[styles.row, { marginTop: 10 }]}>
+          <View style={styles.rowIcon}><Icons.Moon color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.darkMode")}</Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: "#E5E7EB", true: theme.accent }}
+            thumbColor="#fff"
+          />
+        </View>
+
         <TouchableOpacity testID="manage-pro-row" onPress={() => router.push("/(app)/paywall")} style={[styles.row, { marginTop: 10 }]}>
           <View style={[styles.rowIcon, { backgroundColor: theme.accentSoft }]}><Icons.Crown color={theme.accent} size={18} /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{t("settings.proPlan")}</Text>
-            <Text style={styles.rowSub}>{proLabel}</Text>
+            <Text style={styles.rowSub}>{isPro ? t("settings.proActive") : t("settings.proInactive")}</Text>
           </View>
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
-        {/* ✅ Section Sauvegarde — Pro uniquement */}
-        <Text style={[styles.section, { marginTop: 24 }]}>SAUVEGARDE</Text>
+        <Text style={[styles.section, { marginTop: 24 }]}>{t("settings.backup.title")}</Text>
 
-        <TouchableOpacity
-          testID="export-backup-row"
-          onPress={onExport}
-          disabled={exporting}
-          style={styles.row}
-        >
+        <TouchableOpacity testID="export-backup-row" onPress={onExport} disabled={exporting} style={styles.row}>
           <View style={styles.rowIcon}>
-            {exporting
-              ? <ActivityIndicator size="small" color={theme.text} />
-              : <Icons.Download color={isPro ? theme.text : theme.textSubtle} size={18} />
-            }
+            {exporting ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.Download color={isPro ? theme.text : theme.textSubtle} size={18} />}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.exportTitle")}</Text>
@@ -262,17 +190,9 @@ export default function Settings() {
           {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          testID="import-backup-row"
-          onPress={onImport}
-          disabled={importing}
-          style={[styles.row, { marginTop: 10 }]}
-        >
+        <TouchableOpacity testID="import-backup-row" onPress={onImport} disabled={importing} style={[styles.row, { marginTop: 10 }]}>
           <View style={styles.rowIcon}>
-            {importing
-              ? <ActivityIndicator size="small" color={theme.text} />
-              : <Icons.Upload color={isPro ? theme.text : theme.textSubtle} size={18} />
-            }
+            {importing ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.Upload color={isPro ? theme.text : theme.textSubtle} size={18} />}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.importTitle")}</Text>
@@ -309,21 +229,11 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
-        <TouchableOpacity testID="logout-button" onPress={onLogout} style={[styles.row, { marginTop: 20 }]}>
-          <View style={[styles.rowIcon, { backgroundColor: "#FEE2E2" }]}>
-            <Icons.LogOut color={theme.danger} size={18} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.rowTitle, { color: theme.danger }]}>{t("settings.logout")}</Text>
-          </View>
-        </TouchableOpacity>
-
         <View testID="app-version-row" style={styles.versionFooter}>
           <Icons.Info color={theme.textSubtle} size={13} strokeWidth={2} />
-          <Text style={styles.versionText}>
-            {t("settings.version")} {APP_VERSION} ({APP_BUILD})
-          </Text>
+          <Text style={styles.versionText}>{t("settings.version")} {APP_VERSION} ({APP_BUILD})</Text>
         </View>
+
       </ScrollView>
 
       <Modal visible={showLang} animationType="slide" onRequestClose={() => setShowLang(false)}>
@@ -387,26 +297,11 @@ export default function Settings() {
 
 function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
-  header: {
-    paddingHorizontal: 12, paddingVertical: 8,
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    borderBottomWidth: 1, borderBottomColor: theme.border,
-  },
+  header: { paddingHorizontal: 12, paddingVertical: 8, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1, borderBottomColor: theme.border },
   headerBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: { fontSize: 16, fontWeight: "800", color: theme.text },
-  profileCard: {
-    flexDirection: "row", alignItems: "center", gap: 14, padding: 20,
-    backgroundColor: theme.cardBg, borderRadius: 20, marginBottom: 24,
-  },
-  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "#374151", alignItems: "center", justifyContent: "center" },
-  avatarTxt: { color: "#fff", fontSize: 20, fontWeight: "800" },
-  name: { color: "#fff", fontSize: 18, fontWeight: "800" },
-  email: { color: "#9CA3AF", fontSize: 13, marginTop: 2 },
   section: { fontSize: 11, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 },
-  row: {
-    flexDirection: "row", alignItems: "center", gap: 14, padding: 14,
-    backgroundColor: theme.surface, borderRadius: 16, borderWidth: 1, borderColor: theme.border,
-  },
+  row: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, backgroundColor: theme.surface, borderRadius: 16, borderWidth: 1, borderColor: theme.border },
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: theme.surfaceAlt, alignItems: "center", justifyContent: "center" },
   rowTitle: { fontSize: 15, color: theme.text, fontWeight: "700" },
   rowSub: { fontSize: 13, color: theme.textMuted, marginTop: 2 },
@@ -414,10 +309,7 @@ function makeStyles(theme: any) { return StyleSheet.create({
   currencyCode: { fontWeight: "800", color: theme.text, width: 50 },
   currencyName: { color: theme.textMuted, flex: 1 },
   currencySymbol: { color: theme.text, fontWeight: "700" },
-  versionFooter: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 6, marginTop: 24, paddingVertical: 8, paddingBottom: 12,
-  },
+  versionFooter: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 24, paddingVertical: 8, paddingBottom: 12 },
   versionText: { fontSize: 12, color: theme.textSubtle, fontWeight: "600" },
 });
 }

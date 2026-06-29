@@ -29,7 +29,7 @@ export default function Paywall() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const { user, refreshUser } = useAuth();
+  const { isPro } = useAuth();
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -38,13 +38,13 @@ export default function Paywall() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!isRevenueCatSupported() || !user?.user_id) return;
-      await configureRC(user.user_id);
+      if (!isRevenueCatSupported()) return;
+      await configureRC();
       const pkgs = await fetchOfferingPackages();
       if (!cancelled) setPackages(pkgs);
     })();
     return () => { cancelled = true; };
-  }, [user?.user_id]);
+  }, []);
 
   const findPackageByPlan = (plan: RCPlan): RCPackageInfo | null =>
     packages.find((p) => p.plan === plan) || null;
@@ -58,8 +58,7 @@ export default function Paywall() {
         if (!pkg) throw new Error(t("paywall.offerUnavailable"));
         const res = await purchaseRCPackage(pkg.rcPackage);
         if (res.userCancelled) return;
-        await refreshUser();
-        router.replace("/(app)/home");
+          router.replace("/(app)/home");
       }
     } catch (e: any) {
       setErr(e?.message || t("paywall.purchaseError"));
@@ -75,7 +74,6 @@ export default function Paywall() {
       if (isRevenueCatSupported()) {
         await restorePurchasesRC();
       }
-      await refreshUser();
     } catch (e: any) {
       setErr(e?.message || t("paywall.genericError"));
     } finally {
@@ -83,7 +81,7 @@ export default function Paywall() {
     }
   };
 
-  const isPro = !!user?.pro?.is_pro;
+
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
