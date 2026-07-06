@@ -21,7 +21,7 @@ import { getBrandLogoBase64 } from "@/src/utils/brandLogoBase64";
 import { buildPdfHtml } from "@/src/lib/pdfExport";
 import { useTranslation } from "react-i18next";
 
-const FREE_SUB_LIMIT = 6; // Limite combinée : récurrents + ponctuels confondus.
+const FREE_SUB_LIMIT = 10; // Limite combinée : récurrents + ponctuels confondus.
 
 function CatIcon({ name, color, size = 22 }: { name: string; color: string; size?: number }) {
   const Cmp = (Icons as any)[name] || (Icons as any).Tag;

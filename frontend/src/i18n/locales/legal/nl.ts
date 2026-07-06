@@ -16,9 +16,9 @@ const LEGAL_NL = {
       { title: "4. AI-bonscan (Pro-functie)", body: "Bij het scannen van een bon wordt de tekst direct op uw apparaat geëxtraheerd (offline tekstherkenning). Alleen deze tekst, nooit de foto zelf, wordt naar een AI-dienst van een derde partij (Anthropic) gestuurd om winkelnaam, bedrag en datum te extraheren. De bonfoto blijft uitsluitend op uw apparaat opgeslagen." },
       { title: "5. Gegevensgebruik", body: "We gebruiken uw gegevens alleen voor: account aanmaken en beveiligen, Pro-toegang beheren, supportverzoeken beantwoorden, gescande bontekst structureren (Pro-functie)." },
       { title: "6. Diensten van derden", body: "All My Costs gebruikt: RevenueCat (Pro-aankopen), Google Play (betalingen), open.er-api.com (wisselkoersen), Anthropic (structureren van gescande bontekst, Pro-functie)." },
-      { title: "7. Bewaartermijn", body: "Firebase-account bewaard zolang actief; verwijderd op verzoek. Lokale gegevens (inclusief bonfoto’s) verwijderd bij deïnstallatie. Voor de bonscan verzonden tekst wordt door ons niet bewaard na de onmiddellijke verwerking." },
+      { title: "7. Bewaartermijn", body: "Lokale gegevens (inclusief bonfoto's) verwijderd bij deïnstallatie. Voor de bonscan verzonden tekst wordt niet bewaard na de onmiddellijke verwerking." },
       { title: "8. Uw rechten (AVG)", body: "Inzage, correctie, verwijdering, overdraagbaarheid, bezwaar. Contact: dev@retro-spare.fr." },
-      { title: "9. Beveiliging", body: "Authenticatie via Firebase. Alle communicatie versleuteld via HTTPS/TLS, inclusief bonscan." },
+      { title: "9. Beveiliging", body: "Alle communicatie versleuteld via HTTPS/TLS, inclusief bonscan. Betalingen beveiligd via Google Play." },
       { title: "10. Minderjarigen", body: "App niet bestemd voor gebruikers onder de 16 jaar." },
       { title: "11. Contact", body: "dev@retro-spare.fr" }
     ]
@@ -32,9 +32,9 @@ const LEGAL_NL = {
       { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop van € 3,99 via Google Play. Geen abonnement, geen terugkerende kosten." },
       { title: "5. Aankopen herstellen", body: "Gebruik de knop Aankopen herstellen in de instellingen met hetzelfde Google Play-account." },
       { title: "6. Terugbetalingen", body: "Terugbetalingen worden afgehandeld door Google Play volgens hun beleid." },
-      { title: "7. Aanvaardbaar gebruik", body: "Niet omzeilen van beperkingen, reverse engineering of illegaal gebruik." },
+      { title: "7. Aanvaardbaar gebruik", body: "Lokale gegevens (inclusief bonfoto's) verwijderd bij deïnstallatie. Voor de bonscan verzonden tekst wordt niet bewaard na de onmiddellijke verwerking." },
       { title: "8. Intellectueel eigendom", body: "De App en haar inhoud zijn uitsluitend eigendom van All My Costs." },
-      { title: "9. Beperking van aansprakelijkheid", body: "App geleverd als is. Geen aansprakelijkheid voor lokaal gegevensverlies of financiële beslissingen." },
+      { title: "9. Beperking van aansprakelijkheid", body: "Alle communicatie versleuteld via HTTPS/TLS, inclusief bonscan. Betalingen beveiligd via Google Play." },
       { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   }

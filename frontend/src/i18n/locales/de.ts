@@ -113,7 +113,7 @@ const COMMON = {
     unlockEverything: "Alles freischalten.",
     onceForever: "Einmalig. Für immer.",
     free: "Kostenlos",
-    freeLimitFeature: "6 Ausgaben pro Monat",
+    freeLimitFeature: "10 Ausgaben (wiederkehrend + einmalig)",
     statsFeature: "Statistiken",
     pdfFeature: "PDF-Export",
     unlimitedCategoriesFeature: "Unbegrenzte Kategorien",

@@ -16,9 +16,9 @@ const LEGAL_PT = {
       { title: "4. Digitalização de recibos por IA (funcionalidade Pro)", body: "Ao digitalizar um recibo, o texto é extraído diretamente no seu dispositivo (reconhecimento de texto offline). Apenas este texto, nunca a foto em si, é enviado a um serviço de IA de terceiros (Anthropic) para extrair o nome do comerciante, o valor e a data. A foto do recibo permanece armazenada apenas no seu dispositivo." },
       { title: "5. Uso dos dados", body: "Usamos os seus dados apenas para: criar e proteger a sua conta, gerir o acesso Pro, responder a pedidos de suporte, e estruturar o texto dos recibos digitalizados (funcionalidade Pro)." },
       { title: "6. Serviços de terceiros", body: "All My Costs usa: RevenueCat (compras Pro), Google Play (pagamentos), open.er-api.com (taxas de câmbio), Anthropic (estruturação do texto de recibos digitalizados, funcionalidade Pro)." },
-      { title: "7. Conservação", body: "Conta Firebase conservada enquanto ativa; eliminada a pedido. Dados locais (incluindo fotos de recibos) eliminados na desinstalação. O texto enviado para digitalização não é conservado por nós além do processamento imediato." },
+      { title: "7. Conservação", body: "Dados locais (incluindo fotos de recibos) eliminados na desinstalação. O texto enviado para digitalização não é conservado além do processamento imediato." },
       { title: "8. Os seus direitos (RGPD)", body: "Acesso, retificação, eliminação, portabilidade, oposição. Contacto: dev@retro-spare.fr." },
-      { title: "9. Segurança", body: "Autenticação via Firebase. Todas as comunicações encriptadas HTTPS/TLS, incluindo a digitalização de recibos." },
+      { title: "9. Segurança", body: "Todas as comunicações encriptadas HTTPS/TLS, incluindo a digitalização de recibos. Pagamentos protegidos pelo Google Play." },
       { title: "10. Menores", body: "Aplicação não destinada a utilizadores com menos de 13 anos." },
       { title: "11. Contacto", body: "dev@retro-spare.fr" }
     ]
@@ -32,9 +32,9 @@ const LEGAL_PT = {
       { title: "4. Compra única Pro", body: "O acesso Pro está disponível mediante uma compra única de 3,99 € no Google Play. Sem subscrição nem encargos recorrentes." },
       { title: "5. Restaurar compras", body: "Use o botão Restaurar compras nas definições com a mesma conta Google Play." },
       { title: "6. Reembolsos", body: "Os reembolsos são geridos pelo Google Play segundo a sua política." },
-      { title: "7. Uso aceitável", body: "Não contornar limitações, fazer engenharia inversa nem usar a Aplicação ilegalmente." },
+      { title: "7. Uso aceitável", body: "Dados locais (incluindo fotos de recibos) eliminados na desinstalação. O texto enviado para digitalização não é conservado além do processamento imediato." },
       { title: "8. Propriedade intelectual", body: "A Aplicação e o seu conteúdo são propriedade exclusiva de All My Costs." },
-      { title: "9. Limitação de responsabilidade", body: "Aplicação fornecida tal como está. Sem responsabilidade por perda de dados locais ou decisões financeiras." },
+      { title: "9. Limitação de responsabilidade", body: "Todas as comunicações encriptadas HTTPS/TLS, incluindo a digitalização de recibos. Pagamentos protegidos pelo Google Play." },
       { title: "10. Contacto", body: "dev@retro-spare.fr" }
     ]
   }

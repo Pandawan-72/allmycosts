@@ -16,9 +16,9 @@ const LEGAL_DE = {
       { title: "4. KI-gestützter Belegscan (Pro-Funktion)", body: "Beim Scannen eines Belegs wird der Text direkt auf Ihrem Gerät extrahiert (offline, geräteinterne Texterkennung). Nur dieser Text — niemals das Foto selbst — wird an einen Drittanbieter-KI-Dienst (Anthropic) gesendet, um Händlername, Betrag und Datum zu extrahieren. Das Belegfoto bleibt ausschließlich auf Ihrem Gerät gespeichert." },
       { title: "5. Datenverwendung", body: "Wir verwenden Ihre Daten nur für: Konto erstellen und sichern, Pro-Zugang verwalten, Supportanfragen beantworten, gescannten Belegtext strukturieren (Pro-Funktion)." },
       { title: "6. Drittanbieterdienste", body: "All My Costs nutzt: RevenueCat (Pro-Käufe), Google Play (Zahlungen), open.er-api.com (Wechselkurse), Anthropic (Strukturierung von gescanntem Belegtext, Pro-Funktion)." },
-      { title: "7. Speicherdauer", body: "Firebase-Konto wird aufbewahrt, solange es aktiv ist; auf Anfrage gelöscht. Lokale Daten (einschließlich Belegfotos) bei Deinstallation gelöscht. Für den Belegscan gesendeter Text wird von uns nicht über die unmittelbare Verarbeitung hinaus gespeichert." },
+      { title: "7. Speicherdauer", body: "Lokale Daten (einschließlich Belegfotos) bei Deinstallation gelöscht. Für den Belegscan gesendeter Text wird nicht über die unmittelbare Verarbeitung hinaus gespeichert." },
       { title: "8. Ihre Rechte (DSGVO)", body: "Auskunft, Berichtigung, Löschung, Portabilität, Widerspruch. Kontakt: dev@retro-spare.fr." },
-      { title: "9. Sicherheit", body: "Authentifizierung über Firebase. Alle Kommunikationen über HTTPS/TLS verschlüsselt, einschließlich Belegscan." },
+      { title: "9. Sicherheit", body: "Alle Kommunikationen über HTTPS/TLS verschlüsselt, einschließlich Belegscan. Zahlungen über Google Play gesichert." },
       { title: "10. Minderjährige", body: "App nicht für Nutzer unter 13 Jahren bestimmt." },
       { title: "11. Kontakt", body: "dev@retro-spare.fr" }
     ]
@@ -32,9 +32,9 @@ const LEGAL_DE = {
       { title: "4. Pro-Einmalkauf", body: "Pro-Zugang ist als Einmalkauf von 3,99 € über Google Play verfügbar. Kein Abonnement, keine Folgekosten." },
       { title: "5. Käufe wiederherstellen", body: "Verwenden Sie die Schaltfläche Käufe wiederherstellen in den Einstellungen mit demselben Google Play-Konto." },
       { title: "6. Rückerstattungen", body: "Rückerstattungen werden von Google Play gemäß deren Richtlinien abgewickelt." },
-      { title: "7. Zulässige Nutzung", body: "Keine Umgehung von Einschränkungen, kein Reverse Engineering, keine illegale Nutzung." },
+      { title: "7. Zulässige Nutzung", body: "Lokale Daten (einschließlich Belegfotos) bei Deinstallation gelöscht. Für den Belegscan gesendeter Text wird nicht über die unmittelbare Verarbeitung hinaus gespeichert." },
       { title: "8. Geistiges Eigentum", body: "Die App und ihr Inhalt sind ausschließliches Eigentum von All My Costs." },
-      { title: "9. Haftungsbeschränkung", body: "App wird wie besehen bereitgestellt. Keine Haftung für lokale Datenverluste oder finanzielle Entscheidungen." },
+      { title: "9. Haftungsbeschränkung", body: "Alle Kommunikationen über HTTPS/TLS verschlüsselt, einschließlich Belegscan. Zahlungen über Google Play gesichert." },
       { title: "10. Kontakt", body: "dev@retro-spare.fr" }
     ]
   }

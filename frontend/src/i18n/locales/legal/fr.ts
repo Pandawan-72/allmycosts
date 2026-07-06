@@ -16,9 +16,9 @@ const LEGAL_FR = {
       { title: "4. Scan de tickets par intelligence artificielle (fonctionnalité Pro)", body: "Lorsque vous scannez un ticket de caisse, le texte est extrait directement sur votre appareil (reconnaissance optique de caractères locale, hors ligne). Seul ce texte — jamais la photo elle-même — est envoyé à un service d'intelligence artificielle tiers (Anthropic) pour en extraire le nom du commerce, le montant et la date. La photo du ticket reste stockée uniquement sur votre appareil." },
       { title: "5. Utilisation des données", body: "Nous utilisons vos données uniquement pour : créer et sécuriser votre compte, gérer votre accès Pro, répondre à vos demandes de support, et structurer le texte des tickets scannés (fonctionnalité Pro)." },
       { title: "6. Services tiers", body: "All My Costs utilise : RevenueCat (achats Pro), Google Play (paiements), open.er-api.com (taux de change), Anthropic (structuration du texte des tickets scannés, fonctionnalité Pro)." },
-      { title: "7. Conservation", body: "Compte Firebase conservé tant qu'actif, supprimé sur demande. Données locales (y compris photos de tickets) supprimées à la désinstallation. Le texte envoyé pour le scan de tickets n'est pas conservé par nos soins au-delà du traitement immédiat de la requête." },
+      { title: "7. Conservation", body: "Données locales (y compris photos de tickets) supprimées à la désinstallation. Le texte envoyé pour le scan de tickets n'est pas conservé au-delà du traitement immédiat." },
       { title: "8. Vos droits (RGPD)", body: "Accès, rectification, effacement, portabilité, opposition. Contactez-nous à dev@retro-spare.fr." },
-      { title: "9. Sécurité", body: "Authentification via Firebase. Communications chiffrées HTTPS/TLS, y compris pour le scan de tickets." },
+      { title: "9. Sécurité", body: "Toutes les communications sont chiffrées HTTPS/TLS, y compris pour le scan de tickets. Les paiements sont sécurisés par Google Play." },
       { title: "10. Mineurs", body: "Application non destinée aux moins de 13 ans." },
       { title: "11. Contact", body: "dev@retro-spare.fr" }
     ]
@@ -32,9 +32,9 @@ const LEGAL_FR = {
       { title: "4. Achat unique Pro", body: "L'accès Pro est disponible via un achat unique de 3,99 € sur Google Play. Aucun abonnement, aucun frais récurrent." },
       { title: "5. Restauration", body: "Utilisez le bouton Restaurer mes achats dans les paramètres avec le même compte Google Play." },
       { title: "6. Remboursements", body: "Les remboursements sont gérés par Google Play selon leur politique." },
-      { title: "7. Utilisation acceptable", body: "Ne pas contourner les limitations, faire de l'ingénierie inverse ou utiliser l'Application illégalement." },
+      { title: "7. Utilisation acceptable", body: "Données locales (y compris photos de tickets) supprimées à la désinstallation. Le texte envoyé pour le scan de tickets n'est pas conservé au-delà du traitement immédiat." },
       { title: "8. Propriété intellectuelle", body: "L'Application et son contenu sont la propriété exclusive de All My Costs." },
-      { title: "9. Limitation de responsabilité", body: "Application fournie en l'état. Pas de responsabilité pour perte de données locales ou décisions financières." },
+      { title: "9. Limitation de responsabilité", body: "Toutes les communications sont chiffrées HTTPS/TLS, y compris pour le scan de tickets. Les paiements sont sécurisés par Google Play." },
       { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   }

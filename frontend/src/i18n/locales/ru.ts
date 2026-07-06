@@ -113,7 +113,7 @@ const COMMON = {
     unlockEverything: "Откройте всё.",
     onceForever: "Один раз. Навсегда.",
     free: "Бесплатно",
-    freeLimitFeature: "6 расходов в месяц",
+    freeLimitFeature: "10 расходов (регулярных + разовых)",
     statsFeature: "Статистика",
     pdfFeature: "Экспорт в PDF",
     unlimitedCategoriesFeature: "Неограниченные категории",

@@ -20,7 +20,7 @@ La présente Politique de Confidentialité décrit la façon dont **${LEGAL_META
 
 Lors de votre utilisation de l'Application, nous pouvons collecter :
 
-- **Informations de compte** : nom, adresse e-mail (via Firebase Authentication).
+- **Informations de compte** : nom, adresse e-mail ().
 - **Données d'authentification Google** (si vous choisissez Google Sign-In) : nom, e-mail, photo de profil.
 - **Données d'abonnement** : nom, montant, devise, cycle, catégorie et date de prochain paiement de chacune de vos dépenses récurrentes. Ces données sont **stockées exclusivement en local sur votre appareil** et ne sont jamais transmises à nos serveurs.
 - **Données de revenus** : votre revenu mensuel saisi dans l'Application. Ces données sont également **stockées localement** et ne quittent jamais votre appareil.
@@ -30,7 +30,6 @@ Lors de votre utilisation de l'Application, nous pouvons collecter :
 ## 2. Finalités
 
 - Permettre la création et la gestion de votre compte
-- Sécuriser l'accès à vos données (authentification Firebase)
 - Traiter les paiements liés à l'offre Pro (achat unique)
 - Fournir et améliorer les fonctionnalités de l'Application
 - Vous contacter en cas de support utilisateur
@@ -45,7 +44,6 @@ Lors de votre utilisation de l'Application, nous pouvons collecter :
 
 Nous ne vendons ni ne louons vos données. Nous partageons uniquement avec :
 
-- **Google LLC (Firebase)** — authentification des utilisateurs (https://firebase.google.com/support/privacy).
 - **Google LLC (Play Store)** — distribution de l'Application et achats intégrés.
 - **RevenueCat Inc.** — gestion des achats intégrés (https://www.revenuecat.com/privacy).
 - **Open ER API** — taux de change en lecture seule.
@@ -53,7 +51,6 @@ Nous ne vendons ni ne louons vos données. Nous partageons uniquement avec :
 
 ## 5. Conservation
 
-- Compte utilisateur (Firebase) : conservé tant que le compte est actif ; supprimé sur demande.
 - Données locales sur l'appareil : supprimées à la désinstallation de l'Application ou via le bouton « Se déconnecter ».
 
 ## 6. Vos droits (RGPD)
@@ -69,7 +66,7 @@ Pour exercer vos droits, écrivez-nous à **${LEGAL_META.contactEmail}**. Nous v
 
 ## 7. Sécurité
 
-L'authentification est gérée par Firebase Authentication (Google). Toutes les communications sont chiffrées en HTTPS/TLS. Les paiements sont sécurisés par Google Play.
+Toutes les communications sont chiffrées en HTTPS/TLS. Les paiements sont sécurisés par Google Play.
 
 ## 8. Mineurs
 
@@ -177,7 +174,7 @@ This Privacy Policy describes how **${LEGAL_META.appName}** ("the App") collects
 
 ## 1. Data Collected
 
-- **Account information**: name, email address (via Firebase Authentication).
+- **Account information**: name, email address ().
 - **Google authentication data** (if you use Google Sign-In): name, email, profile picture.
 - **Recurring expense data**: stored **locally on your device only**, never sent to our servers.
 - **Income data**: your monthly income entered in the App, stored **locally only**.
@@ -187,7 +184,6 @@ This Privacy Policy describes how **${LEGAL_META.appName}** ("the App") collects
 ## 2. Purposes
 
 - Account creation and management
-- Secure authentication (Firebase)
 - Process Pro plan purchases
 - Provide and improve App features
 
@@ -201,7 +197,6 @@ This Privacy Policy describes how **${LEGAL_META.appName}** ("the App") collects
 
 We do not sell or rent your data. We share only with:
 
-- **Google LLC (Firebase)** — user authentication.
 - **Google LLC (Play Store)** — App distribution and in-app purchases.
 - **RevenueCat Inc.** — in-app purchase management.
 - **Open ER API** — read-only exchange rates.
@@ -209,7 +204,6 @@ We do not sell or rent your data. We share only with:
 
 ## 5. Retention
 
-- User account (Firebase): kept while active; deleted upon request.
 - Local device data: deleted on uninstall or via "Sign out".
 
 ## 6. Your Rights (GDPR)
@@ -218,7 +212,7 @@ Access, correct, erase, restrict, or port your data. Write to **${LEGAL_META.con
 
 ## 7. Security
 
-Authentication via Firebase. All communications encrypted via HTTPS/TLS.
+All communications encrypted via HTTPS/TLS.
 
 ## 8. Minors
 

@@ -111,7 +111,7 @@ const COMMON = {
     unlockEverything: "Ontgrendel alles.",
     onceForever: "Eenmalig. Voor altijd.",
     free: "Gratis",
-    freeLimitFeature: "6 uitgaven per maand",
+    freeLimitFeature: "10 uitgaven (terugkerend + eenmalig)",
     statsFeature: "Statistieken",
     pdfFeature: "PDF-export",
     unlimitedCategoriesFeature: "Onbeperkte categorieën",

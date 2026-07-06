@@ -16,9 +16,9 @@ const LEGAL_EN = {
       { title: "4. AI-powered receipt scanning (Pro feature)", body: "When you scan a receipt, the text is extracted directly on your device (offline, on-device text recognition). Only this text — never the photo itself — is sent to a third-party AI service (Anthropic) to extract the merchant name, amount, and date. The receipt photo remains stored only on your device." },
       { title: "5. Data use", body: "We use your data only to: create and secure your account, manage your Pro access, respond to support requests, and structure scanned receipt text (Pro feature)." },
       { title: "6. Third-party services", body: "All My Costs uses: RevenueCat (Pro purchases), Google Play (payments), open.er-api.com (exchange rates), Anthropic (structuring scanned receipt text, Pro feature)." },
-      { title: "7. Retention", body: "Firebase account kept while active, deleted on request. Local data (including receipt photos) deleted on uninstall. Text sent for receipt scanning is not retained by us beyond immediate processing." },
+      { title: "7. Retention", body: "Local data (including receipt photos) deleted on uninstall. Text sent for receipt scanning is not retained beyond immediate processing." },
       { title: "8. Your rights (GDPR)", body: "Access, correction, deletion, portability, objection. Contact us at dev@retro-spare.fr." },
-      { title: "9. Security", body: "Authentication via Firebase. All communications encrypted via HTTPS/TLS, including receipt scanning." },
+      { title: "9. Security", body: "All communications encrypted via HTTPS/TLS, including receipt scanning. Payments secured by Google Play." },
       { title: "10. Minors", body: "App not intended for users under 13." },
       { title: "11. Contact", body: "dev@retro-spare.fr" }
     ]
@@ -32,9 +32,9 @@ const LEGAL_EN = {
       { title: "4. Pro one-time purchase", body: "Pro access is available as a one-time purchase of €3.99 on Google Play. No subscription, no recurring fees." },
       { title: "5. Restore purchases", body: "Use the Restore purchases button in settings with the same Google Play account." },
       { title: "6. Refunds", body: "Refunds are handled by Google Play per their policy." },
-      { title: "7. Acceptable use", body: "Do not circumvent limitations, reverse-engineer the App, or use it illegally." },
+      { title: "7. Acceptable use", body: "Local data (including receipt photos) deleted on uninstall. Text sent for receipt scanning is not retained beyond immediate processing." },
       { title: "8. Intellectual property", body: "The App and its content are the exclusive property of All My Costs." },
-      { title: "9. Limitation of liability", body: "App provided as is. No liability for local data loss or financial decisions." },
+      { title: "9. Limitation of liability", body: "All communications encrypted via HTTPS/TLS, including receipt scanning. Payments secured by Google Play." },
       { title: "10. Contact", body: "dev@retro-spare.fr" }
     ]
   }
