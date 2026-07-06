@@ -432,27 +432,20 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <View style={styles.headerBrandRow}>
-          <BrandLockup height={40} />
+        <BrandLockup height={36} />
+        <View style={[styles.proBadge, { backgroundColor: isPro ? theme.accent : theme.surfaceAlt }]}>
+          <Text style={[styles.proBadgeText, { color: isPro ? "#fff" : theme.textMuted }]}>{isPro ? "Pro" : "Free"}</Text>
         </View>
-        <View style={styles.headerActionsRow}>
-          {firstName ? (
-            <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
-              <Icons.Star color="#15803D" fill="#15803D" size={13} />
-              <Text testID="home-greeting" style={[styles.greeting, { marginHorizontal: 5 }]} numberOfLines={1}>{t("auth.welcomeName", { name: firstName })}</Text>
-              <Icons.Star color="#15803D" fill="#15803D" size={13} />
-            </View>
-          ) : <View style={{ flex: 1 }} />}
-          <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
-            <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
-          </TouchableOpacity>
-          <TouchableOpacity testID="export-pdf-button" onPress={exportPdf} style={styles.iconBtn}>
-            <Icons.FileDown color={theme.text} size={20} strokeWidth={2} />
-          </TouchableOpacity>
-          <TouchableOpacity testID="settings-button" onPress={() => router.push("/(app)/settings")} style={styles.iconBtn}>
-            <Icons.Settings color={theme.text} size={20} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
+          <Icons.PieChart color={theme.text} size={20} strokeWidth={2} />
+        </TouchableOpacity>
+        <TouchableOpacity testID="export-pdf-button" onPress={exportPdf} style={styles.iconBtn}>
+          <Icons.FileDown color={theme.text} size={20} strokeWidth={2} />
+        </TouchableOpacity>
+        <TouchableOpacity testID="settings-button" onPress={() => router.push("/(app)/settings")} style={styles.iconBtn}>
+          <Icons.Settings color={theme.text} size={20} strokeWidth={2} />
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -797,22 +790,11 @@ function escapeHtml(s: string) {
 function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   header: {
-    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8,
+    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8,
+    flexDirection: "row", alignItems: "center", gap: 8,
   },
-  headerBrandRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-  },
-  headerActionsRow: {
-    flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8,
-  },
-  greeting: {
-    flexShrink: 1,
-    textAlign: "left",
-    fontSize: 15,
-    fontWeight: "700",
-    color: theme.text,
-    letterSpacing: -0.2,
-  },
+  proBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  proBadgeText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
   brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },
   iconBtn: {
     width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",

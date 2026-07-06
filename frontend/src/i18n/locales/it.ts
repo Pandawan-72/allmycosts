@@ -83,11 +83,11 @@ const COMMON = {
     deleteCat: "Elimina categoria", deleteCatConfirm: "Eliminare la categoria {{name}}?",
   },
   settings: {
-    title: "Impostazioni", preferences: "Preferenze", darkMode: "Modalità scura", account: "Account",
+    title: "Impostazioni", proActive: "Accesso Pro attivo", proInactive: "Accesso gratuito", googlePlayAccount: "Account Google Play associato", preferences: "Preferenze", darkMode: "Modalità scura", account: "Account",
     baseCurrency: "Valuta principale", language: "Lingua",
     defaultIncome: "Reddito mensile predefinito", defaultIncomeNotSet: "Non impostato",
     proPlan: "Piano Pro", manage: "Gestisci",
-    notifications: "Promemoria di pagamento", logout: "Esci", version: "Versione",
+    notifications: "Promemoria di pagamento", logout: "Esci", version: "Versione", bugReport: "Segnala un bug", bugSubject: "Segnalazione bug — All My Costs",
     backup: {
       section: "BACKUP",
       exportTitle: "Esporta i miei dati",

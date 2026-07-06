@@ -86,11 +86,11 @@ const COMMON = {
     deleteCat: "Удалить категорию", deleteCatConfirm: "Удалить категорию {{name}}?",
   },
   settings: {
-    title: "Настройки", preferences: "Параметры", darkMode: "Тёмный режим", account: "Аккаунт",
+    title: "Настройки", proActive: "Pro-доступ активен", proInactive: "Бесплатный доступ", googlePlayAccount: "Связанный аккаунт Google Play", preferences: "Параметры", darkMode: "Тёмный режим", account: "Аккаунт",
     baseCurrency: "Основная валюта", language: "Язык",
     defaultIncome: "Доход в месяц по умолчанию", defaultIncomeNotSet: "Не задано",
     proPlan: "Pro-подписка", manage: "Управлять",
-    notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия",
+    notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия", bugReport: "Сообщить об ошибке", bugSubject: "Отчёт об ошибке — All My Costs",
     backup: {
       section: "РЕЗЕРВНАЯ КОПИЯ",
       exportTitle: "Экспортировать данные",

@@ -86,11 +86,11 @@ const COMMON = {
     deleteCat: "Delete category", deleteCatConfirm: "Delete category {{name}}?",
   },
   settings: {
-    title: "Settings", preferences: "Preferences", darkMode: "Dark mode", account: "Account",
+    title: "Settings", proActive: "Pro access active", proInactive: "Free access", googlePlayAccount: "Associated Google Play account", preferences: "Preferences", darkMode: "Dark mode", account: "Account",
     baseCurrency: "Base currency", language: "Language",
     defaultIncome: "Default monthly income", defaultIncomeNotSet: "Not set",
     proPlan: "Pro Plan", manage: "Manage",
-    notifications: "Payment reminders", logout: "Sign out", version: "Version",
+    notifications: "Payment reminders", logout: "Sign out", version: "Version", bugReport: "Report a bug", bugSubject: "Bug report — All My Costs",
     backup: {
       section: "BACKUP",
       exportTitle: "Export my data",

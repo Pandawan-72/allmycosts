@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert, Switch } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert, Switch, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -124,6 +124,16 @@ export default function Settings() {
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 
+        <View style={styles.profileCard}>
+          <View style={[styles.avatar, { backgroundColor: isPro ? theme.accent : "#374151" }]}>
+            <Icons.Crown color="#fff" size={22} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name}>{isPro ? t("settings.proActive") : t("settings.proInactive")}</Text>
+            <Text style={styles.email}>{t("settings.googlePlayAccount")}</Text>
+          </View>
+        </View>
+
         <Text style={styles.section}>{t("settings.preferences")}</Text>
 
         <TouchableOpacity testID="change-currency-row" onPress={() => setShowCurrency(true)} style={styles.row}>
@@ -229,6 +239,18 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => Linking.openURL(`mailto:dev@retro-spare.fr?subject=${encodeURIComponent(t("settings.bugSubject"))}`)}
+          style={[styles.row, { marginTop: 10 }]}
+        >
+          <View style={styles.rowIcon}><Icons.Bug color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.bugReport")}</Text>
+            <Text style={styles.rowSub}>dev@retro-spare.fr</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
         <View testID="app-version-row" style={styles.versionFooter}>
           <Icons.Info color={theme.textSubtle} size={13} strokeWidth={2} />
           <Text style={styles.versionText}>{t("settings.version")} {APP_VERSION} ({APP_BUILD})</Text>
@@ -300,6 +322,10 @@ function makeStyles(theme: any) { return StyleSheet.create({
   header: { paddingHorizontal: 12, paddingVertical: 8, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1, borderBottomColor: theme.border },
   headerBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: { fontSize: 16, fontWeight: "800", color: theme.text },
+  profileCard: { flexDirection: "row", alignItems: "center", gap: 14, padding: 20, backgroundColor: theme.cardBg, borderRadius: 20, marginBottom: 24 },
+  avatar: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+  name: { color: theme.text, fontSize: 16, fontWeight: "800" },
+  email: { color: theme.textMuted, fontSize: 13, marginTop: 2 },
   section: { fontSize: 11, color: theme.textMuted, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 },
   row: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, backgroundColor: theme.surface, borderRadius: 16, borderWidth: 1, borderColor: theme.border },
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: theme.surfaceAlt, alignItems: "center", justifyContent: "center" },

@@ -84,11 +84,11 @@ const COMMON = {
     deleteCat: "Categorie verwijderen", deleteCatConfirm: "Categorie {{name}} verwijderen?",
   },
   settings: {
-    title: "Instellingen", preferences: "Voorkeuren", darkMode: "Donkere modus", account: "Account",
+    title: "Instellingen", proActive: "Pro-toegang actief", proInactive: "Gratis toegang", googlePlayAccount: "Gekoppeld Google Play-account", preferences: "Voorkeuren", darkMode: "Donkere modus", account: "Account",
     baseCurrency: "Hoofdvaluta", language: "Taal",
     defaultIncome: "Standaard maandinkomen", defaultIncomeNotSet: "Niet ingesteld",
     proPlan: "Pro-plan", manage: "Beheren",
-    notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie",
+    notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie", bugReport: "Bug melden", bugSubject: "Bugmelding — All My Costs",
     backup: {
       section: "BACK-UP",
       exportTitle: "Mijn gegevens exporteren",
