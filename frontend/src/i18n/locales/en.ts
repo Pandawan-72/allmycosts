@@ -97,6 +97,7 @@ const COMMON = {
       exportSub: "Save to a file",
       importTitle: "Restore a backup",
       importSub: "Import from a file",
+      importTrialLocked: "Not available during trial — purchase required",
       importConfirmTitle: "Restore a backup",
       importConfirmMsg: "This will replace all your current data. Continue?",
       importSuccess: "Your data has been successfully restored.",

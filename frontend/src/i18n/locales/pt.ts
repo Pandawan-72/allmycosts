@@ -97,6 +97,7 @@ const COMMON = {
       exportSub: "Guardar num ficheiro",
       importTitle: "Restaurar uma cópia",
       importSub: "Importar de um ficheiro",
+      importTrialLocked: "Não disponível durante o teste — compra necessária",
       importConfirmTitle: "Restaurar cópia de segurança",
       importConfirmMsg: "Esta ação substituirá todos os dados atuais. Continuar?",
       importSuccess: "Os seus dados foram restaurados com sucesso.",

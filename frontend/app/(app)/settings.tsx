@@ -24,7 +24,7 @@ export default function Settings() {
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { isPro } = useAuth();
+  const { isPro, isInTrial } = useAuth();
   const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
@@ -48,7 +48,7 @@ export default function Settings() {
   };
 
   const onExport = async () => {
-    if (!isPro) { router.push("/(app)/paywall"); return; }
+    if (!isPro && !isInTrial) { router.push("/(app)/paywall"); return; }
     if (exporting) return;
     setExporting(true);
     try {
@@ -191,13 +191,13 @@ export default function Settings() {
 
         <TouchableOpacity testID="export-backup-row" onPress={onExport} disabled={exporting} style={styles.row}>
           <View style={styles.rowIcon}>
-            {exporting ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.Download color={isPro ? theme.text : theme.textSubtle} size={18} />}
+            {exporting ? <ActivityIndicator size="small" color={theme.text} /> : <Icons.Download color={(isPro || isInTrial) ? theme.text : theme.textSubtle} size={18} />}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.exportTitle")}</Text>
-            <Text style={styles.rowSub}>{isPro ? t("settings.backup.exportSub") : t("settings.backup.proRequired")}</Text>
+            <Text style={styles.rowSub}>{(isPro || isInTrial) ? t("settings.backup.exportSub") : t("settings.backup.proRequired")}</Text>
           </View>
-          {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
+          {(isPro || isInTrial) ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
 
         <TouchableOpacity testID="import-backup-row" onPress={onImport} disabled={importing} style={[styles.row, { marginTop: 10 }]}>
@@ -206,9 +206,9 @@ export default function Settings() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.rowTitle, !isPro && { color: theme.textMuted }]}>{t("settings.backup.importTitle")}</Text>
-            <Text style={styles.rowSub}>{isPro ? t("settings.backup.importSub") : t("settings.backup.proRequired")}</Text>
+            <Text style={styles.rowSub}>{isPro ? t("settings.backup.importSub") : isInTrial ? t("settings.backup.importTrialLocked") : t("settings.backup.proRequired")}</Text>
           </View>
-          {isPro ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
+          {(isPro || isInTrial) ? <Icons.ChevronRight color={theme.textSubtle} size={18} /> : <Icons.Lock color={theme.textSubtle} size={16} />}
         </TouchableOpacity>
 
         <Text style={[styles.section, { marginTop: 24 }]}>{t("legal.aboutSection")}</Text>

@@ -16,8 +16,8 @@ export default function ReceiptScan() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const { isPro } = useAuth();
-  const canUseFeature = isPro;
+  const { isPro, isInTrial } = useAuth();
+  const canUseFeature = isPro || isInTrial;
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);

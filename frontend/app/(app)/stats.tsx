@@ -46,7 +46,7 @@ export default function Stats() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { isPro } = useAuth();
+  const { isPro, isInTrial } = useAuth();
   const { subscriptions, expenses, customCategories, baseCurrency, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
 
@@ -239,7 +239,7 @@ export default function Stats() {
   const maxVal = Math.max(...monthlyData.map((d) => d.value), 0.01);
   const CHART_W = 320, CHART_H = 120, BAR_W = 18, GAP = (CHART_W - 12 * BAR_W) / 13;
 
-  if (!isPro) {
+  if (!isPro && !isInTrial) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
         <View style={styles.header}>

@@ -28,8 +28,8 @@ export default function SubscriptionForm() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const { isPro } = useAuth();
-  const canUseReceiptPhoto = isPro;
+  const { isPro, isInTrial } = useAuth();
+  const canUseReceiptPhoto = isPro || isInTrial;
   const params = useLocalSearchParams<{
     id?: string;
     prefillName?: string;

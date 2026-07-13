@@ -95,6 +95,7 @@ const COMMON = {
       exportSub: "Opslaan in een bestand",
       importTitle: "Back-up herstellen",
       importSub: "Importeren uit een bestand",
+      importTrialLocked: "Niet beschikbaar tijdens proefperiode — aankoop vereist",
       importConfirmTitle: "Back-up herstellen",
       importConfirmMsg: "Deze actie vervangt al uw huidige gegevens. Doorgaan?",
       importSuccess: "Uw gegevens zijn succesvol hersteld.",

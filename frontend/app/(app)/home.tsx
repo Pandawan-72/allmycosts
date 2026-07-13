@@ -34,7 +34,7 @@ export default function Home() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { isPro } = useAuth();
+  const { isPro, isInTrial, trialDaysLeft, trialExpired } = useAuth();
   const { subscriptions, expenses, customCategories, baseCurrency, deleteSubscription, deleteExpense, monthlyIncome, incomeOverrides, getIncomeForMonth, installedAt } = useSubscriptions();
   const { convert } = useFxRatesEUR();
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
@@ -143,13 +143,13 @@ export default function Home() {
   const isOverBudget = effectiveIncome > 0 && displayedRemaining < 0;
   const totalAmount = view === "monthly" ? monthlyTotal : yearlyTotal;
 
-  const showPaywallGate = !isPro;
+  const showPaywallGate = !isPro && !isInTrial;
 
   // Limite combinée gratuite : 6 éléments au total, abonnements récurrents et
   // dépenses ponctuelles confondus. Les plus anciens (par createdAt) restent
   // accessibles en premier ; tout ce qui dépasse est verrouillé.
   const { lockedSubIds, lockedExpenseIds, totalEntriesCount } = useMemo(() => {
-    if (isPro) return { lockedSubIds: new Set<string>(), lockedExpenseIds: new Set<string>(), totalEntriesCount: subscriptions.length + expenses.length };
+    if (isPro || isInTrial) return { lockedSubIds: new Set<string>(), lockedExpenseIds: new Set<string>(), totalEntriesCount: subscriptions.length + expenses.length };
 
     const allEntries = [
       ...subscriptions.map((s) => ({ id: s.id, createdAt: s.createdAt, kind: "sub" as const })),
@@ -164,7 +164,7 @@ export default function Home() {
     });
 
     return { lockedSubIds: lockedSubs, lockedExpenseIds: lockedExps, totalEntriesCount: allEntries.length };
-  }, [subscriptions, expenses, isPro]);
+  }, [subscriptions, expenses, isPro, isInTrial]);
 
 
   /**
@@ -190,7 +190,7 @@ export default function Home() {
    * ============================================================================
    */
   const exportPdf = async () => {
-    if (!isPro) {
+    if (!isPro && !isInTrial) {
       router.push("/(app)/paywall");
       return;
     }
@@ -433,8 +433,8 @@ export default function Home() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <BrandLockup height={36} />
-        <View style={[styles.proBadge, { backgroundColor: isPro ? theme.accent : theme.surfaceAlt }]}>
-          <Text style={[styles.proBadgeText, { color: isPro ? "#fff" : theme.textMuted }]}>{isPro ? "Pro" : "Free"}</Text>
+        <View style={[styles.proBadge, { backgroundColor: (isPro || isInTrial) ? theme.accent : theme.surfaceAlt }]}>
+          <Text style={[styles.proBadgeText, { color: (isPro || isInTrial) ? "#fff" : theme.textMuted }]}>{isPro ? "Pro" : isInTrial ? "Trial" : "Free"}</Text>
         </View>
         <View style={{ flex: 1 }} />
         <TouchableOpacity testID="stats-button" onPress={() => router.push("/(app)/stats")} style={styles.iconBtn}>
@@ -455,6 +455,20 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20 }}
         ListHeaderComponent={
           <View>
+            {isInTrial && !isPro ? (
+              <TouchableOpacity onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: trialDaysLeft <= 3 ? "#FFFBEB" : "#ECFDF5", borderColor: trialDaysLeft <= 3 ? "#F59E0B" : "#10B981" }]}>
+                <Icons.Clock color={trialDaysLeft <= 3 ? "#F59E0B" : "#10B981"} size={16} />
+                <Text style={[styles.trialBannerText, { color: trialDaysLeft <= 3 ? "#92400E" : "#065F46" }]}>{t("home.trialDaysLeft", { count: trialDaysLeft })}</Text>
+                <Icons.ChevronRight color={trialDaysLeft <= 3 ? "#F59E0B" : "#10B981"} size={16} />
+              </TouchableOpacity>
+            ) : null}
+            {trialExpired && !isPro ? (
+              <TouchableOpacity onPress={() => router.push("/(app)/paywall")} style={[styles.trialBanner, { backgroundColor: "#FEF2F2", borderColor: "#EF4444" }]}>
+                <Icons.AlertCircle color="#EF4444" size={16} />
+                <Text style={[styles.trialBannerText, { color: "#991B1B" }]}>{t("home.trialEnded")}</Text>
+                <Icons.ChevronRight color="#EF4444" size={16} />
+              </TouchableOpacity>
+            ) : null}
             <View style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <View style={styles.heroToggle}>
@@ -681,7 +695,7 @@ export default function Home() {
             style={styles.fabMenuItemRow}
             onPress={() => {
               closeFabMenu();
-                if (!isPro) {
+                if (!isPro && !isInTrial) {
                 setTimeout(() => router.push("/(app)/paywall"), 200);
               } else {
                 setTimeout(() => router.push("/(app)/receipt-scan"), 200);
@@ -795,6 +809,8 @@ function makeStyles(theme: any) { return StyleSheet.create({
   },
   proBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   proBadgeText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
+  trialBanner: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginBottom: 8 },
+  trialBannerText: { fontSize: 13, fontWeight: "700", flex: 1 },
   brand: { fontSize: 20, fontWeight: "800", color: theme.text, letterSpacing: -0.3, flexShrink: 1 },
   iconBtn: {
     width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
@@ -867,12 +883,6 @@ function makeStyles(theme: any) { return StyleSheet.create({
     backgroundColor: theme.cardBg, alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 6,
   },
-  trialBanner: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    backgroundColor: theme.accentSoft, borderColor: theme.accent, borderWidth: 1,
-    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginTop: 8,
-  },
-  trialBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: theme.accent },
   proActivatedBanner: { alignSelf: "center", backgroundColor: "transparent", borderWidth: 0, paddingHorizontal: 4, paddingVertical: 6 },
   proActivatedBannerText: { fontSize: 13, fontWeight: "700", color: theme.accent },
   lockedOverlay: {
