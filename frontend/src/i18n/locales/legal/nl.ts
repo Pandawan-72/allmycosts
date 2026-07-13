@@ -11,7 +11,7 @@ const LEGAL_NL = {
     intro: "Dit beleid legt uit hoe All My Costs uw gegevens verzamelt, gebruikt en beschermt.",
     sections: [
       { title: "1. Uitgever", body: "All My Costs wordt uitgegeven door All My Costs. Contact: dev@retro-spare.fr." },
-      { title: "2. Verzamelde gegevens", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (€ 3,99 eenmalige aankoop): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto's." },
+      { title: "2. Verzamelde gegevens", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (eenmalige aankoop, prijs weergegeven op Google Play): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto's." },
       { title: "3. Lokale gegevens", body: "Al uw terugkerende uitgaven, eenmalige uitgaven, bonfoto's en inkomen worden uitsluitend lokaal op uw apparaat opgeslagen en nooit naar onze servers verzonden, behalve de tekst beschreven in artikel 4." },
       { title: "4. AI-bonscan (Pro-functie)", body: "Bij het scannen van een bon wordt de tekst direct op uw apparaat geëxtraheerd (offline tekstherkenning). Alleen deze tekst, nooit de foto zelf, wordt naar een AI-dienst van een derde partij (Anthropic) gestuurd om winkelnaam, bedrag en datum te extraheren. De bonfoto blijft uitsluitend op uw apparaat opgeslagen." },
       { title: "5. Gegevensgebruik", body: "We gebruiken uw gegevens alleen voor: account aanmaken en beveiligen, Pro-toegang beheren, supportverzoeken beantwoorden, gescande bontekst structureren (Pro-functie)." },
@@ -27,9 +27,9 @@ const LEGAL_NL = {
     intro: "Deze Voorwaarden regelen het gebruik van de app All My Costs.",
     sections: [
       { title: "1. Aanvaarding", body: "Door de App te gebruiken, aanvaardt u deze Voorwaarden." },
-      { title: "2. Gratis en Pro-versie", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (€ 3,99 eenmalige aankoop): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto’s." },
+      { title: "2. Gratis en Pro-versie", body: "Gratis: tot 6 uitgaven in totaal (terugkerend en eenmalig samen), maandelijks/jaarlijks totaal, basisvaluta. Pro (eenmalige aankoop, prijs weergegeven op Google Play): onbeperkte uitgaven, statistieken, PDF-export, onbeperkte categorieën, AI-bonscan, opslag en delen van bonfoto’s." },
       { title: "3. 15 dagen gratis proefperiode", body: "Bij de eerste aanmelding krijgt elke gebruiker een gratis proefperiode van 15 dagen met volledige Pro-toegang." },
-      { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop van € 3,99 via Google Play. Geen abonnement, geen terugkerende kosten." },
+      { title: "4. Pro eenmalige aankoop", body: "Pro-toegang is beschikbaar als eenmalige aankoop tegen de prijs die op Google Play wordt weergegeven. Geen abonnement, geen terugkerende kosten." },
       { title: "5. Aankopen herstellen", body: "Gebruik de knop Aankopen herstellen in de instellingen met hetzelfde Google Play-account." },
       { title: "6. Terugbetalingen", body: "Terugbetalingen worden afgehandeld door Google Play volgens hun beleid." },
       { title: "7. Aanvaardbaar gebruik", body: "Lokale gegevens (inclusief bonfoto's) verwijderd bij deïnstallatie. Voor de bonscan verzonden tekst wordt niet bewaard na de onmiddellijke verwerking." },
