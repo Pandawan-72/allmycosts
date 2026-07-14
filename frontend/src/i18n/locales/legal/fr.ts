@@ -1,5 +1,5 @@
 const LEGAL_FR = {
-  lastUpdated: "Dernière mise à jour : 12 juin 2026",
+  lastUpdated: "Dernière mise à jour : 15 juillet 2026",
   editor: "All My Costs",
   contact: "dev@retro-spare.fr",
   country: "France",
@@ -11,7 +11,7 @@ const LEGAL_FR = {
     intro: "Cette politique explique comment All My Costs collecte, utilise et protège vos données.",
     sections: [
       { title: "1. Éditeur", body: "L'application All My Costs est éditée par All My Costs. Contact : dev@retro-spare.fr." },
-      { title: "2. Données collectées", body: "Gratuit : jusqu'à 6 dépenses au total (récurrentes et ponctuelles confondues), total mensuel/annuel, devise de base. Pro (achat unique, prix affiché sur Google Play) : dépenses illimitées, statistiques, export PDF, catégories illimitées, scan de tickets par IA, stockage et partage des photos de tickets." },
+      { title: "2. Données collectées", body: "Gratuit : jusqu'à 10 dépenses au total (récurrentes et ponctuelles confondues), total mensuel/annuel, devise de base. Pro (achat unique, prix affiché sur Google Play) : dépenses illimitées, statistiques, export PDF, catégories illimitées, scan de tickets par IA, stockage et partage des photos de tickets." },
       { title: "3. Données locales", body: "Toutes vos dépenses récurrentes, dépenses ponctuelles, photos de tickets et revenus sont stockés exclusivement en local sur votre appareil. Ils ne sont jamais envoyés à nos serveurs, à l'exception du texte décrit à l'article 4 ci-dessous." },
       { title: "4. Scan de tickets par intelligence artificielle (fonctionnalité Pro)", body: "Lorsque vous scannez un ticket de caisse, le texte est extrait directement sur votre appareil (reconnaissance optique de caractères locale, hors ligne). Seul ce texte — jamais la photo elle-même — est envoyé à un service d'intelligence artificielle tiers (Anthropic) pour en extraire le nom du commerce, le montant et la date. La photo du ticket reste stockée uniquement sur votre appareil." },
       { title: "5. Utilisation des données", body: "Nous utilisons vos données uniquement pour : créer et sécuriser votre compte, gérer votre accès Pro, répondre à vos demandes de support, et structurer le texte des tickets scannés (fonctionnalité Pro)." },
@@ -27,7 +27,7 @@ const LEGAL_FR = {
     intro: "Les présentes CGU régissent l'utilisation de l'application All My Costs.",
     sections: [
       { title: "1. Acceptation", body: "En utilisant l'Application, vous acceptez les présentes CGU." },
-      { title: "2. Version gratuite et Pro", body: "Gratuit : jusqu'à 6 dépenses au total (récurrentes et ponctuelles confondues), total mensuel/annuel, devise de base. Pro (achat unique, prix affiché sur Google Play) : dépenses illimitées, statistiques, export PDF, catégories illimitées, scan de tickets par IA, stockage et partage des photos de tickets." },
+      { title: "2. Version gratuite et Pro", body: "Gratuit : jusqu'à 10 dépenses au total (récurrentes et ponctuelles confondues), total mensuel/annuel, devise de base. Pro (achat unique, prix affiché sur Google Play) : dépenses illimitées, statistiques, export PDF, catégories illimitées, scan de tickets par IA, stockage et partage des photos de tickets." },
       { title: "3. Essai gratuit 15 jours", body: "À la première connexion, chaque utilisateur bénéficie d'un essai gratuit de 15 jours avec accès complet Pro." },
       { title: "4. Achat unique Pro", body: "L'accès Pro est disponible via un achat unique dont le prix est affiché sur Google Play. Aucun abonnement, aucun frais récurrent." },
       { title: "5. Restauration", body: "Utilisez le bouton Restaurer mes achats dans les paramètres avec le même compte Google Play." },
