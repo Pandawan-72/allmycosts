@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert, Switch, Linking } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView, Alert, Switch, Linking, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
@@ -24,7 +24,7 @@ export default function Settings() {
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { isPro, isInTrial } = useAuth();
+  const { isPro, isInTrial, refreshPro } = useAuth();
   const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
@@ -33,6 +33,7 @@ export default function Settings() {
   const [showLang, setShowLang] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [importing, setImporting] = useState(false);
 
   const onRestore = async () => {
@@ -41,6 +42,7 @@ export default function Settings() {
     try {
       if (isRevenueCatSupported()) {
         await restorePurchasesRC();
+        await refreshPro();
       }
     } finally {
       setRestoring(false);
@@ -251,6 +253,14 @@ export default function Settings() {
           <Icons.ChevronRight color={theme.textSubtle} size={18} />
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => setShowAbout(true)} style={[styles.row, { marginTop: 10 }]}>
+          <View style={styles.rowIcon}><Icons.Info color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.aboutTitle")}</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
         <View testID="app-version-row" style={styles.versionFooter}>
           <Icons.Info color={theme.textSubtle} size={13} strokeWidth={2} />
           <Text style={styles.versionText}>{t("settings.version")} {APP_VERSION} ({APP_BUILD})</Text>
@@ -313,6 +323,26 @@ export default function Settings() {
       </Modal>
 
       <IncomeEditorModal visible={showIncomeEditor} onClose={() => setShowIncomeEditor(false)} />
+
+      <Modal visible={showAbout} animationType="slide" onRequestClose={() => setShowAbout(false)}>
+        <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setShowAbout(false)} style={styles.headerBtn}>
+              <Icons.X color={theme.text} size={22} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("settings.aboutTitle")}</Text>
+            <View style={styles.headerBtn} />
+          </View>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 }}>
+            <Image source={require("../../assets/images/icon.png")} style={{ width: 80, height: 80, borderRadius: 20 }} resizeMode="contain" />
+            <Text style={{ fontSize: 20, fontWeight: "900", color: theme.text }}>{t("settings.aboutApp")}</Text>
+            <Text style={{ fontSize: 15, color: theme.textMuted, textAlign: "center", lineHeight: 24 }}>{t("settings.aboutTagline")}</Text>
+            <View style={{ height: 1, backgroundColor: theme.border, width: "60%", marginVertical: 8 }} />
+            <Text style={{ fontSize: 14, color: theme.text, fontWeight: "700", textAlign: "center" }}>{t("settings.aboutDev")}</Text>
+            <Text style={{ fontSize: 13, color: theme.textMuted, textAlign: "center" }}>{t("settings.aboutCountry")}</Text>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

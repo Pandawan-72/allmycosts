@@ -1,7 +1,7 @@
 // AuthContext — Version simplifiée sans Firebase.
 // Pro piloté uniquement par RevenueCat/Google Billing.
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { getCurrentEntitlement } from "@/src/lib/revenuecat";
+import { getCurrentEntitlement, restorePurchasesRC, configureRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
 import { storage } from "@/src/utils/storage";
 
 const FORCE_PRO_FOR_TESTING = false;
@@ -79,10 +79,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (FORCE_PRO_FOR_TESTING) { setIsPro(true); return; }
     setLoading(true);
-    getCurrentEntitlement()
-      .then(setIsPro)
-      .catch(() => setIsPro(false))
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        if (isRevenueCatSupported()) {
+          await configureRC();
+          await restorePurchasesRC();
+        }
+        const entitled = await getCurrentEntitlement();
+        setIsPro(entitled);
+      } catch {
+        setIsPro(false);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   return (

@@ -90,7 +90,7 @@ const COMMON = {
     baseCurrency: "Devise principale", language: "Langue",
     defaultIncome: "Revenu mensuel par défaut", defaultIncomeNotSet: "Non défini",
     proPlan: "Abonnement Pro", manage: "Gérer",
-    notifications: "Rappels de paiement", logout: "Se déconnecter", version: "Version", bugReport: "Signaler un bug", bugSubject: "Signalement de bug — All My Costs",
+    notifications: "Rappels de paiement", logout: "Se déconnecter", version: "Version", bugReport: "Signaler un bug", bugSubject: "Signalement de bug — All My Costs", aboutTitle: "À propos", aboutApp: "All My Costs", aboutTagline: "Gardez le contrôle de vos dépenses, simplement.", aboutDev: "Développé par Retro-Spare — Anthony Gentil", aboutCountry: "France",
     backup: {
       section: "SAUVEGARDE",
       exportTitle: "Exporter mes données",

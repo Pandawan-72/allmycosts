@@ -87,7 +87,7 @@ const COMMON = {
     baseCurrency: "Valuta principale", language: "Lingua",
     defaultIncome: "Reddito mensile predefinito", defaultIncomeNotSet: "Non impostato",
     proPlan: "Piano Pro", manage: "Gestisci",
-    notifications: "Promemoria di pagamento", logout: "Esci", version: "Versione", bugReport: "Segnala un bug", bugSubject: "Segnalazione bug — All My Costs",
+    notifications: "Promemoria di pagamento", logout: "Esci", version: "Versione", bugReport: "Segnala un bug", bugSubject: "Segnalazione bug — All My Costs", aboutTitle: "Informazioni", aboutApp: "All My Costs", aboutTagline: "Tieni sotto controllo le tue spese, semplicemente.", aboutDev: "Sviluppato da Retro-Spare — Anthony Gentil", aboutCountry: "Francia",
     backup: {
       section: "BACKUP",
       exportTitle: "Esporta i miei dati",

@@ -18,7 +18,6 @@ import {
 } from "@/src/lib/revenuecat";
 
 // Business model : lifetime uniquement à 5,99€
-const LIFETIME_PRICE_EUR = 3.99;
 
 function format(amount: number) {
   return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
@@ -29,7 +28,7 @@ export default function Paywall() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const { isPro } = useAuth();
+  const { isPro, refreshPro } = useAuth();
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -48,6 +47,8 @@ export default function Paywall() {
 
   const findPackageByPlan = (plan: RCPlan): RCPackageInfo | null =>
     packages.find((p) => p.plan === plan) || null;
+
+  const lifetimePrice = packages.find(p => p.plan === "lifetime")?.priceString || "";
 
   const onPurchase = async () => {
     setErr(null);
@@ -183,7 +184,7 @@ export default function Paywall() {
               </View>
               <Text style={styles.planName}>{t("paywall.planName")}</Text>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 8 }}>
-                <Text style={styles.planPrice}>{format(LIFETIME_PRICE_EUR)}</Text>
+                <Text style={styles.planPrice}>{lifetimePrice}</Text>
                 <Text style={styles.planUnit}>{t("paywall.onceLabel")}</Text>
               </View>
               <Text style={styles.planDesc}>{t("paywall.planDesc")}</Text>
@@ -196,7 +197,7 @@ export default function Paywall() {
               >
                 {busy
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.planBtnText}>{t("paywall.buyNow", { price: format(LIFETIME_PRICE_EUR) })}</Text>
+                  : <Text style={styles.planBtnText}>{t("paywall.buyNow", { price: lifetimePrice })}</Text>
                 }
               </TouchableOpacity>
             </View>

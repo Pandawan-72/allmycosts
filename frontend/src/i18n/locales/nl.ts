@@ -88,7 +88,7 @@ const COMMON = {
     baseCurrency: "Hoofdvaluta", language: "Taal",
     defaultIncome: "Standaard maandinkomen", defaultIncomeNotSet: "Niet ingesteld",
     proPlan: "Pro-plan", manage: "Beheren",
-    notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie", bugReport: "Bug melden", bugSubject: "Bugmelding — All My Costs",
+    notifications: "Betalingsherinneringen", logout: "Uitloggen", version: "Versie", bugReport: "Bug melden", bugSubject: "Bugmelding — All My Costs", aboutTitle: "Over de app", aboutApp: "All My Costs", aboutTagline: "Houd uw uitgaven eenvoudig onder controle.", aboutDev: "Ontwikkeld door Retro-Spare — Anthony Gentil", aboutCountry: "Frankrijk",
     backup: {
       section: "BACK-UP",
       exportTitle: "Mijn gegevens exporteren",
