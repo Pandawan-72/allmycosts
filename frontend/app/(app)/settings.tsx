@@ -242,6 +242,18 @@ export default function Settings() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          onPress={() => Linking.openURL("market://details?id=fr.retro_spare.allmycosts")}
+          style={[styles.row, { marginTop: 10 }]}
+        >
+          <View style={styles.rowIcon}><Icons.Star color={theme.text} size={18} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{t("settings.rateApp")}</Text>
+            <Text style={styles.rowSub}>{t("settings.rateAppSub")}</Text>
+          </View>
+          <Icons.ChevronRight color={theme.textSubtle} size={18} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={() => Linking.openURL(`mailto:dev@retro-spare.fr?subject=${encodeURIComponent(t("settings.bugSubject"))}`)}
           style={[styles.row, { marginTop: 10 }]}
         >

@@ -90,7 +90,7 @@ const COMMON = {
     baseCurrency: "Основная валюта", language: "Язык",
     defaultIncome: "Доход в месяц по умолчанию", defaultIncomeNotSet: "Не задано",
     proPlan: "Pro-подписка", manage: "Управлять",
-    notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия", bugReport: "Сообщить об ошибке", bugSubject: "Отчёт об ошибке — All My Costs", aboutTitle: "О приложении", aboutApp: "All My Costs", aboutTagline: "Контролируйте свои расходы просто.", aboutDev: "Разработано Retro-Spare — Anthony Gentil", aboutCountry: "Франция",
+    notifications: "Напоминания о платежах", logout: "Выйти", version: "Версия", rateApp: "Оценить в Google Play", rateAppSub: "Ваш отзыв очень важен для нас!", bugReport: "Сообщить об ошибке", bugSubject: "Отчёт об ошибке — All My Costs", aboutTitle: "О приложении", aboutApp: "All My Costs", aboutTagline: "Контролируйте свои расходы просто.", aboutDev: "Разработано Retro-Spare — Anthony Gentil", aboutCountry: "Франция",
     backup: {
       section: "РЕЗЕРВНАЯ КОПИЯ",
       exportTitle: "Экспортировать данные",

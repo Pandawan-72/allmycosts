@@ -90,7 +90,7 @@ const COMMON = {
     baseCurrency: "Base currency", language: "Language",
     defaultIncome: "Default monthly income", defaultIncomeNotSet: "Not set",
     proPlan: "Pro Plan", manage: "Manage",
-    notifications: "Payment reminders", logout: "Sign out", version: "Version", bugReport: "Report a bug", bugSubject: "Bug report — All My Costs", aboutTitle: "About", aboutApp: "All My Costs", aboutTagline: "Keep control of your expenses, simply.", aboutDev: "Developed by Retro-Spare — Anthony Gentil", aboutCountry: "France",
+    notifications: "Payment reminders", logout: "Sign out", version: "Version", rateApp: "Rate on Google Play", rateAppSub: "Your feedback means a lot!", bugReport: "Report a bug", bugSubject: "Bug report — All My Costs", aboutTitle: "About", aboutApp: "All My Costs", aboutTagline: "Keep control of your expenses, simply.", aboutDev: "Developed by Retro-Spare — Anthony Gentil", aboutCountry: "France",
     backup: {
       section: "BACKUP",
       exportTitle: "Export my data",
