@@ -16,7 +16,7 @@ import { restorePurchasesRC, isRevenueCatSupported, configureRC } from "@/src/li
 import { exportBackup, importBackup } from "@/src/lib/backup";
 import { saveReceiptImageFromBase64 } from "@/src/utils/receiptStorage";
 
-const APP_VERSION = "1.06.26";
+const APP_VERSION = "1.07.26";
 const APP_BUILD = "";
 
 export default function Settings() {
