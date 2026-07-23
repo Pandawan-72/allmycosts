@@ -32,7 +32,7 @@ type AuthContextType = {
   user: AuthUser;
   isPro: boolean;
   loading: boolean;
-  refreshPro: () => Promise<void>;
+  applyVerifiedEntitlement: (active: boolean) => void;
   isInTrial: boolean;
   trialDaysLeft: number;
   trialExpired: boolean;
@@ -42,7 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   user: { name: "", isPro: false },
   isPro: false,
   loading: true,
-  refreshPro: async () => {},
+  applyVerifiedEntitlement: () => {},
   isInTrial: false,
   trialDaysLeft: 0,
   trialExpired: false,
@@ -55,14 +55,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const trialInfo = getTrialInfo(installedAt);
 
-  const refreshPro = async () => {
-    if (!isRevenueCatSupported()) {
-      setIsPro(false);
-      return;
-    }
-
-    const entitled = await getCurrentEntitlement();
-    setIsPro(entitled);
+  // Use this when RevenueCat has already returned a verified CustomerInfo from
+  // purchasePackage()/restorePurchases(). Do not immediately re-query
+  // getCustomerInfo(): that second lookup can momentarily read cached state and
+  // overwrite a purchase that RevenueCat has just confirmed.
+  const applyVerifiedEntitlement = (active: boolean) => {
+    setIsPro(active);
   };
 
   useEffect(() => {
@@ -121,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: { name: "", isPro },
       isPro,
       loading,
-      refreshPro,
+      applyVerifiedEntitlement,
       isInTrial: trialInfo.isInTrial,
       trialDaysLeft: trialInfo.daysLeft,
       trialExpired: trialInfo.trialExpired,

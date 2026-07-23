@@ -23,7 +23,7 @@ export default function Settings() {
   const { theme, isDark, toggleTheme } = useTheme();
   const styles = makeStyles(theme);
   const router = useRouter();
-  const { isPro, isInTrial, refreshPro } = useAuth();
+  const { isPro, isInTrial, applyVerifiedEntitlement } = useAuth();
   const { baseCurrency, setBaseCurrency, subscriptions, expenses, customCategories, monthlyIncome, incomeOverrides, setMonthlyIncome, setBaseCurrency: setCurrency, replaceAllSubscriptions, replaceAllExpenses, replaceAllCustomCategories, setIncomeForMonth, installedAt, setInstalledAt } = useSubscriptions();
   const { t } = useTranslation();
   const { lang, setLang } = useLanguage();
@@ -41,7 +41,7 @@ export default function Settings() {
     try {
       if (isRevenueCatSupported()) {
         const restored = await restorePurchasesRC();
-        await refreshPro();
+        applyVerifiedEntitlement(restored);
         if (restored) {
           Alert.alert("✅ Pro restauré !", "Votre accès Pro a été restauré avec succès.");
         } else {

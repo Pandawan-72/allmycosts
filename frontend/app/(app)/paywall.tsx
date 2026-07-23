@@ -23,7 +23,7 @@ export default function Paywall() {
   const styles = makeStyles(theme);
   const router = useRouter();
   const { t } = useTranslation();
-  const { isPro, refreshPro } = useAuth();
+  const { isPro, applyVerifiedEntitlement } = useAuth();
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -82,7 +82,11 @@ export default function Paywall() {
       if (res.userCancelled) return;
       if (!res.entitled) throw new Error(t("paywall.purchaseError"));
 
-      await refreshPro();
+      // purchasePackage() already returned a fresh, verified CustomerInfo.
+      // Apply that entitlement directly to the global React state so every Pro
+      // gate re-renders immediately instead of re-reading a potentially stale
+      // CustomerInfo cache.
+      applyVerifiedEntitlement(true);
       router.replace("/(app)/home");
     } catch (e: any) {
       setErr(e?.message || t("paywall.purchaseError"));
@@ -97,7 +101,7 @@ export default function Paywall() {
     try {
       if (!isRevenueCatSupported()) throw new Error(t("paywall.genericError"));
       const restored = await restorePurchasesRC();
-      await refreshPro();
+      applyVerifiedEntitlement(restored);
       if (!restored) setErr(t("paywall.restoreNone"));
     } catch (e: any) {
       setErr(e?.message || t("paywall.genericError"));
