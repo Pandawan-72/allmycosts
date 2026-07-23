@@ -16,6 +16,7 @@ export type RCPackageInfo = {
 };
 
 let configured = false;
+let configuring: Promise<void> | null = null;
 let purchasesMod: any | null = null;
 
 export function isRevenueCatSupported(): boolean {
@@ -37,21 +38,27 @@ async function loadPurchases(): Promise<any | null> {
 
 export async function configureRC(appUserId?: string | null) {
   if (configured) return;
+  if (configuring) return configuring;
   if (!RC_API_KEY) {
     console.warn("[RC] EXPO_PUBLIC_REVENUECAT_API_KEY missing");
     return;
   }
-  const P = await loadPurchases();
-  if (!P) return; // web fallback
-  try {
-    if (typeof P.setLogLevel === "function" && P.LOG_LEVEL) {
-      P.setLogLevel(P.LOG_LEVEL.WARN);
+  configuring = (async () => {
+    const P = await loadPurchases();
+    if (!P) return;
+    try {
+      if (typeof P.setLogLevel === "function" && P.LOG_LEVEL) {
+        P.setLogLevel(P.LOG_LEVEL.WARN);
+      }
+      P.configure({ apiKey: RC_API_KEY, appUserID: appUserId ?? null });
+      configured = true;
+    } catch (e) {
+      console.warn("[RC] configure failed", e);
+    } finally {
+      configuring = null;
     }
-    P.configure({ apiKey: RC_API_KEY, appUserID: appUserId ?? null });
-    configured = true;
-  } catch (e) {
-    console.warn("[RC] configure failed", e);
-  }
+  })();
+  return configuring;
 }
 
 export async function loginRC(appUserId: string) {
