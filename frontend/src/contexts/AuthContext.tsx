@@ -81,12 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     (async () => {
       try {
-        if (isRevenueCatSupported()) {
-          await configureRC();
-          await restorePurchasesRC();
-        }
         const entitled = await getCurrentEntitlement();
         setIsPro(entitled);
+        if (!entitled && isRevenueCatSupported()) {
+          restorePurchasesRC().then(async (restored) => {
+            if (restored) {
+              const recheck = await getCurrentEntitlement();
+              setIsPro(recheck);
+            }
+          }).catch(() => {});
+        }
       } catch {
         setIsPro(false);
       } finally {

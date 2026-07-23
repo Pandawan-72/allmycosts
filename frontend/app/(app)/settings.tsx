@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, ActivityIndi
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Icons from "lucide-react-native";
-import * as Application from "expo-application";
 
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -13,12 +12,12 @@ import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
-import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
+import { restorePurchasesRC, isRevenueCatSupported, configureRC } from "@/src/lib/revenuecat";
 import { exportBackup, importBackup } from "@/src/lib/backup";
 import { saveReceiptImageFromBase64 } from "@/src/utils/receiptStorage";
 
-const APP_VERSION = Application.nativeApplicationVersion || "1.0.0";
-const APP_BUILD = Application.nativeBuildVersion || "—";
+const APP_VERSION = "1.06.26";
+const APP_BUILD = "";
 
 export default function Settings() {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -41,9 +40,17 @@ export default function Settings() {
     setRestoring(true);
     try {
       if (isRevenueCatSupported()) {
-        await restorePurchasesRC();
+        await configureRC();
+        const restored = await restorePurchasesRC();
         await refreshPro();
+        if (restored) {
+          Alert.alert("✅ Pro restauré !", "Votre accès Pro a été restauré avec succès.");
+        } else {
+          Alert.alert("Aucun achat trouvé", "Aucun achat Pro trouvé sur ce compte Google Play.");
+        }
       }
+    } catch (e: any) {
+      Alert.alert("Erreur", e?.message || "Impossible de restaurer les achats.");
     } finally {
       setRestoring(false);
     }
