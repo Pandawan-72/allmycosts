@@ -82,7 +82,7 @@ function uidExpense() {
 }
 
 export function SubscriptionsProvider({ children }: { children: ReactNode }) {
-  // Clé fixe locale — plus d'authentification Firebase
+  // Clé locale fixe pour les données de l'appareil
   const uidKey = "local_user";
 
   const [loading, setLoading] = useState(true);

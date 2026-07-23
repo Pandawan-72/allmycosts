@@ -797,9 +797,6 @@ export default function Home() {
   );
 }
 
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]!));
-}
 
 function makeStyles(theme: any) { return StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },

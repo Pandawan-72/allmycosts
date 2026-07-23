@@ -1,10 +1,13 @@
-// AuthContext — Version simplifiée sans Firebase.
-// Pro piloté uniquement par RevenueCat/Google Billing.
+// Local app access state + RevenueCat entitlement state.
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { getCurrentEntitlement, restorePurchasesRC, configureRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
+import {
+  configureRC,
+  getCurrentEntitlement,
+  isRevenueCatSupported,
+  subscribeToEntitlementChanges,
+} from "@/src/lib/revenuecat";
 import { storage } from "@/src/utils/storage";
 
-const FORCE_PRO_FOR_TESTING = false;
 const TRIAL_DAYS = 15;
 const INSTALLED_AT_KEY = "amc.local_user.installedAt";
 
@@ -36,9 +39,9 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType>({
-  user: { name: "", isPro: true },
-  isPro: true,
-  loading: false,
+  user: { name: "", isPro: false },
+  isPro: false,
+  loading: true,
   refreshPro: async () => {},
   isInTrial: false,
   trialDaysLeft: 0,
@@ -46,57 +49,71 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isPro, setIsPro] = useState(FORCE_PRO_FOR_TESTING);
-  const [loading, setLoading] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [loading, setLoading] = useState(isRevenueCatSupported());
   const [installedAt, setInstalledAt] = useState<string>("");
 
   const trialInfo = getTrialInfo(installedAt);
 
   const refreshPro = async () => {
-    if (FORCE_PRO_FOR_TESTING) { setIsPro(true); return; }
-    try {
-      const entitled = await getCurrentEntitlement();
-      setIsPro(entitled);
-    } catch {
+    if (!isRevenueCatSupported()) {
       setIsPro(false);
+      return;
     }
+
+    const entitled = await getCurrentEntitlement();
+    setIsPro(entitled);
   };
 
   useEffect(() => {
-    // Charger installedAt depuis le storage dès le démarrage
+    let mounted = true;
+    let unsubscribe: (() => void) | undefined;
+
     (async () => {
       try {
         const stored = await storage.getItem<string>(INSTALLED_AT_KEY, "");
+        if (!mounted) return;
         if (stored) {
           setInstalledAt(stored);
         } else {
           const now = new Date().toISOString();
           await storage.setItem(INSTALLED_AT_KEY, now);
-          setInstalledAt(now);
-        }
-      } catch {}
-    })();
-
-    if (FORCE_PRO_FOR_TESTING) { setIsPro(true); return; }
-    setLoading(true);
-    (async () => {
-      try {
-        const entitled = await getCurrentEntitlement();
-        setIsPro(entitled);
-        if (!entitled && isRevenueCatSupported()) {
-          restorePurchasesRC().then(async (restored) => {
-            if (restored) {
-              const recheck = await getCurrentEntitlement();
-              setIsPro(recheck);
-            }
-          }).catch(() => {});
+          if (mounted) setInstalledAt(now);
         }
       } catch {
-        setIsPro(false);
-      } finally {
-        setLoading(false);
+        // Trial metadata failure must not block app startup.
       }
     })();
+
+    if (!isRevenueCatSupported()) {
+      setLoading(false);
+      return () => { mounted = false; };
+    }
+
+    (async () => {
+      try {
+        // Configure first, then query entitlement. This removes the startup race
+        // where getCustomerInfo()/getOfferings() previously returned before RC
+        // was configured.
+        await configureRC();
+        const entitled = await getCurrentEntitlement();
+        if (mounted) setIsPro(entitled);
+
+        unsubscribe = await subscribeToEntitlementChanges((active) => {
+          if (mounted) setIsPro(active);
+        });
+      } catch (error) {
+        console.warn("[RC] Unable to initialize entitlement state", error);
+        if (mounted) setIsPro(false);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
   }, []);
 
   return (

@@ -15,18 +15,6 @@ export function isValidISODate(s: string): boolean {
   return !isNaN(d.getTime());
 }
 
-// Nombre de jours dans un mois donné (month: 0-11)
-export function daysInMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-// Jour de la semaine (0 = lundi ... 6 = dimanche) du 1er jour du mois,
-// utile pour le calage visuel d'une grille de calendrier.
-export function firstWeekdayOfMonth(year: number, month: number): number {
-  const jsDay = new Date(year, month, 1).getDay(); // 0 = dimanche en JS
-  return (jsDay + 6) % 7; // décale pour que lundi = 0
-}
-
 // Noms des mois abrégés (3-4 lettres), pour les 8 langues de l'app.
 // Utilisé à la place de toLocaleDateString, dont le rendu dépend du moteur
 // JS natif et peut être incohérent entre Android/iOS/langues installées.

@@ -8,20 +8,15 @@ import * as Icons from "lucide-react-native";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import {
-  configureRC,
-  fetchOfferingPackages,
+  fetchLifetimePackage,
   isRevenueCatSupported,
   purchaseRCPackage,
   restorePurchasesRC,
   RCPackageInfo,
-  RCPlan,
 } from "@/src/lib/revenuecat";
 
-// Business model : lifetime uniquement à 5,99€
-
-function format(amount: number) {
-  return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-}
+// Business model: one-time lifetime purchase. The displayed price always
+// comes from Google Play through RevenueCat; there is no hard-coded fallback.
 
 export default function Paywall() {
   const { theme } = useTheme();
@@ -32,35 +27,63 @@ export default function Paywall() {
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [packages, setPackages] = useState<RCPackageInfo[]>([]);
+  const [loadingOffer, setLoadingOffer] = useState(true);
+  const [lifetimePackage, setLifetimePackage] = useState<RCPackageInfo | null>(null);
+
+  const loadOffer = async () => {
+    setLoadingOffer(true);
+    setErr(null);
+    try {
+      if (!isRevenueCatSupported()) {
+        setLifetimePackage(null);
+        return;
+      }
+      const pkg = await fetchLifetimePackage();
+      setLifetimePackage(pkg);
+      if (!pkg?.priceString) setErr(t("paywall.offerUnavailable"));
+    } catch (e: any) {
+      setLifetimePackage(null);
+      setErr(e?.message || t("paywall.offerUnavailable"));
+    } finally {
+      setLoadingOffer(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!isRevenueCatSupported()) return;
-      await configureRC();
-      const pkgs = await fetchOfferingPackages();
-      if (!cancelled) setPackages(pkgs);
+      setLoadingOffer(true);
+      try {
+        if (!isRevenueCatSupported()) return;
+        const pkg = await fetchLifetimePackage();
+        if (!cancelled) {
+          setLifetimePackage(pkg);
+          if (!pkg?.priceString) setErr(t("paywall.offerUnavailable"));
+        }
+      } catch (e: any) {
+        if (!cancelled) setErr(e?.message || t("paywall.offerUnavailable"));
+      } finally {
+        if (!cancelled) setLoadingOffer(false);
+      }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [t]);
 
-  const findPackageByPlan = (plan: RCPlan): RCPackageInfo | null =>
-    packages.find((p) => p.plan === plan) || null;
-
-  const lifetimePrice = packages.find(p => p.plan === "lifetime")?.priceString || "";
+  const lifetimePrice = lifetimePackage?.priceString || "";
 
   const onPurchase = async () => {
     setErr(null);
     setBusy(true);
     try {
-      if (isRevenueCatSupported()) {
-        const pkg = findPackageByPlan("lifetime");
-        if (!pkg) throw new Error(t("paywall.offerUnavailable"));
-        const res = await purchaseRCPackage(pkg.rcPackage);
-        if (res.userCancelled) return;
-          router.replace("/(app)/home");
-      }
+      if (!isRevenueCatSupported()) throw new Error(t("paywall.offerUnavailable"));
+      if (!lifetimePackage) throw new Error(t("paywall.offerUnavailable"));
+
+      const res = await purchaseRCPackage(lifetimePackage.rcPackage);
+      if (res.userCancelled) return;
+      if (!res.entitled) throw new Error(t("paywall.purchaseError"));
+
+      await refreshPro();
+      router.replace("/(app)/home");
     } catch (e: any) {
       setErr(e?.message || t("paywall.purchaseError"));
     } finally {
@@ -72,9 +95,10 @@ export default function Paywall() {
     setErr(null);
     setRestoring(true);
     try {
-      if (isRevenueCatSupported()) {
-        await restorePurchasesRC();
-      }
+      if (!isRevenueCatSupported()) throw new Error(t("paywall.genericError"));
+      const restored = await restorePurchasesRC();
+      await refreshPro();
+      if (!restored) setErr(t("paywall.restoreNone"));
     } catch (e: any) {
       setErr(e?.message || t("paywall.genericError"));
     } finally {
@@ -184,7 +208,10 @@ export default function Paywall() {
               </View>
               <Text style={styles.planName}>{t("paywall.planName")}</Text>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 8 }}>
-                <Text style={styles.planPrice}>{lifetimePrice}</Text>
+                {loadingOffer
+                  ? <ActivityIndicator color={theme.accent} />
+                  : <Text style={styles.planPrice}>{lifetimePrice}</Text>
+                }
                 <Text style={styles.planUnit}>{t("paywall.onceLabel")}</Text>
               </View>
               <Text style={styles.planDesc}>{t("paywall.planDesc")}</Text>
@@ -192,10 +219,10 @@ export default function Paywall() {
               <TouchableOpacity
                 testID="buy-lifetime"
                 onPress={onPurchase}
-                disabled={busy}
-                style={[styles.planBtn, busy && { opacity: 0.6 }]}
+                disabled={busy || loadingOffer || !lifetimePackage || !lifetimePrice}
+                style={[styles.planBtn, (busy || loadingOffer || !lifetimePackage || !lifetimePrice) && { opacity: 0.6 }]}
               >
-                {busy
+                {busy || loadingOffer
                   ? <ActivityIndicator color="#fff" />
                   : <Text style={styles.planBtnText}>{t("paywall.buyNow", { price: lifetimePrice })}</Text>
                 }
@@ -203,7 +230,16 @@ export default function Paywall() {
             </View>
 
             {err ? (
-              <Text testID="paywall-error" style={{ color: theme.danger, textAlign: "center", marginTop: 16 }}>{err}</Text>
+              <View style={{ alignItems: "center", marginTop: 16, gap: 10 }}>
+                <Text testID="paywall-error" style={{ color: theme.danger, textAlign: "center" }}>{err}</Text>
+                {!lifetimePackage && !loadingOffer ? (
+                  <TouchableOpacity testID="retry-offer" onPress={loadOffer}>
+                    <Text style={{ color: theme.accent, fontWeight: "800", textDecorationLine: "underline" }}>
+                      {t("common.retry")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
             ) : null}
 
             <TouchableOpacity testID="restore-link" onPress={onRestore} disabled={restoring} style={{ marginTop: 14, alignSelf: "center" }}>

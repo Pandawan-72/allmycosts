@@ -12,7 +12,7 @@ import { IncomeEditorModal } from "@/src/components/IncomeEditorModal";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { SUPPORTED_LANGS, AppLang } from "@/src/i18n";
-import { restorePurchasesRC, isRevenueCatSupported, configureRC } from "@/src/lib/revenuecat";
+import { restorePurchasesRC, isRevenueCatSupported } from "@/src/lib/revenuecat";
 import { exportBackup, importBackup } from "@/src/lib/backup";
 import { saveReceiptImageFromBase64 } from "@/src/utils/receiptStorage";
 
@@ -40,7 +40,6 @@ export default function Settings() {
     setRestoring(true);
     try {
       if (isRevenueCatSupported()) {
-        await configureRC();
         const restored = await restorePurchasesRC();
         await refreshPro();
         if (restored) {
@@ -249,7 +248,7 @@ export default function Settings() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => Linking.openURL("market://details?id=fr.retro_spare.allmycosts")}
+          onPress={() => Linking.openURL("market://details?id=com.allmycosts.app")}
           style={[styles.row, { marginTop: 10 }]}
         >
           <View style={styles.rowIcon}><Icons.Star color={theme.text} size={18} /></View>

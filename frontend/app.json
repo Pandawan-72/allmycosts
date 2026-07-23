@@ -14,14 +14,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.allmycosts.app",
-      "googleServicesFile": "./google-services.json",
       "resizeableActivity": true,
-      "allowBackup": true
+      "allowBackup": true,
+      "permissions": [
+        "com.android.vending.BILLING"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,27 +35,21 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF"
         }
       ],
-      "expo-font",
       "expo-localization",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.463162671102-gkqmbm3govr37drv5q3k3l8brjl66l65"
-        }
-      ],
       [
         "expo-image-picker",
         {
           "photosPermission": "Permettez l'accès à vos photos pour scanner un ticket de caisse depuis votre galerie.",
           "cameraPermission": "Permettez l'accès à votre appareil photo pour scanner un ticket de caisse."
         }
-      ]
+      ],
+      "./plugins/withAndroidProductionConfig"
     ],
     "experiments": {
       "typedRoutes": true
